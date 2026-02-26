@@ -44,7 +44,7 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
     const splitAmounts = splitExpense(input.totalAmount, input.participants, input.split);
     const splits = input.participants.map(userId => ({
       userId,
-      amount: splitAmounts[userId],
+      amount: splitAmounts[userId]!,
     }));
 
     // Write expense + splits atomically in one Postgres transaction.
@@ -96,7 +96,7 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
     const splitAmounts = splitExpense(totalAmount, participants, split);
     const splits = participants.map(userId => ({
       userId,
-      amount: splitAmounts[userId],
+      amount: splitAmounts[userId]!,
     }));
 
     // Write atomically — deletes old splits and inserts new ones in one transaction.

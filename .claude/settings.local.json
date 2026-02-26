@@ -18,7 +18,10 @@
       "Bash(npx shadcn@latest init --yes)",
       "Bash(node -e \":*)",
       "Bash(npx shadcn@latest init --defaults)",
-      "Bash(npm ls clsx tailwind-merge)"
+      "Bash(npm ls clsx tailwind-merge)",
+      "Bash(test -d \"c:\\\\Privat\\\\50Pfennig\\\\android\")",
+      "Bash(test -d \"c:\\\\Privat\\\\50Pfennig\\\\dist\")",
+      "Bash(npm run build)"
     ]
   }
 }

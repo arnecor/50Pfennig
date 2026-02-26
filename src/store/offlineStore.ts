@@ -11,4 +11,4 @@
  * See ADR-0004 for the offline-first strategy.
  */
 
-export { useOfflineStore } from '../lib/storage/offlineQueue';
+export {};

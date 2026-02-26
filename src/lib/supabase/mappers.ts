@@ -90,7 +90,7 @@ export const mapSettlement = (row: SettlementRow): Settlement => ({
   fromUserId:  row.from_user_id as UserId,
   toUserId:    row.to_user_id   as UserId,
   amount:      money(row.amount),
-  note:        row.note ?? undefined,
+  ...(row.note != null ? { note: row.note } : {}),
   createdAt:   new Date(row.created_at),
 });
 

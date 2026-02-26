@@ -62,7 +62,7 @@ export const allocate = (total: Money, ratios: readonly number[]): Money[] => {
   const indexed = exactShares.map((s, i) => ({ i, frac: s - Math.floor(s) }));
   indexed.sort((a, b) => b.frac - a.frac);
   for (let k = 0; k < remainder; k++) {
-    floored[indexed[k].i] += 1;
+    floored[indexed[k]!.i]! += 1;
   }
 
   return floored.map(money);

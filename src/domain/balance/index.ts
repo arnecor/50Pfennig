@@ -111,8 +111,8 @@ export const simplifyDebts = (balances: BalanceMap): DebtInstruction[] => {
   let di = 0;
 
   while (ci < creditors.length && di < debtors.length) {
-    const creditor = creditors[ci];
-    const debtor   = debtors[di];
+    const creditor = creditors[ci]!;
+    const debtor   = debtors[di]!;
     const amount   = money(Math.min(creditor.amount, debtor.amount));
 
     instructions.push({ fromUserId: debtor.userId, toUserId: creditor.userId, amount });
