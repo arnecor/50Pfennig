@@ -7,8 +7,15 @@
  * each with a net balance summary. FAB or header button to create a group.
  */
 
-// TODO: Implement
+import { useAuth } from '../features/auth/hooks/useAuth';
 
 export default function GroupsPage() {
-  return null;
+  const { user } = useAuth();
+
+  return (
+    <div>
+      <p>Logged in as: {user?.email}</p>
+      <p>User ID: {user?.id}</p>
+    </div>
+  );
 }
