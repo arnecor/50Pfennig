@@ -68,7 +68,18 @@
   },
   "account": {
     "title": "Account",
-    "placeholder_description": "Manage your account here."
+    "profile_section_title": "Profile",
+    "display_name_label": "Display name",
+    "display_name_placeholder": "What should we call you?",
+    "email_label": "Email",
+    "edit_display_name_aria": "Edit display name",
+    "save_display_name_aria": "Save display name",
+    "cancel_edit_aria": "Cancel editing",
+    "error_update_failed": "Could not save name. Please try again.",
+    "language_section_title": "Language",
+    "language_de": "Deutsch",
+    "language_en": "English",
+    "session_section_title": "Session"
   },
   "settlements": {
     "title": "Settlements",

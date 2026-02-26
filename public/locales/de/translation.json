@@ -69,7 +69,18 @@
   },
   "account": {
     "title": "Konto",
-    "placeholder_description": "Hier verwaltest du dein Konto."
+    "profile_section_title": "Profil",
+    "display_name_label": "Anzeigename",
+    "display_name_placeholder": "Wie soll man dich nennen?",
+    "email_label": "E-Mail",
+    "edit_display_name_aria": "Anzeigename bearbeiten",
+    "save_display_name_aria": "Anzeigename speichern",
+    "cancel_edit_aria": "Bearbeitung abbrechen",
+    "error_update_failed": "Name konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    "language_section_title": "Sprache",
+    "language_de": "Deutsch",
+    "language_en": "English",
+    "session_section_title": "Sitzung"
   },
   "settlements": {
     "title": "Zahlungen",

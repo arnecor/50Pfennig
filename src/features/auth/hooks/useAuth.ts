@@ -37,11 +37,20 @@ export const useAuth = () => {
     await router.navigate({ to: '/login' });
   }, [router]);
 
+  const updateDisplayName = useCallback(async (name: string) => {
+    const { error } = await supabase.auth.updateUser({
+      data: { display_name: name.trim() },
+    });
+    if (error) throw error;
+    // onAuthStateChange fires USER_UPDATED → authStore.setSession() auto-updates
+  }, []);
+
   return {
     user:    session?.user ?? null,
     session,
     signIn,
     signUp,
     signOut,
+    updateDisplayName,
   };
 };
