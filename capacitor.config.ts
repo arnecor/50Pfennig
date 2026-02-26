@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.50pfennig.app',
+  appId: 'com.pfennig50.app',
   appName: '50Pfennig',
 
   // Vite build output directory

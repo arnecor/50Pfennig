@@ -21,7 +21,12 @@
       "Bash(npm ls clsx tailwind-merge)",
       "Bash(test -d \"c:\\\\Privat\\\\50Pfennig\\\\android\")",
       "Bash(test -d \"c:\\\\Privat\\\\50Pfennig\\\\dist\")",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(npx cap add android)",
+      "Bash(npm install --save-dev @capacitor/cli)",
+      "Bash(npm install @capacitor/android)",
+      "Bash(npm install @capacitor/android@^6.0.0)",
+      "Bash(npx cap sync android)"
     ]
   }
 }
