@@ -33,6 +33,8 @@ import GroupsPage      from '../pages/GroupsPage';
 import GroupDetailPage from '../pages/GroupDetailPage';
 import ExpenseFormPage from '../pages/ExpenseFormPage';
 import SettlementsPage from '../pages/SettlementsPage';
+import BalancesPage    from '../pages/BalancesPage';
+import AccountPage     from '../pages/AccountPage';
 import { requireAuth, requireGuest } from './guards';
 
 // ---------------------------------------------------------------------------
@@ -99,6 +101,20 @@ const settlementsRoute = createRoute({
   component:      SettlementsPage,
 });
 
+const balancesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/balances',
+  beforeLoad:     requireAuth,
+  component:      BalancesPage,
+});
+
+const accountRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/account',
+  beforeLoad:     requireAuth,
+  component:      AccountPage,
+});
+
 // ---------------------------------------------------------------------------
 // Route tree + router instance
 // ---------------------------------------------------------------------------
@@ -110,6 +126,8 @@ const routeTree = rootRoute.addChildren([
   expenseNewRoute,
   expenseEditRoute,
   settlementsRoute,
+  balancesRoute,
+  accountRoute,
 ]);
 
 export const router = createRouter({

@@ -52,12 +52,22 @@
       "split_percentage": "Percentage"
     }
   },
+  "nav": {
+    "groups": "Groups",
+    "balances": "Balances",
+    "account": "Account"
+  },
   "balances": {
     "title": "Balances",
+    "placeholder_description": "Here you'll see what you owe your friends — and what they owe you.",
     "you_are_owed": "You are owed {{amount}}",
     "you_owe": "You owe {{amount}}",
     "settled_up": "All settled up",
     "simplify": "Simplified payments"
+  },
+  "account": {
+    "title": "Account",
+    "placeholder_description": "Manage your account here."
   },
   "settlements": {
     "title": "Settlements",
