@@ -1,0 +1,71 @@
+{
+  "_comment": "English (en) — secondary locale. Must mirror the structure of de/translation.json.",
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "loading": "Loading…",
+    "error_generic": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "sign_in": "Sign in",
+    "sign_out": "Sign out",
+    "sign_up": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot password?",
+    "sign_in_title": "Welcome back",
+    "sign_in_subtitle": "Sign in to see your groups.",
+    "sign_up_title": "Create an account",
+    "sign_up_subtitle": "Sign up to get started.",
+    "email_placeholder": "you@example.com",
+    "password_placeholder": "At least 6 characters",
+    "switch_to_sign_up": "No account? Sign up",
+    "switch_to_sign_in": "Already have an account? Sign in",
+    "error_invalid_credentials": "Incorrect email or password.",
+    "error_email_taken": "This email address is already in use.",
+    "error_weak_password": "Password must be at least 6 characters."
+  },
+  "groups": {
+    "title": "Groups",
+    "create": "Create group",
+    "empty_title": "No groups yet",
+    "empty_description": "Create a group to start tracking shared expenses.",
+    "members": "Members",
+    "add_member": "Add member"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "add": "Add expense",
+    "empty_title": "No expenses yet",
+    "empty_description": "Add the first expense for this group.",
+    "form": {
+      "description_label": "Description",
+      "description_placeholder": "What was paid for?",
+      "amount_label": "Amount",
+      "paid_by_label": "Paid by",
+      "split_type_label": "Split",
+      "split_equal": "Equal",
+      "split_exact": "Exact amounts",
+      "split_percentage": "Percentage"
+    }
+  },
+  "balances": {
+    "title": "Balances",
+    "you_are_owed": "You are owed {{amount}}",
+    "you_owe": "You owe {{amount}}",
+    "settled_up": "All settled up",
+    "simplify": "Simplified payments"
+  },
+  "settlements": {
+    "title": "Settlements",
+    "record": "Record payment",
+    "empty_title": "No settlements yet",
+    "from": "From",
+    "to": "To",
+    "amount_label": "Amount",
+    "note_label": "Note (optional)"
+  }
+}

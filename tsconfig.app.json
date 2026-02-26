@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    /* Language & environment */
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+
+    /* Modules */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+
+    /* Path aliases — must match vite.config.ts resolve.alias */
+    "baseUrl": ".",
+    "paths": {
+      "@/*":             ["./src/*"],
+      "@domain/*":       ["src/domain/*"],
+      "@lib/*":          ["src/lib/*"],
+      "@repositories/*": ["src/repositories/*"],
+      "@features/*":     ["src/features/*"],
+      "@pages/*":        ["src/pages/*"],
+      "@components/*":   ["src/components/*"],
+      "@store/*":        ["src/store/*"],
+      "@router/*":       ["src/router/*"]
+    },
+
+    /* Strict mode — all of it */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+
+    /* Output */
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+
+    /* Interop */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true
+  },
+  "include": ["src"]
+}

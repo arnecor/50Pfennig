@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test -f /c/Privat/50Pfennig/package.json)",
+      "Bash(npm test)",
+      "Bash(supabase --version)",
+      "Bash(docker --version)",
+      "Bash(supabase start)",
+      "Bash(supabase db reset)",
+      "Bash(npm run db:types)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node -e \"require\\(''@tanstack/react-router''\\)\")",
+      "Bash(node -e \"const p = require\\(''./package.json''\\); const deps = {...p.dependencies,...p.devDependencies}; [''@tanstack/react-query'',''@tanstack/react-query-persist-client'',''@tanstack/react-router'',''zustand'',''i18next'',''react-i18next'',''i18next-http-backend'',''idb-keyval''].forEach\\(k => console.log\\(k, deps[k]\\)\\)\")",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(timeout 8 npm run dev)",
+      "Bash(npx shadcn@latest add button input label card --yes)",
+      "Bash(npx shadcn@latest init --yes)",
+      "Bash(node -e \":*)",
+      "Bash(npx shadcn@latest init --defaults)",
+      "Bash(npm ls clsx tailwind-merge)"
+    ]
+  }
+}
