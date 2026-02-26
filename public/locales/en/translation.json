@@ -30,6 +30,7 @@
   },
   "groups": {
     "title": "Groups",
+    "placeholder_description": "HEre yo see the group overview",
     "create": "Create group",
     "empty_title": "No groups yet",
     "empty_description": "Create a group to start tracking shared expenses.",
