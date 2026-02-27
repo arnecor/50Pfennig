@@ -83,6 +83,39 @@ public/
 
 ---
 
+## Implementation Status
+
+These files exist as documented stubs — they export empty objects/null and are **not yet implemented**:
+
+- `src/features/groups/groupQueries.ts`
+- `src/features/expenses/expenseQueries.ts`
+- `src/features/balances/hooks/useGroupBalances.ts`
+- `src/lib/storage/offlineQueue.ts`
+- `src/lib/storage/syncService.ts`
+- `src/components/shared/MoneyDisplay.tsx` (returns null)
+
+Most feature-level hooks and components are scaffolds. The fully implemented foundation is: domain layer, repository implementations, database schema, auth, routing, and stores.
+
+---
+
+## Path Aliases
+
+Configured in `vite.config.ts` and `tsconfig.app.json`. Always prefer aliases over relative `../` imports.
+
+| Alias | Resolves to |
+|---|---|
+| `@/*` | `src/*` |
+| `@domain/*` | `src/domain/*` |
+| `@lib/*` | `src/lib/*` |
+| `@repositories/*` | `src/repositories/*` |
+| `@features/*` | `src/features/*` |
+| `@pages/*` | `src/pages/*` |
+| `@components/*` | `src/components/*` |
+| `@store/*` | `src/store/*` |
+| `@router/*` | `src/router/*` |
+
+---
+
 ## Dependency Rule — Non-Negotiable
 
 ```
@@ -94,6 +127,23 @@ pages/        →  imports from features/ and router/ only
 
 If you find yourself importing Supabase inside a feature hook, stop — use the repository instead.
 If you find yourself importing React inside `domain/`, stop — it must stay pure.
+
+---
+
+## Routes
+
+| Path | Component | Guard |
+|---|---|---|
+| `/login` | `LoginPage` | `requireGuest` — redirects to `/groups` if already authed |
+| `/groups` | `GroupsPage` | `requireAuth` |
+| `/groups/:groupId` | `GroupDetailPage` | `requireAuth` |
+| `/groups/:groupId/expenses/new` | `ExpenseFormPage` (create) | `requireAuth` |
+| `/groups/:groupId/expenses/:expenseId/edit` | `ExpenseFormPage` (edit) | `requireAuth` |
+| `/groups/:groupId/settlements` | `SettlementsPage` | `requireAuth` |
+| `/balances` | `BalancesPage` | `requireAuth` |
+| `/account` | `AccountPage` | `requireAuth` |
+
+Guards (`src/router/guards.tsx`) run in TanStack Router's `beforeLoad`. They call `useAuthStore.getState()` (not the hook) and `throw redirect(...)`.
 
 ---
 
@@ -116,10 +166,105 @@ If you find yourself importing React inside `domain/`, stop — it must stay pur
 - The RPC function inserts `expenses` + `expense_splits` atomically in one Postgres transaction.
 - The `expense_splits` rows are the computed snapshot of the split algorithm at write time. They are immutable financial history.
 
+**RPC signatures** (always call through repository, never directly in features):
+```typescript
+supabase.rpc('create_expense', {
+  p_group_id:    GroupId,
+  p_description: string,
+  p_total_amount: number,                              // cents
+  p_paid_by:     UserId,
+  p_split_type:  'equal' | 'exact' | 'percentage',
+  p_split_config: Json,                               // serialiseSplitConfig(split)
+  p_splits: { user_id: string; amount: number }[],   // serialiseSplits(splitResult)
+})  // → returns expense row
+
+supabase.rpc('update_expense', {
+  p_expense_id: ExpenseId,
+  // + same remaining params as create_expense
+})  // → returns expense row
+```
+After calling either RPC, fetch splits separately:
+```typescript
+supabase.from('expense_splits').select('*').eq('expense_id', id)
+```
+
+**Serializer utilities** (in `src/lib/supabase/mappers.ts`):
+- `serialiseSplitConfig(split: ExpenseSplit): Json`
+- `serialiseSplits(splits: Record<UserId, Money>): { user_id: string; amount: number }[]`
+
+### ExpenseSplit (discriminated union)
+```typescript
+type EqualSplit      = { type: 'equal' }
+type ExactSplit      = { type: 'exact'; amounts: Record<UserId, Money> }
+type PercentageSplit = { type: 'percentage'; basisPoints: Record<UserId, number> }
+type ExpenseSplit    = EqualSplit | ExactSplit | PercentageSplit
+```
+- `split_config` (JSONB) stores the full `ExpenseSplit`.
+- `split_type` column mirrors the `type` field for SQL indexing.
+
 ### Repositories
 - Features call `IExpenseRepository`, `IGroupRepository`, etc. — never the Supabase client directly.
 - Offline mutation queue logic lives inside repository implementations, not in feature hooks.
 - Adding a new data operation: add to the interface in `repositories/types.ts` first, then implement.
+
+---
+
+## Database Schema
+
+> Source of truth: `supabase/migrations/0001_initial_schema.sql`. All monetary columns are **integer cents**.
+
+### `groups`
+| column | type | notes |
+|---|---|---|
+| id | uuid PK | |
+| name | text | 1–100 chars |
+| created_by | uuid FK auth.users | |
+| created_at | timestamptz | |
+
+### `group_members`
+| column | type | notes |
+|---|---|---|
+| user_id | uuid FK auth.users | composite PK |
+| group_id | uuid FK groups | composite PK, cascade |
+| display_name | text | 1–80 chars |
+| joined_at | timestamptz | |
+
+### `expenses`
+| column | type | notes |
+|---|---|---|
+| id | uuid PK | |
+| group_id | uuid FK groups | cascade |
+| description | text | 1–200 chars |
+| total_amount | integer | cents > 0 |
+| paid_by | uuid FK auth.users | |
+| split_type | enum | `'equal'` \| `'exact'` \| `'percentage'` |
+| split_config | jsonb | serialized `ExpenseSplit` |
+| created_by | uuid FK auth.users | |
+| created_at | timestamptz | |
+| updated_at | timestamptz | auto-updated by trigger |
+
+### `expense_splits`
+| column | type | notes |
+|---|---|---|
+| id | uuid PK | |
+| expense_id | uuid FK expenses | cascade |
+| user_id | uuid FK auth.users | unique with expense_id |
+| amount | integer | cents ≥ 0 |
+
+### `settlements`
+| column | type | notes |
+|---|---|---|
+| id | uuid PK | |
+| group_id | uuid FK groups | cascade |
+| from_user_id | uuid FK auth.users | payer (≠ to_user_id) |
+| to_user_id | uuid FK auth.users | receiver |
+| amount | integer | cents > 0 |
+| note | text | nullable |
+| created_at | timestamptz | |
+
+### RLS & helpers
+- All tables have RLS enabled. Access is gated on `is_group_member(group_id)` (SECURITY DEFINER function).
+- Never bypass RLS by using a service role key in feature code.
 
 ---
 
@@ -138,11 +283,26 @@ If you find yourself importing React inside `domain/`, stop — it must stay pur
 - Cache is persisted to IndexedDB (7-day TTL). Works offline.
 
 **Zustand** owns UI and device-local state:
+
+`authStore` (`src/features/auth/authStore.ts`):
+```typescript
+session:     Session | null   // null = not signed in
+isHydrated:  boolean          // false until first onAuthStateChange fires
+setSession:  (s: Session | null) => void
+setHydrated: () => void
 ```
-uiStore:     selectedGroupId, activeSheet, expenseFormDraft
-offlineStore: mutation queue (persisted to IndexedDB)
-authStore:   session, isHydrated
+> Outside React (route guards, sync service): `useAuthStore.getState().session` — not the hook.
+
+`uiStore` (`src/store/uiStore.ts`):
+```typescript
+selectedGroupId:    GroupId | null
+activeSheet:        'add-expense' | 'record-settlement' | 'add-member' | null
+setSelectedGroupId: (id: GroupId | null) => void
+openSheet:          (sheet: NonNullable<typeof activeSheet>) => void
+closeSheet:         () => void
 ```
+
+`offlineStore`: mutation queue — **not yet implemented** (see `src/lib/storage/offlineQueue.ts` stub for the planned `QueuedMutation` shape).
 
 **Never put in Zustand:** group/expense/settlement data, computed balances, navigation history.
 **Never put in TanStack Query:** UI state, auth session, offline queue.
@@ -235,6 +395,29 @@ return <p>{t("expenses.form.description_placeholder")}</p>;
 // { "expenses": { "form": { "description_placeholder": "Was wurde bezahlt?" } } }
 ```
 
+### Writing a DB mapper (`src/lib/supabase/mappers.ts`)
+
+Mappers are pure functions — no DB calls inside, ever.
+
+```typescript
+import type { Database } from '@lib/supabase/types.gen';
+type GroupMemberRow = Database['public']['Tables']['group_members']['Row'];
+
+export const mapGroupMember = (row: GroupMemberRow): GroupMember => ({
+  userId:      row.user_id  as UserId,   // always cast DB strings to branded ID types
+  groupId:     row.group_id as GroupId,
+  displayName: row.display_name,
+  joinedAt:    new Date(row.joined_at),  // convert ISO string → Date
+});
+```
+
+Key patterns:
+- **Cent columns**: `money(row.total_amount)` — never assign raw integer to `Money`
+- **JSONB columns**: `row.split_config as unknown as ExpenseSplit`
+- **Optional fields**: `...(row.note != null ? { note: row.note } : {})`
+- **Joins**: `supabase.from('x').select('*, related(*)')` then cast `(row as typeof row & { related: unknown[] })`
+- **User display name**: `user.user_metadata?.['display_name'] ?? user.email ?? user.id`
+
 ### Deriving balances in a component
 ```typescript
 // No fetch — derive from cached data
@@ -264,6 +447,13 @@ const balances = useMemo(
 ---
 
 ## Common Commands
+
+**Environment variables** — create `.env.local` (git-ignored, never committed):
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+For local dev: run `npm run db:start`, then `supabase status` to get the URL and anon key.
 
 ```bash
 npm run dev           # Start Vite dev server
