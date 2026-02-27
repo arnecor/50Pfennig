@@ -95,6 +95,7 @@ npm run db:reset      # Reset local DB and re-run all migrations
 
 npx cap sync android  # Sync web build to Android project (run after npm run build)
 npx cap open android  # Open Android Studio
+npm run build && npx cap sync android # # Build and run in adnroid
 ```
 
 ---
