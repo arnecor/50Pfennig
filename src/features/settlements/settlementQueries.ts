@@ -10,6 +10,12 @@
  * Balance display updates automatically (derives from expense + settlement cache).
  */
 
-// TODO: Implement
+import { queryOptions } from '@tanstack/react-query';
+import { settlementRepository } from '@repositories';
+import type { GroupId } from '@domain/types';
 
-export {};
+export const settlementsQueryOptions = (groupId: GroupId) =>
+  queryOptions({
+    queryKey: ['settlements', groupId] as const,
+    queryFn: () => settlementRepository.getByGroupId(groupId),
+  });
