@@ -3,9 +3,12 @@
  * scripts/seed.js
  *
  * Creates test data for the 50Pfennig development database:
- *   - 10 test users (profiles auto-created via trigger)
+ *   - 1 fixed user (arne@arne.de / 123456)
+ *   - 10 random test users (testuser1…10@test.example.com / 123456)
  *   - 3 groups with max 4 members each (some users appear in multiple groups)
  *   - At least 3 expenses per group with equal / exact / percentage splits
+ *   - Friendships between selected users (Arne + testusers 1–4; testuser1 + testusers 4, 5)
+ *   - 3 friend expenses (group_id = null) between friends
  *
  * Usage:
  *   npm run db:seed
@@ -13,7 +16,7 @@
  * Reads SUPABASE_URL and SUPABASE_SERVICE_KEY from .env.local automatically.
  * Get the service key from `npm run db:status` → Secret.
  *
- * All random test users share the password: password123
+ * All random test users share the password: 123456
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -66,7 +69,6 @@ function equalSplits(totalAmount, userIds) {
  */
 function exactSplits(totalAmount, userIds) {
   const n = userIds.length;
-  // Reserve 1 cent per person, then distribute the pool randomly.
   const pool = totalAmount - n;
   const cuts = Array.from({ length: n - 1 }, () =>
     Math.floor(Math.random() * (pool + 1)),
@@ -96,7 +98,7 @@ function percentageSplits(totalAmount, userIds) {
 
   const amounts = bps.map(bp => Math.floor((totalAmount * bp) / 10000));
   const diff = totalAmount - amounts.reduce((s, a) => s + a, 0);
-  amounts[0] += diff; // correct rounding error
+  amounts[0] += diff;
 
   const basisPoints = Object.fromEntries(userIds.map((uid, i) => [uid, bps[i]]));
 
@@ -111,7 +113,6 @@ function percentageSplits(totalAmount, userIds) {
 const GROUP_DEFS = [
   {
     name: 'WG Sonnenallee',
-    // users 0, 1, 2, 3
     memberIndices: [0, 1, 2, 3],
     expenses: [
       { description: 'Supermarkt Wocheneinkauf', min: 3000, max: 12000 },
@@ -122,7 +123,6 @@ const GROUP_DEFS = [
   },
   {
     name: 'Campingtrip Ostsee',
-    // users 2, 4, 5, 6  →  user 2 overlaps with group 0
     memberIndices: [2, 4, 5, 6],
     expenses: [
       { description: 'Campingplatz Gebühr', min: 8000, max: 20000 },
@@ -134,7 +134,6 @@ const GROUP_DEFS = [
   },
   {
     name: 'Büro Mittagessen',
-    // users 0, 7, 8, 9  →  user 0 overlaps with group 0
     memberIndices: [0, 7, 8, 9],
     expenses: [
       { description: 'Italiener vom Donnerstag', min: 4500, max: 8000 },
@@ -146,6 +145,41 @@ const GROUP_DEFS = [
 
 // Rotate through split types so every type appears at least once per group.
 const SPLIT_CYCLE = ['equal', 'percentage', 'exact', 'equal'];
+
+// Friend pairs: [indexA, indexB] — always stored with smaller index as requester
+// (enforced by the unordered unique index on the DB side).
+// Arne (0) is friends with testusers 1, 2, 3, 4.
+// testuser1 (1) is also friends with testusers 4 and 5.
+const FRIEND_PAIRS = [
+  [0, 1],
+  [0, 2],
+  [0, 3],
+  [0, 4],
+  [1, 4],
+  [1, 5],
+];
+
+// Friend expenses — group_id will be null.
+const FRIEND_EXPENSE_DEFS = [
+  {
+    description:      'Pizza Abend',
+    paidByIndex:      0,   // Arne pays
+    participantIndices: [0, 1, 2],
+    min: 2500, max: 5000,
+  },
+  {
+    description:      'Taxi nach Hause',
+    paidByIndex:      1,   // testuser1 pays
+    participantIndices: [0, 1],
+    min: 1500, max: 3000,
+  },
+  {
+    description:      'Kinotickets',
+    paidByIndex:      0,   // Arne pays
+    participantIndices: [0, 1, 4],
+    min: 2000, max: 4000,
+  },
+];
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -168,19 +202,18 @@ async function main() {
 
   // ── Step 1b: Create 10 random test users ──────────────────────────────────
   console.log('👤  Creating 10 test users…');
-  // arneUser is prepended so he appears in every group (index 0 is always a member).
   const users = [arneUser];
 
   for (let i = 0; i < 10; i++) {
     const firstName = faker.person.firstName();
-    const lastName = faker.person.lastName();
-    const email = `testuser${i + 1}@test.example.com`;
+    const lastName  = faker.person.lastName();
+    const email     = `testuser${i + 1}@test.example.com`;
 
     const data = must(
       `createUser ${email}`,
       await supabase.auth.admin.createUser({
         email,
-        password: 'password123',
+        password: '123456',
         email_confirm: true,
         user_metadata: { display_name: `${firstName} ${lastName}` },
       }),
@@ -188,6 +221,25 @@ async function main() {
 
     users.push(data.user);
     console.log(`  ✓  ${email}  →  ${firstName} ${lastName}`);
+  }
+
+  // ── Step 1c: Create friendships ───────────────────────────────────────────
+  console.log('\n🤝  Creating friendships…');
+
+  for (const [a, b] of FRIEND_PAIRS) {
+    // Always store with smaller-indexed user as requester (matches DB constraint).
+    const requesterId = users[Math.min(a, b)].id;
+    const addresseeId = users[Math.max(a, b)].id;
+
+    must(
+      `friendship ${a}↔${b}`,
+      await supabase.from('friendships').insert({
+        requester_id: requesterId,
+        addressee_id: addresseeId,
+        status: 'accepted',
+      }),
+    );
+    console.log(`  ✓  user[${a}] ↔ user[${b}]`);
   }
 
   // ── Step 2 + 3: Create groups and add members ─────────────────────────────
@@ -210,11 +262,9 @@ async function main() {
     groups.push(group);
     console.log(`  ✓  "${name}"  (${memberIndices.length} members)`);
 
-    // Add members — group_members.user_id FK now references profiles.id,
-    // which has the same UUID as auth.users.id (see migration 0002).
     const memberRows = memberIndices.map(i => ({
       group_id: group.id,
-      user_id: users[i].id,
+      user_id:  users[i].id,
     }));
 
     must(
@@ -223,47 +273,43 @@ async function main() {
     );
   }
 
-  // ── Step 4: Create expenses + splits per group ────────────────────────────
-  console.log('\n💸  Creating expenses…');
+  // ── Step 4: Create group expenses + splits ────────────────────────────────
+  console.log('\n💸  Creating group expenses…');
 
   for (let g = 0; g < GROUP_DEFS.length; g++) {
-    const groupDef = GROUP_DEFS[g];
-    const group = groups[g];
+    const groupDef  = GROUP_DEFS[g];
+    const group     = groups[g];
     const memberIds = groupDef.memberIndices.map(i => users[i].id);
 
     console.log(`\n  Group: "${group.name}"`);
 
     for (let e = 0; e < groupDef.expenses.length; e++) {
-      const expDef = groupDef.expenses[e];
+      const expDef      = groupDef.expenses[e];
       const totalAmount = faker.number.int({ min: expDef.min, max: expDef.max });
-      const paidBy = faker.helpers.arrayElement(memberIds);
-      const splitType = SPLIT_CYCLE[e % SPLIT_CYCLE.length];
+      const paidBy      = faker.helpers.arrayElement(memberIds);
+      const splitType   = SPLIT_CYCLE[e % SPLIT_CYCLE.length];
 
       let splits;
       let splitConfig;
 
       if (splitType === 'equal') {
-        splits = equalSplits(totalAmount, memberIds);
+        splits      = equalSplits(totalAmount, memberIds);
         splitConfig = { type: 'equal' };
       } else if (splitType === 'exact') {
-        splits = exactSplits(totalAmount, memberIds);
+        splits      = exactSplits(totalAmount, memberIds);
         splitConfig = {
-          type: 'exact',
+          type:    'exact',
           amounts: Object.fromEntries(splits.map(s => [s.user_id, s.amount])),
         };
       } else {
-        // percentage
-        const pct = percentageSplits(totalAmount, memberIds);
-        splits = pct.splits;
+        const pct   = percentageSplits(totalAmount, memberIds);
+        splits      = pct.splits;
         splitConfig = pct.config;
       }
 
-      // Sanity check: splits must sum exactly to totalAmount
       const splitSum = splits.reduce((s, r) => s + r.amount, 0);
       if (splitSum !== totalAmount) {
-        console.error(
-          `  ✗  Split sum mismatch for "${expDef.description}": ${splitSum} !== ${totalAmount}`,
-        );
+        console.error(`  ✗  Split sum mismatch for "${expDef.description}": ${splitSum} !== ${totalAmount}`);
         process.exit(1);
       }
 
@@ -272,13 +318,13 @@ async function main() {
         await supabase
           .from('expenses')
           .insert({
-            group_id: group.id,
-            description: expDef.description,
+            group_id:     group.id,
+            description:  expDef.description,
             total_amount: totalAmount,
-            paid_by: paidBy,
-            split_type: splitType,
+            paid_by:      paidBy,
+            split_type:   splitType,
             split_config: splitConfig,
-            created_by: paidBy,
+            created_by:   paidBy,
           })
           .select()
           .single(),
@@ -296,11 +342,50 @@ async function main() {
     }
   }
 
+  // ── Step 5: Create friend expenses (group_id = null) ─────────────────────
+  console.log('\n💸  Creating friend expenses…');
+
+  for (const def of FRIEND_EXPENSE_DEFS) {
+    const totalAmount    = faker.number.int({ min: def.min, max: def.max });
+    const paidBy         = users[def.paidByIndex].id;
+    const participantIds = def.participantIndices.map(i => users[i].id);
+    const splits         = equalSplits(totalAmount, participantIds);
+
+    const expense = must(
+      `createFriendExpense "${def.description}"`,
+      await supabase
+        .from('expenses')
+        .insert({
+          group_id:     null,
+          description:  def.description,
+          total_amount: totalAmount,
+          paid_by:      paidBy,
+          split_type:   'equal',
+          split_config: { type: 'equal' },
+          created_by:   paidBy,
+        })
+        .select()
+        .single(),
+    );
+
+    must(
+      `insertFriendSplits "${def.description}"`,
+      await supabase.from('expense_splits').insert(
+        splits.map(s => ({ expense_id: expense.id, user_id: s.user_id, amount: s.amount })),
+      ),
+    );
+
+    const euros = (totalAmount / 100).toFixed(2);
+    console.log(`  ✓  "${def.description}"  ${euros} €  [equal, no group]`);
+  }
+
   // ── Summary ───────────────────────────────────────────────────────────────
   console.log('\n✅  Seed complete!\n');
-  console.log('   Fixed:    arne@arne.de  /  123456  (WG Sonnenallee + Büro Mittagessen)');
-  console.log('   Random:   testuser1@test.example.com … testuser10@test.example.com  /  password123');
-  console.log('   Groups:   WG Sonnenallee, Campingtrip Ostsee, Büro Mittagessen\n');
+  console.log('   Fixed:      arne@arne.de  /  123456');
+  console.log('   Random:     testuser1@test.example.com … testuser10@test.example.com  /  123456');
+  console.log('   Groups:     WG Sonnenallee, Campingtrip Ostsee, Büro Mittagessen');
+  console.log('   Friendships: Arne ↔ testusers 1–4 | testuser1 ↔ testusers 4, 5');
+  console.log('   Friend expenses: Pizza Abend, Taxi nach Hause, Kinotickets\n');
 }
 
 main().catch(err => {

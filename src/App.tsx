@@ -43,7 +43,13 @@ export default function App() {
   // we set isHydrated so the router can start running its guards.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          // Wipe the in-memory cache and the IndexedDB snapshot so the next
+          // user never sees stale data from the previous session.
+          queryClient.clear();
+          idbPersister.removeClient();
+        }
         setSession(session);
         setHydrated();
       },

@@ -16,6 +16,7 @@
       "@/*":             ["./src/*"],
       "@domain/*":       ["src/domain/*"],
       "@lib/*":          ["src/lib/*"],
+      "@repositories":   ["src/repositories/index.ts"],
       "@repositories/*": ["src/repositories/*"],
       "@features/*":     ["src/features/*"],
       "@pages/*":        ["src/pages/*"],

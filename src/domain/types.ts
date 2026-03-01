@@ -19,11 +19,28 @@
 declare const __brand: unique symbol;
 type Brand<T, B> = T & { readonly [__brand]: B };
 
-export type Money       = Brand<number, 'Money'>;       // always integer cents
-export type UserId      = Brand<string, 'UserId'>;
-export type GroupId     = Brand<string, 'GroupId'>;
-export type ExpenseId   = Brand<string, 'ExpenseId'>;
+export type Money        = Brand<number, 'Money'>;       // always integer cents
+export type UserId       = Brand<string, 'UserId'>;
+export type GroupId      = Brand<string, 'GroupId'>;
+export type ExpenseId    = Brand<string, 'ExpenseId'>;
 export type SettlementId = Brand<string, 'SettlementId'>;
+export type FriendshipId = Brand<string, 'FriendshipId'>;
+
+// ---------------------------------------------------------------------------
+// Friendship types
+// ---------------------------------------------------------------------------
+
+export type FriendshipStatus = 'pending' | 'accepted';
+
+/**
+ * A resolved friend — the "other" user in an accepted friendship.
+ * Used for the participant picker and friends tab.
+ */
+export type Friend = {
+  readonly userId:       UserId;
+  readonly displayName:  string;
+  readonly friendshipId: FriendshipId;
+};
 
 /** Construct a Money value. Throws if the value is not an integer. */
 export const money = (cents: number): Money => {
@@ -96,7 +113,7 @@ export type ExpenseSplitRecord = {
 
 export type Expense = {
   readonly id: ExpenseId;
-  readonly groupId: GroupId;
+  readonly groupId: GroupId | null; // null = friend expense (not associated with a group)
   readonly description: string;
   readonly totalAmount: Money;
   readonly paidBy: UserId;          // who paid the full amount upfront
@@ -109,7 +126,7 @@ export type Expense = {
 
 export type Settlement = {
   readonly id: SettlementId;
-  readonly groupId: GroupId;
+  readonly groupId: GroupId | null; // null = friend settlement (not associated with a group)
   readonly fromUserId: UserId; // who paid (sent money)
   readonly toUserId: UserId;   // who received money
   readonly amount: Money;

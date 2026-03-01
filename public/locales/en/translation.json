@@ -54,6 +54,7 @@
       "amount_error_positive": "Amount must be greater than 0.",
       "paid_by_label": "Paid by",
       "split_with_label": "Split with",
+      "split_with_placeholder": "Tap to select…",
       "participants_error": "At least one person must be selected.",
       "split_type_label": "Split",
       "split_equal": "Equal",
@@ -61,13 +62,19 @@
       "split_exact": "Exact amounts",
       "split_percentage": "Percentage",
       "submit": "Add expense",
-      "you_badge": "You"
+      "you_badge": "You",
+      "picker_title": "Split with",
+      "picker_groups_section": "Groups",
+      "picker_friends_section": "Friends",
+      "picker_search": "Search…",
+      "picker_confirm": "Confirm",
+      "picker_no_results": "No results"
     }
   },
   "nav": {
     "home": "Home",
     "groups": "Groups",
-    "balances": "Balances",
+    "friends": "Friends",
     "account": "Account"
   },
   "home": {
@@ -75,16 +82,12 @@
     "you_are_owed": "You are owed",
     "you_owe": "You owe",
     "total": "Total",
-    "add_expense": "Add expense",
-    "pick_group": "For which group?"
+    "add_expense": "Add expense"
   },
-  "balances": {
-    "title": "Balances",
-    "placeholder_description": "Here you'll see what you owe your friends — and what they owe you.",
-    "you_are_owed": "You are owed {{amount}}",
-    "you_owe": "You owe {{amount}}",
-    "settled_up": "All settled up",
-    "simplify": "Simplified payments"
+  "friends": {
+    "title": "Friends",
+    "empty_title": "No friends yet",
+    "empty_description": "Add friends to split expenses with them."
   },
   "account": {
     "title": "Account",

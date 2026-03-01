@@ -18,6 +18,7 @@ An ADR captures a significant architectural decision: the context that led to it
 | [0008](0008-tanstack-router.md) | TanStack Router over React Router | Accepted |
 | [0009](0009-balances-never-stored.md) | Balances Are Never Stored — Always Derived | Accepted |
 | [0010](0010-i18n-from-day-one.md) | i18n Scaffolding from Day One (German + English) | Accepted |
+| [0011](0011-friends-and-flexible-expenses.md) | Friends Entity and Flexible Expense Context | Accepted |
 
 ## How to add a new ADR
 

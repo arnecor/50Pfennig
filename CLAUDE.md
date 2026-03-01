@@ -27,7 +27,13 @@ src/
 ├── domain/          # Pure TypeScript — ZERO deps on React, Supabase, or any library
 ├── lib/             # Infrastructure adapters (impure, side-effectful)
 ├── repositories/    # Data access abstraction — features never call Supabase directly
-├── features/        # Self-contained feature modules
+├── features/
+│   ├── auth/
+│   ├── balances/    # useTotalBalance — cross-group + cross-friend
+│   ├── expenses/    # ExpenseForm, ParticipantPicker, mutation hooks, query options
+│   ├── friends/     # useFriends hook (UI for adding friends is a future issue)
+│   ├── groups/
+│   └── settlements/
 ├── pages/           # Route-level components — thin wrappers, no business logic
 ├── components/
 ├── store/
@@ -82,6 +88,7 @@ Details: `@docs/state-management.md`
 4. Every user-visible string goes through `t('key')` — no hardcoded strings
 5. `src/domain/` has zero imports from outside itself
 6. Expense + splits are always written in a single Postgres transaction (via RPC)
+7. `expenses.group_id` is **nullable** — `NULL` means friend expense; a set value means group expense. Never mix both in one expense.
 
 ## Load for specific topics
 

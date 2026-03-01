@@ -38,6 +38,21 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
     });
   }
 
+  async getByParticipant(): Promise<Expense[]> {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*, expense_splits(*)')
+      .is('group_id', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? []).map((row) => {
+      const splits = (row as typeof row & { expense_splits: unknown[] }).expense_splits;
+      return mapExpense(row, splits as never[]);
+    });
+  }
+
   async create(input: CreateExpenseInput): Promise<Expense> {
     // Compute the per-user split snapshot using the domain algorithm.
     // This snapshot is stored in expense_splits and is immutable history.
@@ -49,7 +64,7 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
 
     // Write expense + splits atomically in one Postgres transaction.
     const { data: expenseRow, error } = await supabase.rpc('create_expense', {
-      p_group_id:     input.groupId,
+      p_group_id:     (input.groupId ?? null) as string, // null is valid; generated types don't reflect nullable param
       p_description:  input.description,
       p_total_amount: input.totalAmount,
       p_paid_by:      input.paidBy,

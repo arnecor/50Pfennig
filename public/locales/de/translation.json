@@ -55,6 +55,7 @@
       "amount_error_positive": "Der Betrag muss größer als 0 sein.",
       "paid_by_label": "Bezahlt von",
       "split_with_label": "Teilen mit",
+      "split_with_placeholder": "Tippen zum Auswählen…",
       "participants_error": "Mindestens eine Person muss ausgewählt sein.",
       "split_type_label": "Aufteilung",
       "split_equal": "Gleich",
@@ -62,13 +63,19 @@
       "split_exact": "Exakte Beträge",
       "split_percentage": "Prozentual",
       "submit": "Ausgabe hinzufügen",
-      "you_badge": "Du"
+      "you_badge": "Du",
+      "picker_title": "Teilen mit",
+      "picker_groups_section": "Gruppen",
+      "picker_friends_section": "Freunde",
+      "picker_search": "Suchen…",
+      "picker_confirm": "Übernehmen",
+      "picker_no_results": "Keine Ergebnisse"
     }
   },
   "nav": {
     "home": "Start",
     "groups": "Gruppen",
-    "balances": "Bilanzen",
+    "friends": "Freunde",
     "account": "Konto"
   },
   "home": {
@@ -76,16 +83,12 @@
     "you_are_owed": "Du bekommst",
     "you_owe": "Du schuldest",
     "total": "Gesamt",
-    "add_expense": "Ausgabe hinzufügen",
-    "pick_group": "Für welche Gruppe?"
+    "add_expense": "Ausgabe hinzufügen"
   },
-  "balances": {
-    "title": "Bilanzen",
-    "placeholder_description": "Hier siehst du, was du deinen Freunden schuldest — und was sie dir schulden.",
-    "you_are_owed": "Du bekommst {{amount}}",
-    "you_owe": "Du schuldest {{amount}}",
-    "settled_up": "Alles beglichen",
-    "simplify": "Optimierte Zahlungen"
+  "friends": {
+    "title": "Freunde",
+    "empty_title": "Noch keine Freunde",
+    "empty_description": "Freunde hinzufügen, um Ausgaben zu teilen."
   },
   "account": {
     "title": "Konto",
