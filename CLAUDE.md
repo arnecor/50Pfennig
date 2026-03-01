@@ -85,16 +85,15 @@ public/
 
 ## Implementation Status
 
-These files exist as documented stubs — they export empty objects/null and are **not yet implemented**:
+These files are still stubs — they export empty objects/null and are **not yet implemented**:
 
-- `src/features/groups/groupQueries.ts`
-- `src/features/expenses/expenseQueries.ts`
-- `src/features/balances/hooks/useGroupBalances.ts`
-- `src/lib/storage/offlineQueue.ts`
-- `src/lib/storage/syncService.ts`
-- `src/components/shared/MoneyDisplay.tsx` (returns null)
+| File | Blocked on |
+|---|---|
+| `src/features/balances/hooks/useGroupBalances.ts` | Ready to implement — `useExpenses` and `useSettlements` are done |
+| `src/lib/storage/offlineQueue.ts` | Needs Capacitor Network plugin wired up (`src/lib/capacitor/network.ts`) |
+| `src/lib/storage/syncService.ts` | Needs `offlineQueue.ts` first |
 
-Most feature-level hooks and components are scaffolds. The fully implemented foundation is: domain layer, repository implementations, database schema, auth, routing, and stores.
+The fully implemented foundation is: domain layer, repository implementations, database schema, auth, routing, stores, and the groups/expenses/settlements query layers.
 
 ---
 
@@ -417,6 +416,19 @@ Key patterns:
 - **Optional fields**: `...(row.note != null ? { note: row.note } : {})`
 - **Joins**: `supabase.from('x').select('*, related(*)')` then cast `(row as typeof row & { related: unknown[] })`
 - **User display name**: `user.user_metadata?.['display_name'] ?? user.email ?? user.id`
+
+### Getting the current user's ID as a branded type
+
+`useAuth()` returns `user.id` as a plain `string`. When you need a typed `UserId` in a component, read from `useAuthStore` directly and cast:
+
+```typescript
+import { useAuthStore } from '@features/auth/authStore';
+import type { UserId } from '@domain/types';
+
+const userId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
+```
+
+Do not use `useAuth()` just to get the user ID — it pulls in the router and navigation callbacks unnecessarily.
 
 ### Deriving balances in a component
 ```typescript
