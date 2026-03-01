@@ -12,6 +12,12 @@
  * because it derives from the same cached expense data.
  */
 
-// TODO: Implement after TanStack Query and expenseRepository are set up.
+import { queryOptions } from '@tanstack/react-query';
+import { expenseRepository } from '@repositories/index';
+import type { GroupId } from '@domain/types';
 
-export {};
+export const expensesQueryOptions = (groupId: GroupId) =>
+  queryOptions({
+    queryKey: ['expenses', groupId] as const,
+    queryFn:  () => expenseRepository.getByGroupId(groupId),
+  });

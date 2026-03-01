@@ -15,6 +15,9 @@
  *   onSettled → invalidate to refetch authoritative data
  */
 
-// TODO: Implement
+import { useQuery } from '@tanstack/react-query';
+import { expensesQueryOptions } from '../expenseQueries';
+import type { GroupId } from '@domain/types';
 
-export {};
+export const useExpenses = (groupId: GroupId) =>
+  useQuery(expensesQueryOptions(groupId));

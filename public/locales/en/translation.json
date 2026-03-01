@@ -54,9 +54,17 @@
     }
   },
   "nav": {
+    "home": "Home",
     "groups": "Groups",
     "balances": "Balances",
     "account": "Account"
+  },
+  "home": {
+    "greeting": "Hello, {{name}}!",
+    "you_are_owed": "You are owed",
+    "you_owe": "You owe",
+    "total": "Total",
+    "add_expense": "Add expense"
   },
   "balances": {
     "title": "Balances",

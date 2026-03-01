@@ -55,9 +55,17 @@
     }
   },
   "nav": {
+    "home": "Start",
     "groups": "Gruppen",
     "balances": "Bilanzen",
     "account": "Konto"
+  },
+  "home": {
+    "greeting": "Hallo, {{name}}!",
+    "you_are_owed": "Du bekommst",
+    "you_owe": "Du schuldest",
+    "total": "Gesamt",
+    "add_expense": "Ausgabe hinzufügen"
   },
   "balances": {
     "title": "Bilanzen",

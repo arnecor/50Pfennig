@@ -9,6 +9,9 @@
  *   useDeleteSettlement()      → mutation: remove a settlement
  */
 
-// TODO: Implement
+import { useQuery } from '@tanstack/react-query';
+import { settlementsQueryOptions } from '../settlementQueries';
+import type { GroupId } from '@domain/types';
 
-export {};
+export const useSettlements = (groupId: GroupId) =>
+  useQuery(settlementsQueryOptions(groupId));

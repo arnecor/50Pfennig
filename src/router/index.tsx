@@ -28,6 +28,7 @@ import {
 import type { QueryClient } from '@tanstack/react-query';
 
 import AppShell        from '../components/layout/AppShell';
+import HomePage        from '../pages/HomePage';
 import LoginPage       from '../pages/LoginPage';
 import GroupsPage      from '../pages/GroupsPage';
 import GroupDetailPage from '../pages/GroupDetailPage';
@@ -45,9 +46,9 @@ type RouterContext = { queryClient: QueryClient };
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: AppShell,
-  // Redirect bare "/" to "/groups"
+  // Redirect bare "/" to "/home"
   beforeLoad: ({ location }) => {
-    if (location.pathname === '/') throw redirect({ to: '/groups' });
+    if (location.pathname === '/') throw redirect({ to: '/home' });
   },
 });
 
@@ -65,6 +66,13 @@ const loginRoute = createRoute({
 // ---------------------------------------------------------------------------
 // Protected routes — accessible only when authenticated
 // ---------------------------------------------------------------------------
+
+const homeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/home',
+  beforeLoad:     requireAuth,
+  component:      HomePage,
+});
 
 const groupsRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -120,6 +128,7 @@ const accountRoute = createRoute({
 // ---------------------------------------------------------------------------
 
 const routeTree = rootRoute.addChildren([
+  homeRoute,
   loginRoute,
   groupsRoute,
   groupDetailRoute,
