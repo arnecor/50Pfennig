@@ -28,9 +28,9 @@ export const requireAuth = () => {
 
 /**
  * Use as `beforeLoad` on the /login route.
- * Redirects to /groups if the user is already signed in.
+ * Redirects to /home if the user is already signed in.
  */
 export const requireGuest = () => {
   const { session } = useAuthStore.getState();
-  if (session) throw redirect({ to: '/groups' });
+  if (session) throw redirect({ to: '/home' });
 };
