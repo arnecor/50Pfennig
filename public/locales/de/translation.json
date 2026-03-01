@@ -76,7 +76,8 @@
     "you_are_owed": "Du bekommst",
     "you_owe": "Du schuldest",
     "total": "Gesamt",
-    "add_expense": "Ausgabe hinzufügen"
+    "add_expense": "Ausgabe hinzufügen",
+    "pick_group": "Für welche Gruppe?"
   },
   "balances": {
     "title": "Bilanzen",

@@ -75,7 +75,8 @@
     "you_are_owed": "You are owed",
     "you_owe": "You owe",
     "total": "Total",
-    "add_expense": "Add expense"
+    "add_expense": "Add expense",
+    "pick_group": "For which group?"
   },
   "balances": {
     "title": "Balances",

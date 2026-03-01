@@ -2,17 +2,30 @@
 -- 50Pfennig — Local Development Seed Data
 -- =============================================================================
 --
--- HOW TO APPLY (users already exist — do NOT run db:reset):
---   1. Open Supabase Studio → http://localhost:54323
---   2. Go to SQL Editor
---   3. Paste this entire file and run it
+-- HOW TO APPLY:
+--   npm run db:reset
+--   (or paste into Supabase Studio SQL Editor after a fresh reset)
 --
--- Creates 3 groups and 9 expenses across those groups.
+-- Insertion order (all FK constraints satisfied):
+--   1. auth.users + auth.identities  ← must exist before any public table
+--   2. public.groups
+--   3. public.profiles               ← trigger creates these automatically on
+--                                       auth.users insert, but we upsert to be safe
+--   4. public.group_members
+--   5. public.expenses + expense_splits
+--
+-- Creates 4 test users, 3 groups and 9 expenses.
 -- All monetary amounts are stored as integer CENTS (€12,50 → 1250).
 -- All splits are equal. No settlements — record those through the app.
 --
+-- Test credentials (password: test1234):
+--   Arne:   a@a.de        ← main test account
+--   Maria:  maria@test.de
+--   Tim:    tim@test.de
+--   Sophie: sophie@test.de
+--
 -- User UUID mapping:
---   Arne:   a2d516d4-9a43-4f2f-86d7-89b9a5537133  ← main test account
+--   Arne:   a2d516d4-9a43-4f2f-86d7-89b9a5537133
 --   Maria:  1810ad67-08b4-422a-aa60-b1d31a01179a
 --   Tim:    f1013898-cb84-4e5d-8b61-8ab211f26464
 --   Sophie: cab5193f-662b-4653-a1b7-f14aaa63b7de
@@ -22,6 +35,112 @@
 --   Du schuldest:   −€6,50   (Büro Mittagessen)
 --   Gesamt:        +€113,50
 -- =============================================================================
+
+
+-- =============================================================================
+-- AUTH USERS
+-- =============================================================================
+-- Inserted directly into auth.users so that all FK references (groups.created_by,
+-- profiles.id) are satisfied when the public schema seed runs.
+-- encrypted_password is bcrypt("test1234", cost=10) via pgcrypto.
+-- email_confirmed_at is set so users can log in without email confirmation.
+-- =============================================================================
+
+INSERT INTO auth.users (
+  id, instance_id, aud, role,
+  email, encrypted_password,
+  email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at
+) VALUES
+  (
+    'a2d516d4-9a43-4f2f-86d7-89b9a5537133',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated',
+    'a@a.de',
+    crypt('test1234', gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"Arne Cornils"}',
+    NOW(), NOW()
+  ),
+  (
+    '1810ad67-08b4-422a-aa60-b1d31a01179a',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated',
+    'maria@test.de',
+    crypt('test1234', gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"Maria Schmidt"}',
+    NOW(), NOW()
+  ),
+  (
+    'f1013898-cb84-4e5d-8b61-8ab211f26464',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated',
+    'tim@test.de',
+    crypt('test1234', gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"Tim Weber"}',
+    NOW(), NOW()
+  ),
+  (
+    'cab5193f-662b-4653-a1b7-f14aaa63b7de',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated',
+    'sophie@test.de',
+    crypt('test1234', gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"Sophie Müller"}',
+    NOW(), NOW()
+  )
+ON CONFLICT (id) DO NOTHING;
+
+
+-- =============================================================================
+-- AUTH IDENTITIES
+-- =============================================================================
+-- Required for email/password sign-in to work. One identity per user.
+-- identity_data must include "sub" (= user id) and "email".
+-- =============================================================================
+
+INSERT INTO auth.identities (
+  id, user_id, provider, provider_id,
+  identity_data,
+  created_at, updated_at
+) VALUES
+  (
+    'a2d516d4-9a43-4f2f-86d7-89b9a5537133',
+    'a2d516d4-9a43-4f2f-86d7-89b9a5537133',
+    'email', 'a@a.de',
+    '{"sub":"a2d516d4-9a43-4f2f-86d7-89b9a5537133","email":"a@a.de","email_verified":true}',
+    NOW(), NOW()
+  ),
+  (
+    '1810ad67-08b4-422a-aa60-b1d31a01179a',
+    '1810ad67-08b4-422a-aa60-b1d31a01179a',
+    'email', 'maria@test.de',
+    '{"sub":"1810ad67-08b4-422a-aa60-b1d31a01179a","email":"maria@test.de","email_verified":true}',
+    NOW(), NOW()
+  ),
+  (
+    'f1013898-cb84-4e5d-8b61-8ab211f26464',
+    'f1013898-cb84-4e5d-8b61-8ab211f26464',
+    'email', 'tim@test.de',
+    '{"sub":"f1013898-cb84-4e5d-8b61-8ab211f26464","email":"tim@test.de","email_verified":true}',
+    NOW(), NOW()
+  ),
+  (
+    'cab5193f-662b-4653-a1b7-f14aaa63b7de',
+    'cab5193f-662b-4653-a1b7-f14aaa63b7de',
+    'email', 'sophie@test.de',
+    '{"sub":"cab5193f-662b-4653-a1b7-f14aaa63b7de","email":"sophie@test.de","email_verified":true}',
+    NOW(), NOW()
+  )
+ON CONFLICT (id) DO NOTHING;
 
 
 -- =============================================================================
@@ -39,6 +158,22 @@ INSERT INTO public.groups (id, name, created_by) VALUES
 
 
 -- =============================================================================
+-- PROFILES
+-- =============================================================================
+-- The on_auth_user_created trigger may already have created these rows when
+-- auth.users was inserted above. ON CONFLICT DO UPDATE ensures the correct
+-- display_name is set regardless.
+-- =============================================================================
+
+INSERT INTO public.profiles (id, display_name) VALUES
+  ('a2d516d4-9a43-4f2f-86d7-89b9a5537133', 'Arne Cornils'),
+  ('1810ad67-08b4-422a-aa60-b1d31a01179a', 'Maria Schmidt'),
+  ('f1013898-cb84-4e5d-8b61-8ab211f26464', 'Tim Weber'),
+  ('cab5193f-662b-4653-a1b7-f14aaa63b7de', 'Sophie Müller')
+ON CONFLICT (id) DO UPDATE SET display_name = EXCLUDED.display_name;
+
+
+-- =============================================================================
 -- GROUP MEMBERS
 -- =============================================================================
 --   WG München:       Arne, Maria, Tim
@@ -46,18 +181,18 @@ INSERT INTO public.groups (id, name, created_by) VALUES
 --   Büro Mittagessen: Arne, Tim
 -- =============================================================================
 
-INSERT INTO public.group_members (user_id, group_id, display_name) VALUES
+INSERT INTO public.group_members (user_id, group_id) VALUES
   -- WG München
-  ('a2d516d4-9a43-4f2f-86d7-89b9a5537133', '10000000-0000-0000-0000-000000000001', 'Arne Cornils'),
-  ('1810ad67-08b4-422a-aa60-b1d31a01179a', '10000000-0000-0000-0000-000000000001', 'Maria Schmidt'),
-  ('f1013898-cb84-4e5d-8b61-8ab211f26464', '10000000-0000-0000-0000-000000000001', 'Tim Weber'),
+  ('a2d516d4-9a43-4f2f-86d7-89b9a5537133', '10000000-0000-0000-0000-000000000001'),
+  ('1810ad67-08b4-422a-aa60-b1d31a01179a', '10000000-0000-0000-0000-000000000001'),
+  ('f1013898-cb84-4e5d-8b61-8ab211f26464', '10000000-0000-0000-0000-000000000001'),
   -- Mallorca 2024
-  ('a2d516d4-9a43-4f2f-86d7-89b9a5537133', '20000000-0000-0000-0000-000000000002', 'Arne Cornils'),
-  ('1810ad67-08b4-422a-aa60-b1d31a01179a', '20000000-0000-0000-0000-000000000002', 'Maria Schmidt'),
-  ('cab5193f-662b-4653-a1b7-f14aaa63b7de', '20000000-0000-0000-0000-000000000002', 'Sophie Müller'),
+  ('a2d516d4-9a43-4f2f-86d7-89b9a5537133', '20000000-0000-0000-0000-000000000002'),
+  ('1810ad67-08b4-422a-aa60-b1d31a01179a', '20000000-0000-0000-0000-000000000002'),
+  ('cab5193f-662b-4653-a1b7-f14aaa63b7de', '20000000-0000-0000-0000-000000000002'),
   -- Büro Mittagessen
-  ('a2d516d4-9a43-4f2f-86d7-89b9a5537133', '30000000-0000-0000-0000-000000000003', 'Arne Cornils'),
-  ('f1013898-cb84-4e5d-8b61-8ab211f26464', '30000000-0000-0000-0000-000000000003', 'Tim Weber');
+  ('a2d516d4-9a43-4f2f-86d7-89b9a5537133', '30000000-0000-0000-0000-000000000003'),
+  ('f1013898-cb84-4e5d-8b61-8ab211f26464', '30000000-0000-0000-0000-000000000003');
 
 
 -- =============================================================================

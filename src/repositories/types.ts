@@ -15,10 +15,16 @@
  */
 
 import type {
-  Group, GroupId, GroupMember,
-  Expense, ExpenseId, ExpenseSplit,
-  Settlement, SettlementId,
-  UserId, Money,
+  Expense,
+  ExpenseId,
+  ExpenseSplit,
+  Group,
+  GroupId,
+  GroupMember,
+  Money,
+  Settlement,
+  SettlementId,
+  UserId,
 } from '../domain/types';
 
 // ---------------------------------------------------------------------------
@@ -40,7 +46,7 @@ export interface IGroupRepository {
   create(input: CreateGroupInput): Promise<Group>;
 
   /** Add a user to an existing group */
-  addMember(groupId: GroupId, userId: UserId, displayName: string): Promise<GroupMember>;
+  addMember(groupId: GroupId, userId: UserId): Promise<GroupMember>;
 
   /** Remove a user from a group */
   removeMember(groupId: GroupId, userId: UserId): Promise<void>;
