@@ -118,7 +118,8 @@ export default function ExpenseForm({
       });
 
       onSuccess();
-    } catch {
+    } catch (err) {
+      console.error(err);
       setSubmitError(t('common.error_generic'));
     }
   };

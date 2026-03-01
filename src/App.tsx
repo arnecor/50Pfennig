@@ -22,6 +22,7 @@ import { router }                    from './router';
 import { idbPersister, CACHE_MAX_AGE } from './lib/storage/queryPersister';
 import { supabase }                  from './lib/supabase/client';
 import { useAuthStore }              from './features/auth/authStore';
+import ErrorBoundary                 from './components/ErrorBoundary';
 
 export default function App() {
   const [queryClient] = useState(
@@ -61,11 +62,13 @@ export default function App() {
   }
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
-    >
-      <RouterProvider router={router} context={{ queryClient }} />
-    </PersistQueryClientProvider>
+    <ErrorBoundary>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
+      >
+        <RouterProvider router={router} context={{ queryClient }} />
+      </PersistQueryClientProvider>
+    </ErrorBoundary>
   );
 }

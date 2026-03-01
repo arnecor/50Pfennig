@@ -43,6 +43,7 @@ export default function LoginForm() {
         await signUp(email, password);
       }
     } catch (err: unknown) {
+      console.error(err);
       const msg = err instanceof Error ? err.message : '';
       if (msg.includes('Invalid login') || msg.includes('invalid_credentials')) {
         setServerError(t('auth.error_invalid_credentials'));
