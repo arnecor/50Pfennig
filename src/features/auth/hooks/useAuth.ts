@@ -23,13 +23,13 @@ export const useAuth = () => {
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    await router.navigate({ to: '/groups' });
+    await router.navigate({ to: '/home' });
   }, [router]);
 
   const signUp = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
-    await router.navigate({ to: '/groups' });
+    await router.navigate({ to: '/home' });
   }, [router]);
 
   const signOut = useCallback(async () => {
