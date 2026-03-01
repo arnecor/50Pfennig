@@ -9,16 +9,13 @@
  *   showSign?: boolean    — prefix '+' for positive values (default: false)
  *   colored?:  boolean    — green if positive, red if negative (default: false)
  *   className?: string    — additional Tailwind classes
- *
- * Uses formatMoney() from domain/money.ts internally.
- * Locale and currency are read from the i18n context (de-DE / EUR for now).
  */
 
-import { useTranslation } from 'react-i18next';
-import { formatMoney, isPositive, isNegative } from '@/domain/money';
-import type { Money } from '@/domain/types';
+import { formatMoney, isPositive, isNegative } from '@domain/money';
+import type { Money } from '@domain/types';
+import { cn } from '@/lib/utils';
 
-type MoneyDisplayProps = {
+type Props = {
   amount: Money;
   showSign?: boolean;
   colored?: boolean;
@@ -30,22 +27,22 @@ export default function MoneyDisplay({
   showSign = false,
   colored = false,
   className,
-}: MoneyDisplayProps) {
-  const { i18n } = useTranslation();
+}: Props) {
+  const formatted = showSign
+    ? new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR',
+        signDisplay: 'always',
+      }).format(amount / 100)
+    : formatMoney(amount);
 
-  const locale = i18n.language === 'en' ? 'en-GB' : 'de-DE';
-  const formatted = formatMoney(amount, locale);
-  const display = showSign && isPositive(amount) ? `+${formatted}` : formatted;
+  const colorClass = colored
+    ? isPositive(amount)
+      ? 'text-green-600'
+      : isNegative(amount)
+        ? 'text-red-600'
+        : 'text-muted-foreground'
+    : '';
 
-  let colorClass = '';
-  if (colored) {
-    if (isPositive(amount)) colorClass = 'text-green-600';
-    else if (isNegative(amount)) colorClass = 'text-destructive';
-  }
-
-  return (
-    <span className={[colorClass, className].filter(Boolean).join(' ')}>
-      {display}
-    </span>
-  );
+  return <span className={cn(colorClass, className)}>{formatted}</span>;
 }

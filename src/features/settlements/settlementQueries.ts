@@ -11,11 +11,11 @@
  */
 
 import { queryOptions } from '@tanstack/react-query';
-import { settlementRepository } from '@repositories/index';
+import { settlementRepository } from '@repositories';
 import type { GroupId } from '@domain/types';
 
 export const settlementsQueryOptions = (groupId: GroupId) =>
   queryOptions({
     queryKey: ['settlements', groupId] as const,
-    queryFn:  () => settlementRepository.getByGroupId(groupId),
+    queryFn: () => settlementRepository.getByGroupId(groupId),
   });

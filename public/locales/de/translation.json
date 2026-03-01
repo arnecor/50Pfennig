@@ -31,7 +31,6 @@
   },
   "groups": {
     "title": "Gruppen",
-    "placeholder_description": "HEre yo see the group overview",
     "create": "Gruppe erstellen",
     "empty_title": "Noch keine Gruppen",
     "empty_description": "Erstelle eine Gruppe, um gemeinsame Ausgaben zu verwalten.",

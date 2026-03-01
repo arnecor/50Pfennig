@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+
+    <!-- ── Background: warm dark stone ── -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#2C2416"/>
+      <stop offset="60%"  stop-color="#1A1208"/>
+      <stop offset="100%" stop-color="#0A0805"/>
+    </linearGradient>
+
+    <!-- ── Coin rim: diagonal metallic gold ── -->
+    <linearGradient id="rimGold" x1="177" y1="162" x2="847" y2="838" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#FCEABB"/>
+      <stop offset="18%"  stop-color="#F8B400"/>
+      <stop offset="50%"  stop-color="#C8810A"/>
+      <stop offset="78%"  stop-color="#7C4D0A"/>
+      <stop offset="100%" stop-color="#3D2800"/>
+    </linearGradient>
+
+    <!-- ── Second lighter pass for the top highlight band on the rim ── -->
+    <linearGradient id="rimHighlight" x1="177" y1="162" x2="600" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#FFF3B0" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#FFF3B0" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- ── Coin face: warm dark bronze ── -->
+    <radialGradient id="coinFace" cx="400" cy="378" r="358" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#1E1500"/>
+      <stop offset="58%"  stop-color="#0A0800"/>
+      <stop offset="100%" stop-color="#030200"/>
+    </radialGradient>
+
+    <!-- ── "50" text: vertical gold gradient ── -->
+    <linearGradient id="goldText" x1="0" y1="398" x2="0" y2="578" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#FCE68A"/>
+      <stop offset="38%"  stop-color="#F0A500"/>
+      <stop offset="100%" stop-color="#C8810A"/>
+    </linearGradient>
+
+    <!-- ── "Pf" text: softer gold ── -->
+    <linearGradient id="pfText" x1="0" y1="588" x2="0" y2="642" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#F0A500"/>
+      <stop offset="100%" stop-color="#B8740A"/>
+    </linearGradient>
+
+    <!-- ── Ambient warm halo behind the coin ── -->
+    <radialGradient id="halo" cx="512" cy="500" r="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#C8810A" stop-opacity="0.22"/>
+      <stop offset="65%"  stop-color="#C8810A" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#C8810A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- ── Drop shadow beneath coin ── -->
+    <filter id="coinShadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="16" stdDeviation="28"
+                    flood-color="#000000" flood-opacity="0.82"/>
+    </filter>
+
+    <!-- ── Soft inner glow on coin face ── -->
+    <filter id="faceGlow" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+      <feComposite in="SourceGraphic" in2="b" operator="over"/>
+    </filter>
+
+  </defs>
+
+  <!-- ══ BACKGROUND ══ -->
+  <rect width="1024" height="1024" rx="210" ry="210" fill="url(#bg)"/>
+
+  <!-- ══ WARM AMBIENT HALO ══ -->
+  <circle cx="512" cy="500" r="440" fill="url(#halo)"/>
+
+  <!-- ══ COIN — gold rim (with drop shadow) ══ -->
+  <circle cx="512" cy="500" r="335" fill="url(#rimGold)" filter="url(#coinShadow)"/>
+
+  <!-- Lighter highlight overlay on rim (top-left catch light) -->
+  <circle cx="512" cy="500" r="335" fill="url(#rimHighlight)"/>
+
+  <!-- ══ KNURLED RIM TEXTURE ══ -->
+  <!-- Dark grooves -->
+  <circle cx="512" cy="500" r="319"
+          fill="none" stroke="#2A1600" stroke-width="16"
+          stroke-dasharray="7.9 4.4" opacity="0.58"/>
+  <!-- Bright flecks offset by half a period -->
+  <circle cx="512" cy="500" r="319"
+          fill="none" stroke="#FCEABB" stroke-width="1.5"
+          stroke-dasharray="7.9 4.4" stroke-dashoffset="4"
+          opacity="0.17"/>
+
+  <!-- ══ COIN FACE ══ -->
+  <circle cx="512" cy="500" r="305" fill="url(#coinFace)"/>
+
+  <!-- ══ INNER DECORATIVE RING ══ -->
+  <circle cx="512" cy="500" r="278"
+          fill="none" stroke="#F0A500" stroke-width="1.5" opacity="0.30"/>
+
+  <!-- ══ SPECULAR HIGHLIGHT ON RIM ══ -->
+  <!-- Arc from 9 o'clock → through 12 → to ~2 o'clock (r=326 inside rim) -->
+  <!-- Start: (512−326, 500) = (186, 500)  End: (512+326·cos60°, 500−326·sin60°) = (675, 218) -->
+  <path d="M 186,500 A 326,326 0 0 1 675,218"
+        fill="none" stroke="white" stroke-width="5.5"
+        stroke-linecap="round" opacity="0.15"/>
+
+  <!-- ══ "50" MAIN NUMERAL ══ -->
+  <text
+    x="512"
+    y="576"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="238"
+    font-weight="900"
+    fill="url(#goldText)"
+    filter="url(#faceGlow)">50</text>
+
+  <!-- ══ "Pf" SUBTITLE (Pfennig abbreviation) ══ -->
+  <text
+    x="512"
+    y="638"
+    text-anchor="middle"
+    font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+    font-size="52"
+    font-weight="300"
+    fill="url(#pfText)"
+    opacity="0.62"
+    letter-spacing="18">Pf</text>
+
+</svg>
