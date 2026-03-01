@@ -1,0 +1,53 @@
+# Build outputs & caches (nie relevant für Code-Änderungen)
+dist/
+build/
+.next/
+capacitor/build/
+capacitor/android/app/build/
+capacitor/ios/App/build/
+
+# Node modules & deps (riesig, nie editieren)
+node_modules/
+**/node_modules/
+
+# Vite & npm caches
+.vite/
+.cache/
+.npm/
+
+# Env & Secrets (Sicherheit)
+.env*
+!.env.example
+
+# Logs & Temp
+*.log
+logs/
+tmp/
+temp/
+
+# Tests coverage & reports (sekundär)
+coverage/
+.nyc_output/
+test-results/
+
+# Capacitor native (managed, nicht editierbar)
+capacitor/android/
+capacitor/ios/
+!capacitor.config.ts
+
+# Public assets (Bilder/SVGs, visuell irrelevant)
+public/assets/
+public/locales/
+!public/locales/*.json  # i18n behalten, falls nötig
+
+# Supabase local dumps (riesig)
+supabase/docker/volumes/
+
+# Generated & managed
+src/lib/supabase/types.gen.ts  # Immer via npm run db:types
+src/components/ui/             # shadcn – nur via CLI add/edit
+
+# IDE & OS noise
+.vscode/settings.json
+.DS_Store
+Thumbs.db
