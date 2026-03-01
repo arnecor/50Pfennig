@@ -1,24 +1,27 @@
 /**
  * features/balances/hooks/useTotalBalance.ts
  *
- * Derives cross-group balance totals for the current user.
+ * Derives cross-group + cross-friend balance totals for the current user.
  *
  * Returns:
- *   youAreOwed — sum of per-group balances where the user is in credit (> 0)
- *   youOwe     — sum of per-group balances where the user is in debt (< 0), stored as negative
+ *   youAreOwed — sum of balances where the user is in credit (> 0)
+ *   youOwe     — sum of balances where the user is in debt (< 0), stored as negative
  *   netTotal   — youAreOwed + youOwe
- *   isLoading  — true while any group/expense/settlement data is still loading
+ *   isLoading  — true while any data is still loading
  *
- * Uses useQueries to fetch expenses and settlements for all groups in parallel.
- * Balance calculation is pure (calculateGroupBalances from domain/balance).
+ * Sources:
+ *   - Group expenses + settlements: fetched per group via useQueries
+ *   - Friend expenses (group_id IS NULL): fetched via friendExpensesQueryOptions
+ *
+ * Balance calculation is pure (calculateGroupBalances / calculateParticipantBalances).
  */
 
 import { useMemo } from 'react';
-import { useQueries } from '@tanstack/react-query';
+import { useQuery, useQueries } from '@tanstack/react-query';
 import { useGroups } from '@features/groups/hooks/useGroups';
-import { expensesQueryOptions } from '@features/expenses/expenseQueries';
+import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { settlementsQueryOptions } from '@features/settlements/settlementQueries';
-import { calculateGroupBalances } from '@domain/balance';
+import { calculateGroupBalances, calculateParticipantBalances } from '@domain/balance';
 import { ZERO, add, isPositive, isNegative } from '@domain/money';
 import type { Money, UserId } from '@domain/types';
 
@@ -32,40 +35,46 @@ type TotalBalance = {
 export function useTotalBalance(currentUserId: UserId | undefined): TotalBalance {
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
 
-  // Fetch expenses and settlements for every group in parallel.
-  const expensesResults = useQueries({
-    queries: groups.map(g => expensesQueryOptions(g.id)),
-  });
-  const settlementsResults = useQueries({
-    queries: groups.map(g => settlementsQueryOptions(g.id)),
-  });
+  // Fetch group expenses and settlements in parallel.
+  const expensesResults    = useQueries({ queries: groups.map((g) => expensesQueryOptions(g.id)) });
+  const settlementsResults = useQueries({ queries: groups.map((g) => settlementsQueryOptions(g.id)) });
+
+  // Fetch friend expenses (group_id IS NULL).
+  const { data: friendExpenses = [], isLoading: friendExpensesLoading } =
+    useQuery(friendExpensesQueryOptions());
 
   const isLoading =
     groupsLoading ||
+    friendExpensesLoading ||
     expensesResults.some(r => r.isLoading) ||
     settlementsResults.some(r => r.isLoading);
 
   return useMemo((): TotalBalance => {
-    if (!currentUserId || groups.length === 0) {
+    if (!currentUserId) {
       return { youAreOwed: ZERO, youOwe: ZERO, netTotal: ZERO, isLoading };
     }
 
     let youAreOwed: Money = ZERO;
     let youOwe:     Money = ZERO;
 
+    const accumulate = (balance: Money) => {
+      if (isPositive(balance)) youAreOwed = add(youAreOwed, balance);
+      else if (isNegative(balance)) youOwe = add(youOwe, balance);
+    };
+
+    // Group balances
     for (let i = 0; i < groups.length; i++) {
-      const group      = groups[i]!;
-      const expenses   = expensesResults[i]?.data   ?? [];
+      const group       = groups[i]!;
+      const expenses    = expensesResults[i]?.data   ?? [];
       const settlements = settlementsResults[i]?.data ?? [];
+      const balanceMap  = calculateGroupBalances(expenses, settlements, group.members);
+      accumulate(balanceMap.get(currentUserId) ?? ZERO);
+    }
 
-      const balanceMap = calculateGroupBalances(expenses, settlements, group.members);
-      const userBalance = balanceMap.get(currentUserId) ?? ZERO;
-
-      if (isPositive(userBalance)) {
-        youAreOwed = add(youAreOwed, userBalance);
-      } else if (isNegative(userBalance)) {
-        youOwe = add(youOwe, userBalance); // stays negative
-      }
+    // Friend expense balances (no group context, no settlements yet)
+    if (friendExpenses.length > 0) {
+      const balanceMap = calculateParticipantBalances(friendExpenses as Parameters<typeof calculateParticipantBalances>[0]);
+      accumulate(balanceMap.get(currentUserId) ?? ZERO);
     }
 
     return {
@@ -75,5 +84,5 @@ export function useTotalBalance(currentUserId: UserId | undefined): TotalBalance
       isLoading,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUserId, groups, expensesResults, settlementsResults, isLoading]);
+  }, [currentUserId, groups, expensesResults, settlementsResults, friendExpenses, isLoading]);
 }

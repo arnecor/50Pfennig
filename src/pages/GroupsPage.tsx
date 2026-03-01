@@ -3,17 +3,20 @@
  *
  * Route: /groups
  *
- * The home screen. Shows the list of groups the current user belongs to,
- * each with a net balance summary. FAB or header button to create a group.
+ * Shows the list of groups the current user belongs to,
+ * each with a net balance summary.
+ * "Ausgabe hinzufügen" button at the bottom navigates to /expenses/new.
  */
 
-import { Plus } from 'lucide-react';
+import { Plus, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@components/ui/button';
 import GroupList from '@features/groups/components/GroupList';
 
 export default function GroupsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <div className="flex h-full flex-col">
@@ -26,6 +29,17 @@ export default function GroupsPage() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <GroupList />
+      </div>
+
+      <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Button
+          size="lg"
+          className="w-full gap-2"
+          onClick={() => navigate({ to: '/expenses/new', search: { groupId: undefined } })}
+        >
+          <PlusCircle className="h-5 w-5" />
+          {t('expenses.add')}
+        </Button>
       </div>
     </div>
   );

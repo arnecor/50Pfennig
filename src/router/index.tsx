@@ -4,19 +4,23 @@
  * TanStack Router route tree — the single definition of all app routes.
  *
  * Route structure:
- *   /login                                        → LoginPage
- *   /groups                                       → GroupsPage
- *   /groups/:groupId                              → GroupDetailPage
- *   /groups/:groupId/expenses/new                 → ExpenseFormPage (create)
- *   /groups/:groupId/expenses/:expenseId/edit     → ExpenseFormPage (edit)
- *   /groups/:groupId/settlements                  → SettlementsPage
+ *   /login                                    → LoginPage
+ *   /home                                     → HomePage
+ *   /groups                                   → GroupsPage
+ *   /groups/:groupId                          → GroupDetailPage
+ *   /groups/:groupId/expenses/:expenseId/edit → ExpenseFormPage (edit, future)
+ *   /groups/:groupId/settlements              → SettlementsPage
+ *   /expenses/new                             → ExpenseFormPage (create)
+ *   /friends                                  → FriendsPage
+ *   /account                                  → AccountPage
  *
- * Features:
- *   - Route params are fully typed (no manual casting needed)
- *   - Route loaders prefetch via queryClient.ensureQueryData() for instant navigation
- *   - Auth guard redirects unauthenticated users to /login (see router/guards.tsx)
+ * Notable changes from previous version:
+ *   - /expenses/new replaces /groups/:groupId/expenses/new (expense creation
+ *     is no longer group-scoped; the group is chosen inside the form)
+ *   - /expenses/new accepts an optional ?groupId search param to pre-select a group
+ *   - /balances removed; replaced by /friends
  *
- * See ADR-0008 for rationale on TanStack Router vs React Router.
+ * See ADR-0011 for rationale.
  */
 
 import {
@@ -34,7 +38,7 @@ import GroupsPage      from '../pages/GroupsPage';
 import GroupDetailPage from '../pages/GroupDetailPage';
 import ExpenseFormPage from '../pages/ExpenseFormPage';
 import SettlementsPage from '../pages/SettlementsPage';
-import BalancesPage    from '../pages/BalancesPage';
+import FriendsPage     from '../pages/FriendsPage';
 import AccountPage     from '../pages/AccountPage';
 import { requireAuth, requireGuest } from './guards';
 
@@ -46,7 +50,6 @@ type RouterContext = { queryClient: QueryClient };
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: AppShell,
-  // Redirect bare "/" to "/home"
   beforeLoad: ({ location }) => {
     if (location.pathname === '/') throw redirect({ to: '/home' });
   },
@@ -64,7 +67,7 @@ const loginRoute = createRoute({
 });
 
 // ---------------------------------------------------------------------------
-// Protected routes — accessible only when authenticated
+// Protected routes
 // ---------------------------------------------------------------------------
 
 const homeRoute = createRoute({
@@ -88,13 +91,7 @@ const groupDetailRoute = createRoute({
   component:      GroupDetailPage,
 });
 
-const expenseNewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path:           '/groups/$groupId/expenses/new',
-  beforeLoad:     requireAuth,
-  component:      ExpenseFormPage,
-});
-
+// Edit route stays group-scoped (existing expenses already have a groupId).
 const expenseEditRoute = createRoute({
   getParentRoute: () => rootRoute,
   path:           '/groups/$groupId/expenses/$expenseId/edit',
@@ -109,11 +106,22 @@ const settlementsRoute = createRoute({
   component:      SettlementsPage,
 });
 
-const balancesRoute = createRoute({
+// New expense creation — no group required in the URL; group chosen inside form.
+const expenseNewRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/balances',
+  path:           '/expenses/new',
   beforeLoad:     requireAuth,
-  component:      BalancesPage,
+  component:      ExpenseFormPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    groupId: typeof search.groupId === 'string' ? search.groupId : undefined,
+  }),
+});
+
+const friendsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/friends',
+  beforeLoad:     requireAuth,
+  component:      FriendsPage,
 });
 
 const accountRoute = createRoute({
@@ -135,17 +143,16 @@ const routeTree = rootRoute.addChildren([
   expenseNewRoute,
   expenseEditRoute,
   settlementsRoute,
-  balancesRoute,
+  friendsRoute,
   accountRoute,
 ]);
 
 export const router = createRouter({
   routeTree,
-  context:       { queryClient: undefined! }, // provided at runtime via RouterProvider
+  context:        { queryClient: undefined! },
   defaultPreload: 'intent',
 });
 
-// TypeScript module augmentation for fully-typed useNavigate, Link, etc.
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;

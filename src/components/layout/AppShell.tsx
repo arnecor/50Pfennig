@@ -14,14 +14,14 @@
  */
 
 import { Outlet, Link, useRouterState } from '@tanstack/react-router';
-import { House, Users, ArrowLeftRight, CircleUser } from 'lucide-react';
+import { House, Users, UserRound, CircleUser } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const navItems = [
-  { to: '/home',     labelKey: 'nav.home',     Icon: House,           prefix: '/home'     },
-  { to: '/groups',   labelKey: 'nav.groups',   Icon: Users,           prefix: '/groups'   },
-  { to: '/balances', labelKey: 'nav.balances',  Icon: ArrowLeftRight,  prefix: '/balances' },
-  { to: '/account',  labelKey: 'nav.account',   Icon: CircleUser,      prefix: '/account'  },
+  { to: '/home',    labelKey: 'nav.home',    Icon: House,      prefix: '/home'    },
+  { to: '/groups',  labelKey: 'nav.groups',  Icon: Users,      prefix: '/groups'  },
+  { to: '/friends', labelKey: 'nav.friends', Icon: UserRound,  prefix: '/friends' },
+  { to: '/account', labelKey: 'nav.account', Icon: CircleUser, prefix: '/account' },
 ] as const;
 
 export default function AppShell() {

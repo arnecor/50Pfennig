@@ -86,6 +86,39 @@ export const calculateGroupBalances = (
 };
 
 /**
+ * Computes net balances from a flat list of friend expenses (no group context,
+ * no member list). Participants are whoever appears in expense.splits.
+ *
+ * Used for the home-screen total balance and the future friends tab.
+ * Settlements between friends can be passed as an optional second argument.
+ */
+export const calculateParticipantBalances = (
+  expenses: readonly Expense[],
+  settlements: readonly Settlement[] = [],
+): BalanceMap => {
+  const balances = new Map<UserId, Money>();
+
+  const adjust = (userId: UserId, delta: Money): void => {
+    const current = balances.get(userId) ?? ZERO;
+    balances.set(userId, add(current, delta));
+  };
+
+  for (const expense of expenses) {
+    adjust(expense.paidBy, expense.totalAmount);
+    for (const split of expense.splits) {
+      adjust(split.userId, negate(split.amount));
+    }
+  }
+
+  for (const settlement of settlements) {
+    adjust(settlement.fromUserId, settlement.amount);
+    adjust(settlement.toUserId,   negate(settlement.amount));
+  }
+
+  return balances;
+};
+
+/**
  * Reduces a BalanceMap to the minimum number of payment instructions
  * needed to settle all debts.
  *

@@ -68,7 +68,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string
-          group_id: string
+          group_id: string | null
           id: string
           paid_by: string
           split_config: Json
@@ -80,7 +80,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description: string
-          group_id: string
+          group_id?: string | null
           id?: string
           paid_by: string
           split_config?: Json
@@ -92,7 +92,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string
-          group_id?: string
+          group_id?: string | null
           id?: string
           paid_by?: string
           split_config?: Json
@@ -106,6 +106,45 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -143,24 +182,6 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          display_name: string
-          id: string
-          updated_at: string
-        }
-        Insert: {
-          display_name?: string
-          id: string
-          updated_at?: string
-        }
-        Update: {
-          display_name?: string
-          id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       groups: {
         Row: {
           created_at: string
@@ -182,12 +203,30 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          display_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          display_name?: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          display_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       settlements: {
         Row: {
           amount: number
           created_at: string
           from_user_id: string
-          group_id: string
+          group_id: string | null
           id: string
           note: string | null
           to_user_id: string
@@ -196,7 +235,7 @@ export type Database = {
           amount: number
           created_at?: string
           from_user_id: string
-          group_id: string
+          group_id?: string | null
           id?: string
           note?: string | null
           to_user_id: string
@@ -205,7 +244,7 @@ export type Database = {
           amount?: number
           created_at?: string
           from_user_id?: string
-          group_id?: string
+          group_id?: string | null
           id?: string
           note?: string | null
           to_user_id?: string
@@ -239,7 +278,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string
-          group_id: string
+          group_id: string | null
           id: string
           paid_by: string
           split_config: Json
@@ -269,7 +308,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string
-          group_id: string
+          group_id: string | null
           id: string
           paid_by: string
           split_config: Json

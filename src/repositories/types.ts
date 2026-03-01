@@ -18,6 +18,7 @@ import type {
   Expense,
   ExpenseId,
   ExpenseSplit,
+  Friend,
   Group,
   GroupId,
   GroupMember,
@@ -53,11 +54,20 @@ export interface IGroupRepository {
 }
 
 // ---------------------------------------------------------------------------
+// Friend repository
+// ---------------------------------------------------------------------------
+
+export interface IFriendRepository {
+  /** All accepted friends of the current user, with their display names. */
+  getAll(): Promise<Friend[]>;
+}
+
+// ---------------------------------------------------------------------------
 // Expense repository
 // ---------------------------------------------------------------------------
 
 export type CreateExpenseInput = {
-  groupId: GroupId;
+  groupId: GroupId | null; // null = friend expense (not in a group)
   description: string;
   totalAmount: Money;
   paidBy: UserId;
@@ -70,6 +80,12 @@ export type UpdateExpenseInput = Partial<Omit<CreateExpenseInput, 'groupId'>>;
 export interface IExpenseRepository {
   /** All expenses for a group, newest first */
   getByGroupId(groupId: GroupId): Promise<Expense[]>;
+
+  /**
+   * All friend expenses (group_id IS NULL) where the current user is a participant.
+   * RLS on the DB side limits visibility to only expenses the user is part of.
+   */
+  getByParticipant(): Promise<Expense[]>;
 
   /**
    * Create an expense and its splits atomically.
@@ -93,7 +109,7 @@ export interface IExpenseRepository {
 // ---------------------------------------------------------------------------
 
 export type CreateSettlementInput = {
-  groupId: GroupId;
+  groupId: GroupId | null; // null = friend settlement (not in a group)
   fromUserId: UserId;
   toUserId: UserId;
   amount: Money;

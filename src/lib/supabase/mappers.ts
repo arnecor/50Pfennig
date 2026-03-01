@@ -21,6 +21,8 @@ import {
   type ExpenseId,
   type ExpenseSplit,
   type ExpenseSplitRecord,
+  type Friend,
+  type FriendshipId,
   type Group,
   type GroupId,
   type GroupMember,
@@ -35,11 +37,12 @@ import type { Database, Json } from './types.gen';
 // Row type aliases (shorthand for use within this file)
 // ---------------------------------------------------------------------------
 
-type GroupRow = Database['public']['Tables']['groups']['Row'];
-type GroupMemberRow = Database['public']['Tables']['group_members']['Row'];
-type ExpenseRow = Database['public']['Tables']['expenses']['Row'];
-type ExpenseSplitRow = Database['public']['Tables']['expense_splits']['Row'];
-type SettlementRow = Database['public']['Tables']['settlements']['Row'];
+type GroupRow         = Database['public']['Tables']['groups']['Row'];
+type GroupMemberRow   = Database['public']['Tables']['group_members']['Row'];
+type ExpenseRow       = Database['public']['Tables']['expenses']['Row'];
+type ExpenseSplitRow  = Database['public']['Tables']['expense_splits']['Row'];
+type SettlementRow    = Database['public']['Tables']['settlements']['Row'];
+type FriendshipRow    = Database['public']['Tables']['friendships']['Row'];
 
 /** Shape returned by group_members queries that embed profiles via FK join */
 export type GroupMemberWithProfile = GroupMemberRow & {
@@ -78,7 +81,7 @@ export const mapExpenseSplitRecord = (row: ExpenseSplitRow): ExpenseSplitRecord 
  */
 export const mapExpense = (row: ExpenseRow, splitRows: ExpenseSplitRow[]): Expense => ({
   id: row.id as ExpenseId,
-  groupId: row.group_id as GroupId,
+  groupId: row.group_id ? (row.group_id as GroupId) : null,
   description: row.description,
   totalAmount: money(row.total_amount),
   paidBy: row.paid_by as UserId,
@@ -89,9 +92,29 @@ export const mapExpense = (row: ExpenseRow, splitRows: ExpenseSplitRow[]): Expen
   updatedAt: new Date(row.updated_at),
 });
 
+/**
+ * Maps a friendship row to a Friend, resolving the "other" user based on
+ * who the current user is (requester or addressee).
+ */
+export type FriendshipWithProfiles = FriendshipRow & {
+  requester: { display_name: string } | null;
+  addressee: { display_name: string } | null;
+};
+
+export const mapFriend = (row: FriendshipWithProfiles, currentUserId: UserId): Friend => {
+  const iAmRequester = row.requester_id === currentUserId;
+  return {
+    userId:       (iAmRequester ? row.addressee_id : row.requester_id) as UserId,
+    displayName:  iAmRequester
+      ? (row.addressee?.display_name ?? '')
+      : (row.requester?.display_name ?? ''),
+    friendshipId: row.id as FriendshipId,
+  };
+};
+
 export const mapSettlement = (row: SettlementRow): Settlement => ({
   id: row.id as SettlementId,
-  groupId: row.group_id as GroupId,
+  groupId: row.group_id ? (row.group_id as GroupId) : null,
   fromUserId: row.from_user_id as UserId,
   toUserId: row.to_user_id as UserId,
   amount: money(row.amount),

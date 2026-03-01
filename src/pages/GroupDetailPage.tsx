@@ -50,7 +50,7 @@ export default function GroupDetailPage() {
   }, [group, expenses]);
 
   const handleAddExpense = () => {
-    navigate({ to: '/groups/$groupId/expenses/new', params: { groupId } });
+    navigate({ to: '/expenses/new', search: { groupId } });
   };
 
   const handleBack = () => {

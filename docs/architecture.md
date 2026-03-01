@@ -9,23 +9,32 @@
 
 ## Balances
 - **Balances are never stored in the database.**
-- Derived in the client from TanStack Query cached data using `calculateGroupBalances()`.
+- Group expenses: derived from `calculateGroupBalances(expenses, settlements, members)`.
+- Friend expenses: derived from `calculateParticipantBalances(expenses)` — no member list needed, participants come from splits.
+- Both functions are in `src/domain/balance/index.ts`.
+
+## Expense context: group vs. friend
+- `expenses.group_id` is **nullable**. `NULL` = friend expense (not in a group).
+- Group expense: split among group members; `group_id` is set.
+- Friend expense: split among selected friends + payer; `group_id` is null.
+- No mixing — an expense is either in a group OR between friends, never both.
+- Participants are always derived from `expense_splits` — the `expense.groupId` is only for organisational context.
 
 ## Expense writes
 - Creating/updating expense calls `supabase.rpc('create_expense', {...})` — atomic.
 - RPC inserts `expenses` + `expense_splits` in one transaction.
 - `expense_splits` rows are immutable financial history.
 
-**RPC signatures** (call through repository):
+**RPC signature** (call through repository):
 ```typescript
 supabase.rpc('create_expense', {
-  p_group_id:    GroupId,
-  p_description: string,
-  p_total_amount: number,  // cents
-  p_paid_by:     UserId,
-  p_split_type:  'equal' | 'exact' | 'percentage',
+  p_group_id:     GroupId | null,  // null for friend expenses
+  p_description:  string,
+  p_total_amount: number,          // cents
+  p_paid_by:      UserId,
+  p_split_type:   'equal' | 'exact' | 'percentage',
   p_split_config: Json,
-  p_splits: { user_id: string; amount: number }[],
+  p_splits:       { user_id: string; amount: number }[],
 })
 ```
 
@@ -33,10 +42,32 @@ supabase.rpc('create_expense', {
 
 All monetary columns are **integer cents**.
 
-### `groups`, `group_members`, `expenses`, `expense_splits`, `settlements` — see full SQL in `supabase/migrations/0001_initial_schema.sql`
+### Tables
+- `groups`, `group_members` — unchanged
+- `expenses` — `group_id` is now **nullable** (NULL = friend expense)
+- `expense_splits` — unchanged (source of truth for all balances)
+- `settlements` — `group_id` is now **nullable** (NULL = friend settlement)
+- `friendships` — **new** (see migration 0003)
 
-RLS enabled on all tables. Access gated on `is_group_member(group_id)`.
+```sql
+-- friendships
+id           uuid PK
+requester_id uuid FK → profiles.id
+addressee_id uuid FK → profiles.id
+status       text  -- 'pending' | 'accepted'
+created_at   timestamptz
+
+-- Unordered unique index prevents duplicate (A,B) and (B,A) rows
+```
+
+RLS enabled on all tables. `expenses` access: group member (group expense) OR direct participant (friend expense).
+
+## Friendships
+- One row per pair. Canonical storage: `(least(a,b), greatest(a,b))` enforced by unique index.
+- `requester_id` / `addressee_id` preserved for future invite flows (email, QR, phone).
+- `status = 'accepted'` for manually seeded friendships.
+- Adding friends via UI is **not yet implemented** — use seed script for dev data.
 
 ## Repositories
-- Features call `IExpenseRepository`, etc. — never Supabase client directly.
-- Offline mutation queue logic inside repository implementations.
+- Features call `IExpenseRepository`, `IFriendRepository`, etc. — never Supabase client directly.
+- `friendRepository` is exported from `repositories/index.ts`.
