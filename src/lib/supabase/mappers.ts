@@ -16,48 +16,53 @@
  * Imports from: domain/types, lib/supabase/types.gen.ts
  */
 
-import type { Database, Json } from './types.gen';
 import {
-  money,
-  type Group,
-  type GroupMember,
   type Expense,
-  type Settlement,
+  type ExpenseId,
   type ExpenseSplit,
   type ExpenseSplitRecord,
+  type Group,
   type GroupId,
-  type UserId,
-  type ExpenseId,
+  type GroupMember,
+  type Settlement,
   type SettlementId,
+  type UserId,
+  money,
 } from '../../domain/types';
+import type { Database, Json } from './types.gen';
 
 // ---------------------------------------------------------------------------
 // Row type aliases (shorthand for use within this file)
 // ---------------------------------------------------------------------------
 
-type GroupRow        = Database['public']['Tables']['groups']['Row'];
-type GroupMemberRow  = Database['public']['Tables']['group_members']['Row'];
-type ExpenseRow      = Database['public']['Tables']['expenses']['Row'];
+type GroupRow = Database['public']['Tables']['groups']['Row'];
+type GroupMemberRow = Database['public']['Tables']['group_members']['Row'];
+type ExpenseRow = Database['public']['Tables']['expenses']['Row'];
 type ExpenseSplitRow = Database['public']['Tables']['expense_splits']['Row'];
-type SettlementRow   = Database['public']['Tables']['settlements']['Row'];
+type SettlementRow = Database['public']['Tables']['settlements']['Row'];
+
+/** Shape returned by group_members queries that embed profiles via FK join */
+export type GroupMemberWithProfile = GroupMemberRow & {
+  profiles: { display_name: string } | null;
+};
 
 // ---------------------------------------------------------------------------
 // Mappers
 // ---------------------------------------------------------------------------
 
-export const mapGroupMember = (row: GroupMemberRow): GroupMember => ({
-  userId:      row.user_id   as UserId,
-  groupId:     row.group_id  as GroupId,
-  displayName: row.display_name,
-  joinedAt:    new Date(row.joined_at),
+export const mapGroupMember = (row: GroupMemberWithProfile): GroupMember => ({
+  userId: row.user_id as UserId,
+  groupId: row.group_id as GroupId,
+  displayName: row.profiles?.display_name ?? '',
+  joinedAt: new Date(row.joined_at),
 });
 
-export const mapGroup = (row: GroupRow, members: GroupMemberRow[]): Group => ({
-  id:        row.id         as GroupId,
-  name:      row.name,
+export const mapGroup = (row: GroupRow, members: GroupMemberWithProfile[]): Group => ({
+  id: row.id as GroupId,
+  name: row.name,
   createdBy: row.created_by as UserId,
   createdAt: new Date(row.created_at),
-  members:   members.map(mapGroupMember),
+  members: members.map(mapGroupMember),
 });
 
 export const mapExpenseSplitRecord = (row: ExpenseSplitRow): ExpenseSplitRecord => ({
@@ -72,26 +77,26 @@ export const mapExpenseSplitRecord = (row: ExpenseSplitRow): ExpenseSplitRecord 
  * expense was created (the RPC checks the split_type and config shape).
  */
 export const mapExpense = (row: ExpenseRow, splitRows: ExpenseSplitRow[]): Expense => ({
-  id:          row.id          as ExpenseId,
-  groupId:     row.group_id    as GroupId,
+  id: row.id as ExpenseId,
+  groupId: row.group_id as GroupId,
   description: row.description,
   totalAmount: money(row.total_amount),
-  paidBy:      row.paid_by     as UserId,
-  split:       row.split_config as unknown as ExpenseSplit,
-  splits:      splitRows.map(mapExpenseSplitRecord),
-  createdBy:   row.created_by  as UserId,
-  createdAt:   new Date(row.created_at),
-  updatedAt:   new Date(row.updated_at),
+  paidBy: row.paid_by as UserId,
+  split: row.split_config as unknown as ExpenseSplit,
+  splits: splitRows.map(mapExpenseSplitRecord),
+  createdBy: row.created_by as UserId,
+  createdAt: new Date(row.created_at),
+  updatedAt: new Date(row.updated_at),
 });
 
 export const mapSettlement = (row: SettlementRow): Settlement => ({
-  id:          row.id           as SettlementId,
-  groupId:     row.group_id     as GroupId,
-  fromUserId:  row.from_user_id as UserId,
-  toUserId:    row.to_user_id   as UserId,
-  amount:      money(row.amount),
+  id: row.id as SettlementId,
+  groupId: row.group_id as GroupId,
+  fromUserId: row.from_user_id as UserId,
+  toUserId: row.to_user_id as UserId,
+  amount: money(row.amount),
   ...(row.note != null ? { note: row.note } : {}),
-  createdAt:   new Date(row.created_at),
+  createdAt: new Date(row.created_at),
 });
 
 // ---------------------------------------------------------------------------
@@ -99,11 +104,8 @@ export const mapSettlement = (row: SettlementRow): Settlement => ({
 // ---------------------------------------------------------------------------
 
 /** Converts an ExpenseSplit to the JSON payload expected by the RPC. */
-export const serialiseSplitConfig = (split: ExpenseSplit): Json =>
-  split as unknown as Json;
+export const serialiseSplitConfig = (split: ExpenseSplit): Json => split as unknown as Json;
 
 /** Converts split records to the [{user_id, amount}] array the RPC expects. */
-export const serialiseSplits = (
-  splits: ReadonlyArray<{ userId: UserId; amount: number }>,
-): Json =>
-  splits.map(s => ({ user_id: s.userId, amount: s.amount })) as Json;
+export const serialiseSplits = (splits: ReadonlyArray<{ userId: UserId; amount: number }>): Json =>
+  splits.map((s) => ({ user_id: s.userId, amount: s.amount })) as Json;

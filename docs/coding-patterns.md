@@ -12,19 +12,28 @@ export const useExpenses = (groupId: GroupId) =>
   useQuery(expenseQueryOptions(groupId));
 ```
 
-## Mutation with optimistic update
+## Mutation — simple (most common)
+```typescript
+export const useCreateExpense = (groupId: GroupId) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateExpenseInput) => expenseRepository.create(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses', groupId] });
+    },
+  });
+};
+```
+
+## Mutation — with optimistic update (only when needed)
 ```typescript
 useMutation({
-  mutationFn: (input: CreateExpenseInput) => expenseRepository.create(input),
+  mutationFn: (input) => expenseRepository.create(input),
   onMutate: async (input) => {
-    // cancel, snapshot previous, set optimistic data
+    // cancel in-flight, snapshot previous, set optimistic data
   },
-  onError: (err, input, ctx) => {
-    // rollback
-  },
-  onSettled: (data, err, input) => {
-    // invalidate
-  },
+  onError: (_err, _input, ctx) => { /* rollback */ },
+  onSettled: () => { queryClient.invalidateQueries(...); },
 });
 ```
 
@@ -51,6 +60,17 @@ export const mapGroupMember = (row: GroupMemberRow): GroupMember => ({
   displayName: row.display_name,
   joinedAt:    new Date(row.joined_at),
 });
+```
+
+## Auth — getting the current user in a component
+```typescript
+// In components / page hooks:
+const { user } = useAuth();
+const currentUserId = user?.id as UserId | undefined;
+const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
+
+// In non-component hooks (no router context needed):
+const userId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
 ```
 
 ## Deriving balances

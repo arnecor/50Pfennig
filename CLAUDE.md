@@ -37,6 +37,25 @@ supabase/
 └── migrations/      # SQL files — schema, RLS policies, RPC functions
 ```
 
+## Path Aliases
+
+```
+@domain       → src/domain/
+@lib          → src/lib/
+@repositories → src/repositories/
+@features     → src/features/
+@components   → src/components/
+@pages        → src/pages/
+@store        → src/store/
+@router       → src/router/
+@             → src/          (fallback, prefer the specific aliases above)
+```
+
+## UI Components
+
+Only these shadcn/ui components are installed: `button`, `card`, `input`, `label`.
+No toast / sonner / dialog / select. Use inline error state for form errors.
+
 ## Dependency Rule — Non-Negotiable
 
 ```

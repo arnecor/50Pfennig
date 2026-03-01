@@ -3,25 +3,21 @@
  *
  * The split configuration UI — rendered inside ExpenseForm.
  *
- * Renders one of three sub-editors based on the selected split type:
- *   EqualSplit.tsx      → no user input needed; shows preview of each share
- *   ExactSplit.tsx      → one amount input per participant; validates sum === total
- *   PercentageSplit.tsx → one percentage input per participant; validates sum === 100%
+ * For this version: equal split only.
+ * Renders EqualSplit which shows a live per-person preview.
  *
- * The sub-editors are controlled components: they receive the current split
- * config and call onChange when the user edits.
- *
- * The total amount (from the parent form) is passed as a prop so each
- * sub-editor can show a live preview of the resulting per-person amounts.
- *
- * Error state: shown inline if split amounts do not sum to total.
+ * Future: ExactSplit.tsx and PercentageSplit.tsx will be added here
+ * behind a split-type selector (separate ticket).
  */
 
-// TODO: Implement SplitEditor and its sub-components:
-//   SplitEditor/EqualSplit.tsx
-//   SplitEditor/ExactSplit.tsx
-//   SplitEditor/PercentageSplit.tsx
+import type { GroupMember, Money } from '@domain/types';
+import EqualSplit from './EqualSplit';
 
-export default function SplitEditor() {
-  return null;
+type Props = {
+  totalAmount: Money;
+  participants: GroupMember[];
+};
+
+export default function SplitEditor({ totalAmount, participants }: Props) {
+  return <EqualSplit totalAmount={totalAmount} participants={participants} />;
 }

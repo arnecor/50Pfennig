@@ -1,15 +1,18 @@
 {
   "permissions": {
     "allow": [
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(pwd:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)",
       "Bash(test -f /c/Privat/50Pfennig/package.json)",
       "Bash(npm test)",
       "Bash(supabase --version)",
       "Bash(docker --version)",
       "Bash(supabase start)",
-      "Bash(supabase db reset)",
       "Bash(npm run db:types)",
       "Bash(npx tsc --noEmit)",
-      "Bash(echo \"EXIT:$?\")",
       "Bash(node -e \"require\\(''@tanstack/react-router''\\)\")",
       "Bash(node -e \"const p = require\\(''./package.json''\\); const deps = {...p.dependencies,...p.devDependencies}; [''@tanstack/react-query'',''@tanstack/react-query-persist-client'',''@tanstack/react-router'',''zustand'',''i18next'',''react-i18next'',''i18next-http-backend'',''idb-keyval''].forEach\\(k => console.log\\(k, deps[k]\\)\\)\")",
       "Bash(curl -s http://localhost:5173)",
@@ -23,10 +26,24 @@
       "Bash(test -d \"c:\\\\Privat\\\\50Pfennig\\\\dist\")",
       "Bash(npm run build)",
       "Bash(npx cap add android)",
-      "Bash(npm install --save-dev @capacitor/cli)",
-      "Bash(npm install @capacitor/android)",
-      "Bash(npm install @capacitor/android@^6.0.0)",
-      "Bash(npx cap sync android)"
+      "Bash(npx cap sync android)",
+      "Bash(gh issue list *)",
+      "Bash(git checkout -b *)",
+      "Bash(git add *)",
+      "Bash(gh auth status)",
+      "Bash(gh project field-list 1 --owner arnecor --format json)",
+      "Bash(gh project item-list 1 --owner arnecor --format json --limit 50)",
+      "Bash(gh project item-edit --id \"PVTI_lAHOAakOKM4BQezrzgmZ_e8\" --field-id \"PVTSSF_lAHOAakOKM4BQezrzg-lnEM\" --project-id \"PVT_kwHOAakOKM4BQezr\" --single-select-option-id \"47fc9ee4\")",
+      "Bash(git checkout main)",
+      "Bash(git pull)",
+      "Bash(npx biome check *)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin feature/*)",
+      "Bash(git push -u origin issuefix/*)",
+      "Bash(gh pr:*)",
+      "Bash(gh project item-edit --id * --field-id * --project-id \"PVT_kwHOAakOKM4BQezr\" *)",
+      "Bash(npx supabase status)",
+      "Bash(npx supabase migration list)"
     ]
   }
 }

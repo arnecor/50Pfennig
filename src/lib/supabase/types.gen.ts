@@ -112,19 +112,16 @@ export type Database = {
       }
       group_members: {
         Row: {
-          display_name: string
           group_id: string
           joined_at: string
           user_id: string
         }
         Insert: {
-          display_name: string
           group_id: string
           joined_at?: string
           user_id: string
         }
         Update: {
-          display_name?: string
           group_id?: string
           joined_at?: string
           user_id?: string
@@ -137,7 +134,32 @@ export type Database = {
             referencedRelation: "groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "group_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      profiles: {
+        Row: {
+          display_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          display_name?: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          display_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       groups: {
         Row: {
