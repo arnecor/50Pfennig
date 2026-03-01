@@ -11,9 +11,9 @@
  * because it derives from the same cached expense data.
  */
 
-import { queryOptions } from '@tanstack/react-query';
-import { expenseRepository } from '@repositories';
 import type { GroupId } from '@domain/types';
+import { expenseRepository } from '@repositories';
+import { queryOptions } from '@tanstack/react-query';
 
 export const expensesQueryOptions = (groupId: GroupId) =>
   queryOptions({

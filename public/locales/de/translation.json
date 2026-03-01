@@ -8,7 +8,8 @@
     "edit": "Bearbeiten",
     "confirm": "Bestätigen",
     "loading": "Wird geladen…",
-    "error_generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+    "error_generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "back": "Zurück"
   },
   "auth": {
     "sign_in": "Anmelden",
@@ -42,15 +43,26 @@
     "add": "Ausgabe hinzufügen",
     "empty_title": "Noch keine Ausgaben",
     "empty_description": "Füge die erste Ausgabe dieser Gruppe hinzu.",
+    "paid_by": "Bezahlt von {{name}}",
     "form": {
+      "page_title": "Ausgabe hinzufügen",
       "description_label": "Beschreibung",
       "description_placeholder": "Was wurde bezahlt?",
+      "description_placeholder_field": "Essen gehen",
+      "default_description": "Ausgabe von {{name}}",
       "amount_label": "Betrag",
+      "amount_error_required": "Bitte gib einen Betrag ein.",
+      "amount_error_positive": "Der Betrag muss größer als 0 sein.",
       "paid_by_label": "Bezahlt von",
+      "split_with_label": "Teilen mit",
+      "participants_error": "Mindestens eine Person muss ausgewählt sein.",
       "split_type_label": "Aufteilung",
       "split_equal": "Gleich",
+      "split_equal_info": "Gleich aufteilen",
       "split_exact": "Exakte Beträge",
-      "split_percentage": "Prozentual"
+      "split_percentage": "Prozentual",
+      "submit": "Ausgabe hinzufügen",
+      "you_badge": "Du"
     }
   },
   "nav": {

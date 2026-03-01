@@ -7,7 +7,8 @@
     "edit": "Edit",
     "confirm": "Confirm",
     "loading": "Loading…",
-    "error_generic": "Something went wrong. Please try again."
+    "error_generic": "Something went wrong. Please try again.",
+    "back": "Back"
   },
   "auth": {
     "sign_in": "Sign in",
@@ -41,15 +42,26 @@
     "add": "Add expense",
     "empty_title": "No expenses yet",
     "empty_description": "Add the first expense for this group.",
+    "paid_by": "Paid by {{name}}",
     "form": {
+      "page_title": "Add expense",
       "description_label": "Description",
       "description_placeholder": "What was paid for?",
+      "description_placeholder_field": "Dinner out",
+      "default_description": "Expense by {{name}}",
       "amount_label": "Amount",
+      "amount_error_required": "Please enter an amount.",
+      "amount_error_positive": "Amount must be greater than 0.",
       "paid_by_label": "Paid by",
+      "split_with_label": "Split with",
+      "participants_error": "At least one person must be selected.",
       "split_type_label": "Split",
       "split_equal": "Equal",
+      "split_equal_info": "Split equally",
       "split_exact": "Exact amounts",
-      "split_percentage": "Percentage"
+      "split_percentage": "Percentage",
+      "submit": "Add expense",
+      "you_badge": "You"
     }
   },
   "nav": {
