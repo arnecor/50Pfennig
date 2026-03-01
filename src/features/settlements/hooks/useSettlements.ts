@@ -4,11 +4,12 @@
  * TanStack Query hooks for settlement data.
  *
  * Exports:
- *   useSettlements(groupId)    → all settlements for a group
- *   useCreateSettlement()      → mutation: record that A paid B back
- *   useDeleteSettlement()      → mutation: remove a settlement
+ *   useSettlements(groupId)  → all settlements for a group
  */
 
-// TODO: Implement
+import { useQuery } from '@tanstack/react-query';
+import { settlementsQueryOptions } from '../settlementQueries';
+import type { GroupId } from '@domain/types';
 
-export {};
+export const useSettlements = (groupId: GroupId) =>
+  useQuery(settlementsQueryOptions(groupId));

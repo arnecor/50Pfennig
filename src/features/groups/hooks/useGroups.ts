@@ -4,12 +4,15 @@
  * TanStack Query hooks for group data.
  *
  * Exports:
- *   useGroups()           → all groups for the current user
- *   useGroup(groupId)     → single group with members
- *   useCreateGroup()      → mutation to create a new group
- *   useAddMember()        → mutation to add a member to a group
+ *   useGroups()       → all groups for the current user
+ *   useGroup(groupId) → single group with members
  */
 
-// TODO: Implement after groupQueries.ts and groupRepository are set up.
+import { useQuery } from '@tanstack/react-query';
+import { groupsQueryOptions, groupDetailQueryOptions } from '../groupQueries';
+import type { GroupId } from '@domain/types';
 
-export {};
+export const useGroups = () => useQuery(groupsQueryOptions());
+
+export const useGroup = (groupId: GroupId) =>
+  useQuery(groupDetailQueryOptions(groupId));
