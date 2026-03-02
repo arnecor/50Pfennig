@@ -8,7 +8,8 @@
     "confirm": "Confirm",
     "loading": "Loading…",
     "error_generic": "Something went wrong. Please try again.",
-    "back": "Back"
+    "back": "Back",
+    "you": "You"
   },
   "auth": {
     "sign_in": "Sign in",
@@ -96,8 +97,19 @@
   },
   "friends": {
     "title": "Friends",
+    "add_friend": "Add friend",
+    "add_friend_coming_soon": "Adding friends is coming soon.",
     "empty_title": "No friends yet",
-    "empty_description": "Add friends to split expenses with them."
+    "empty_description": "Add friends to split expenses with them.",
+    "balanced": "Settled up",
+    "no_shared_expenses": "No shared expenses",
+    "no_shared_expenses_description": "You haven't shared any expenses yet.",
+    "direct_expense": "Direct",
+    "remove_friend": "Remove friend",
+    "remove_friend_confirm": "Remove this friend?",
+    "send_reminder": "Send reminder",
+    "send_reminder_coming_soon": "Sending reminders is coming soon.",
+    "net_balance": "Net balance"
   },
   "account": {
     "title": "Account",

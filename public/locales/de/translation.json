@@ -9,7 +9,8 @@
     "confirm": "Bestätigen",
     "loading": "Wird geladen…",
     "error_generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
-    "back": "Zurück"
+    "back": "Zurück",
+    "you": "Du"
   },
   "auth": {
     "sign_in": "Anmelden",
@@ -97,8 +98,19 @@
   },
   "friends": {
     "title": "Freunde",
+    "add_friend": "Freund hinzufügen",
+    "add_friend_coming_soon": "Freunde hinzufügen kommt bald.",
     "empty_title": "Noch keine Freunde",
-    "empty_description": "Freunde hinzufügen, um Ausgaben zu teilen."
+    "empty_description": "Freunde hinzufügen, um Ausgaben zu teilen.",
+    "balanced": "Ausgeglichen",
+    "no_shared_expenses": "Keine gemeinsamen Ausgaben",
+    "no_shared_expenses_description": "Ihr habt noch keine Ausgaben geteilt.",
+    "direct_expense": "Direkt",
+    "remove_friend": "Freundschaft beenden",
+    "remove_friend_confirm": "Möchtest du diese Freundschaft wirklich beenden?",
+    "send_reminder": "Erinnerung senden",
+    "send_reminder_coming_soon": "Erinnerungen kommen bald.",
+    "net_balance": "Gesamtbilanz"
   },
   "account": {
     "title": "Konto",

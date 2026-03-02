@@ -31,15 +31,16 @@ import {
 } from '@tanstack/react-router';
 import type { QueryClient } from '@tanstack/react-query';
 
-import AppShell        from '../components/layout/AppShell';
-import HomePage        from '../pages/HomePage';
-import LoginPage       from '../pages/LoginPage';
-import GroupsPage      from '../pages/GroupsPage';
-import GroupDetailPage from '../pages/GroupDetailPage';
-import ExpenseFormPage from '../pages/ExpenseFormPage';
-import SettlementsPage from '../pages/SettlementsPage';
-import FriendsPage     from '../pages/FriendsPage';
-import AccountPage     from '../pages/AccountPage';
+import AppShell          from '../components/layout/AppShell';
+import HomePage          from '../pages/HomePage';
+import LoginPage         from '../pages/LoginPage';
+import GroupsPage        from '../pages/GroupsPage';
+import GroupDetailPage   from '../pages/GroupDetailPage';
+import ExpenseFormPage   from '../pages/ExpenseFormPage';
+import SettlementsPage   from '../pages/SettlementsPage';
+import FriendsPage       from '../pages/FriendsPage';
+import FriendDetailPage  from '../pages/FriendDetailPage';
+import AccountPage       from '../pages/AccountPage';
 import { requireAuth, requireGuest } from './guards';
 
 // ---------------------------------------------------------------------------
@@ -124,6 +125,13 @@ const friendsRoute = createRoute({
   component:      FriendsPage,
 });
 
+const friendDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/friends/$friendId',
+  beforeLoad:     requireAuth,
+  component:      FriendDetailPage,
+});
+
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path:           '/account',
@@ -144,6 +152,7 @@ const routeTree = rootRoute.addChildren([
   expenseEditRoute,
   settlementsRoute,
   friendsRoute,
+  friendDetailRoute,
   accountRoute,
 ]);
 
