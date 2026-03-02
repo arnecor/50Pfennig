@@ -145,4 +145,33 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
 
     if (error) throw error;
   }
+
+  async getSharedWithUser(otherUserId: UserId): Promise<Expense[]> {
+    // Fetch all expenses visible to the current user (RLS handles authorisation),
+    // then filter client-side to those where otherUserId also participates.
+    // For group expenses the full split list is visible (group member RLS).
+    // For friend expenses we detect the other user via paid_by as a fallback
+    // when their split row isn't directly visible.
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*, expense_splits(*)')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const otherIdStr = otherUserId as string;
+
+    return (data ?? [])
+      .filter(row => {
+        const splits = (row as typeof row & { expense_splits: Array<{ user_id: string }> }).expense_splits;
+        return (
+          row.paid_by === otherIdStr ||
+          splits.some(s => s.user_id === otherIdStr)
+        );
+      })
+      .map(row => {
+        const splits = (row as typeof row & { expense_splits: unknown[] }).expense_splits;
+        return mapExpense(row, splits as never[]);
+      });
+  }
 }

@@ -264,6 +264,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_expense: { Args: { p_expense_id: string }; Returns: boolean }
       create_expense: {
         Args: {
           p_description: string

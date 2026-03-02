@@ -19,6 +19,7 @@ import type {
   ExpenseId,
   ExpenseSplit,
   Friend,
+  FriendshipId,
   Group,
   GroupId,
   GroupMember,
@@ -60,6 +61,9 @@ export interface IGroupRepository {
 export interface IFriendRepository {
   /** All accepted friends of the current user, with their display names. */
   getAll(): Promise<Friend[]>;
+
+  /** Remove a friendship by its ID. Both parties may call this. */
+  remove(friendshipId: FriendshipId): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
@@ -86,6 +90,13 @@ export interface IExpenseRepository {
    * RLS on the DB side limits visibility to only expenses the user is part of.
    */
   getByParticipant(): Promise<Expense[]>;
+
+  /**
+   * All expenses (friend and group) that both the current user and otherUserId
+   * are participants in, ordered newest first.
+   * Used for the friend detail page.
+   */
+  getSharedWithUser(otherUserId: UserId): Promise<Expense[]>;
 
   /**
    * Create an expense and its splits atomically.

@@ -31,7 +31,7 @@ export default function AppShell() {
   const showNav = pathname !== '/login';
 
   return (
-    <div className="flex flex-col min-h-dvh bg-background text-foreground">
+    <div className="flex flex-col min-h-dvh bg-background text-foreground pt-[env(safe-area-inset-top)]">
       <main className={`flex-1 overflow-auto${showNav ? ' pb-16' : ''}`}>
         <Outlet />
       </main>

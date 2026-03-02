@@ -8,7 +8,8 @@
     "confirm": "Confirm",
     "loading": "Loading…",
     "error_generic": "Something went wrong. Please try again.",
-    "back": "Back"
+    "back": "Back",
+    "you": "You"
   },
   "auth": {
     "sign_in": "Sign in",
@@ -35,7 +36,17 @@
     "empty_title": "No groups yet",
     "empty_description": "Create a group to start tracking shared expenses.",
     "members": "Members",
-    "add_member": "Add member"
+    "add_member": "Add member",
+    "manage_members": "+ Members",
+    "overlay_title": "Members & Sharing",
+    "add_friends_section": "Add friends",
+    "add_member_confirm": "Add ({{count}})",
+    "all_friends_in_group": "All your friends are already in this group.",
+    "no_friends_at_all": "No friends yet.",
+    "share_section": "Share group",
+    "share_coming_soon": "Link and QR code sharing coming soon.",
+    "share_link": "Share link",
+    "share_qr": "QR code"
   },
   "expenses": {
     "title": "Expenses",
@@ -86,8 +97,19 @@
   },
   "friends": {
     "title": "Friends",
+    "add_friend": "Add friend",
+    "add_friend_coming_soon": "Adding friends is coming soon.",
     "empty_title": "No friends yet",
-    "empty_description": "Add friends to split expenses with them."
+    "empty_description": "Add friends to split expenses with them.",
+    "balanced": "Settled up",
+    "no_shared_expenses": "No shared expenses",
+    "no_shared_expenses_description": "You haven't shared any expenses yet.",
+    "direct_expense": "Direct",
+    "remove_friend": "Remove friend",
+    "remove_friend_confirm": "Remove this friend?",
+    "send_reminder": "Send reminder",
+    "send_reminder_coming_soon": "Sending reminders is coming soon.",
+    "net_balance": "Net balance"
   },
   "account": {
     "title": "Account",

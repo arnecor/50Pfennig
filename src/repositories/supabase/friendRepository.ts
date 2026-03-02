@@ -14,7 +14,7 @@
 
 import { supabase } from '../../lib/supabase/client';
 import { type FriendshipWithProfiles, mapFriend } from '../../lib/supabase/mappers';
-import type { UserId } from '../../domain/types';
+import type { FriendshipId, UserId } from '../../domain/types';
 import type { Friend } from '../../domain/types';
 import type { IFriendRepository } from '../types';
 
@@ -41,5 +41,14 @@ export class SupabaseFriendRepository implements IFriendRepository {
     return (data ?? []).map((row) =>
       mapFriend(row as unknown as FriendshipWithProfiles, currentUserId),
     );
+  }
+
+  async remove(friendshipId: FriendshipId): Promise<void> {
+    const { error } = await supabase
+      .from('friendships')
+      .delete()
+      .eq('id', friendshipId as string);
+
+    if (error) throw error;
   }
 }

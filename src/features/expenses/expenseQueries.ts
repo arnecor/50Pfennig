@@ -13,7 +13,7 @@
  *   Both invalidations cascade into useTotalBalance automatically.
  */
 
-import type { GroupId } from '@domain/types';
+import type { GroupId, UserId } from '@domain/types';
 import { expenseRepository } from '@repositories';
 import { queryOptions } from '@tanstack/react-query';
 
@@ -27,4 +27,10 @@ export const friendExpensesQueryOptions = () =>
   queryOptions({
     queryKey: ['expenses', 'participant'] as const,
     queryFn: () => expenseRepository.getByParticipant(),
+  });
+
+export const sharedExpensesQueryOptions = (friendUserId: UserId) =>
+  queryOptions({
+    queryKey: ['expenses', 'shared', friendUserId] as const,
+    queryFn: () => expenseRepository.getSharedWithUser(friendUserId),
   });
