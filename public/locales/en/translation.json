@@ -28,7 +28,10 @@
     "switch_to_sign_in": "Already have an account? Sign in",
     "error_invalid_credentials": "Incorrect email or password.",
     "error_email_taken": "This email address is already in use.",
-    "error_weak_password": "Password must be at least 6 characters."
+    "error_weak_password": "Password must be at least 6 characters.",
+    "check_email_title": "Confirm your email",
+    "check_email_message": "We sent a confirmation link to {{email}}. Tap the link in the email to activate your account.",
+    "check_email_back": "Back to sign in"
   },
   "groups": {
     "title": "Groups",

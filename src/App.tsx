@@ -17,6 +17,8 @@ import { useState, useEffect } from 'react';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RouterProvider } from '@tanstack/react-router';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 import { router }                    from './router';
 import { idbPersister, CACHE_MAX_AGE } from './lib/storage/queryPersister';
@@ -37,6 +39,46 @@ export default function App() {
   );
 
   const { setSession, setHydrated, isHydrated } = useAuthStore();
+
+  // Handle deep links from email confirmation (custom URI scheme: com.pfennig50.app://auth/callback).
+  // Supports both PKCE (?code=) and implicit (#access_token=) Supabase auth flows.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const handleDeepLinkUrl = async (url: string) => {
+      try {
+        const urlObj = new URL(url);
+        // PKCE flow: Supabase passes ?code= query param
+        const code = urlObj.searchParams.get('code');
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error) router.navigate({ to: '/home' });
+          return;
+        }
+        // Implicit flow: tokens are in the URL fragment
+        const hash = new URLSearchParams(urlObj.hash.substring(1));
+        const access_token = hash.get('access_token');
+        const refresh_token = hash.get('refresh_token');
+        if (access_token && refresh_token) {
+          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+          if (!error) router.navigate({ to: '/home' });
+        }
+      } catch {
+        // Ignore malformed URLs or non-auth deep links
+      }
+    };
+
+    // Cold-start: app launched directly by tapping the email link
+    CapacitorApp.getLaunchUrl().then((result) => {
+      if (result?.url) handleDeepLinkUrl(result.url);
+    });
+    // Warm-start: app already running when the deep link arrives
+    CapacitorApp.addListener('appUrlOpen', ({ url }) => handleDeepLinkUrl(url));
+
+    return () => {
+      CapacitorApp.removeAllListeners();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to Supabase auth changes. The first callback fires on mount
   // (even when offline) and tells us whether a session exists — that's when
