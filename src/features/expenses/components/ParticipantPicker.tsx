@@ -119,10 +119,14 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
         aria-hidden="true"
       />
 
-      {/* Sheet — `bottom` offset keeps content above the software keyboard */}
+      {/* Sheet — bottom offset keeps content above the keyboard; maxHeight prevents
+           the top from overflowing into the Android status bar safe area. */}
       <div
-        className="fixed left-0 right-0 z-50 flex max-h-[85dvh] flex-col rounded-t-2xl bg-background shadow-xl"
-        style={{ bottom: keyboardOffset }}
+        className="fixed left-0 right-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-xl"
+        style={{
+          bottom: keyboardOffset,
+          maxHeight: `min(85dvh, calc(100vh - ${keyboardOffset}px - env(safe-area-inset-top, 24px)))`,
+        }}
       >
         {/* Handle + Header */}
         <div className="flex items-center justify-between border-b px-4 py-4">
