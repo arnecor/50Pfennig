@@ -36,7 +36,17 @@
     "empty_title": "Noch keine Gruppen",
     "empty_description": "Erstelle eine Gruppe, um gemeinsame Ausgaben zu verwalten.",
     "members": "Mitglieder",
-    "add_member": "Mitglied hinzufügen"
+    "add_member": "Mitglied hinzufügen",
+    "manage_members": "+ Mitglieder",
+    "overlay_title": "Mitglieder & Teilen",
+    "add_friends_section": "Freunde hinzufügen",
+    "add_member_confirm": "Hinzufügen ({{count}})",
+    "all_friends_in_group": "Alle Freunde sind bereits in der Gruppe.",
+    "no_friends_at_all": "Noch keine Freunde vorhanden.",
+    "share_section": "Gruppe teilen",
+    "share_coming_soon": "Link- und QR-Code-Sharing kommt bald.",
+    "share_link": "Link teilen",
+    "share_qr": "QR-Code"
   },
   "expenses": {
     "title": "Ausgaben",

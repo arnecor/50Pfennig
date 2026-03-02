@@ -35,7 +35,17 @@
     "empty_title": "No groups yet",
     "empty_description": "Create a group to start tracking shared expenses.",
     "members": "Members",
-    "add_member": "Add member"
+    "add_member": "Add member",
+    "manage_members": "+ Members",
+    "overlay_title": "Members & Sharing",
+    "add_friends_section": "Add friends",
+    "add_member_confirm": "Add ({{count}})",
+    "all_friends_in_group": "All your friends are already in this group.",
+    "no_friends_at_all": "No friends yet.",
+    "share_section": "Share group",
+    "share_coming_soon": "Link and QR code sharing coming soon.",
+    "share_link": "Share link",
+    "share_qr": "QR code"
   },
   "expenses": {
     "title": "Expenses",
