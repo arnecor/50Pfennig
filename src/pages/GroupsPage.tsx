@@ -18,17 +18,19 @@ export default function GroupsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  const handleCreateGroup = () => navigate({ to: '/groups/new' });
+
   return (
     <div className="flex h-full flex-col">
       <header className="flex items-center justify-between border-b px-4 py-4">
         <h1 className="text-xl font-semibold">{t('groups.title')}</h1>
-        <Button size="icon" variant="ghost" disabled aria-label={t('groups.create')}>
+        <Button size="icon" variant="ghost" onClick={handleCreateGroup} aria-label={t('groups.create')}>
           <Plus className="h-5 w-5" />
         </Button>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        <GroupList />
+        <GroupList onCreateGroup={handleCreateGroup} />
       </div>
 
       <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
