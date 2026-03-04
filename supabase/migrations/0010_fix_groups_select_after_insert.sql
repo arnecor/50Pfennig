@@ -20,6 +20,7 @@
 -- ---------------------------------------------------------------------------
 
 drop policy if exists "groups: members can view" on public.groups;
+drop policy if exists "groups: members and creator can view" on public.groups;
 
 create policy "groups: members and creator can view"
   on public.groups for select
@@ -34,6 +35,7 @@ create policy "groups: members and creator can view"
 -- ---------------------------------------------------------------------------
 
 drop policy if exists "group_members: members can add others" on public.group_members;
+drop policy if exists "group_members: members and creator can add" on public.group_members;
 
 create policy "group_members: members and creator can add"
   on public.group_members for insert
