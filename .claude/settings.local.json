@@ -46,12 +46,18 @@
       "Bash(npx supabase migration list)",
       "Bash(npx supabase db reset)",
       "Bash(gh issue view 12 --repo arnecor/50Pfennig)",
-      "Bash(gh issue view 12)",
+      "Bash(gh issue view *)",
       "Bash(gh issue view 16 --repo arnecor/50pfennig)",
       "Bash(gh issue view 16)",
+<<<<<<< feature/push-notifications
+      "Bash(gh issue view 25 --repo arnecor/50Pfennig)",
+      "Bash(gh issue edit 25 --add-label \"In Progress\")",
+      "Bash(gh project item-list 1 --owner arnecor --format json)"
+=======
       "Bash(gh issue view 15 --repo arnecor/50Pfennig)",
       "Bash(gh issue view 15)",
       "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''groups'', {}\\), indent=2, ensure_ascii=False\\)\\)\")"
+>>>>>>> main
     ]
   }
 }
