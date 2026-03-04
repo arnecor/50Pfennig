@@ -97,7 +97,7 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
     try {
       const group = await createGroup.mutateAsync({
         name: values.name.trim(),
-        memberIds: selectedFriends.length > 0 ? selectedFriends : undefined,
+        ...(selectedFriends.length > 0 && { memberIds: selectedFriends }),
       });
       onSuccess(group.id as GroupId);
     } catch (err) {
