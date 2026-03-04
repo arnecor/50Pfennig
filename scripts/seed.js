@@ -188,8 +188,8 @@ async function main() {
 
   // ── Step 1a: Create fixed personal user ───────────────────────────────────
   console.log('👤  Creating fixed user…');
-  const arneData = must(
-    'createUser arne@arne.de',
+  /*const arneData = must(
+    'createUser ar1@arne.de',
     await supabase.auth.admin.createUser({
       email: 'arne@arne.de',
       password: '123456',
@@ -198,16 +198,17 @@ async function main() {
     }),
   );
   const arneUser = arneData.user;
+  */
   console.log(`  ✓  arne@arne.de  →  Arne`);
 
   // ── Step 1b: Create 10 random test users ──────────────────────────────────
   console.log('👤  Creating 10 test users…');
-  const users = [arneUser];
+  const users = []; //arneUser
 
   for (let i = 0; i < 10; i++) {
     const firstName = faker.person.firstName();
     const lastName  = faker.person.lastName();
-    const email     = `testuser${i + 1}@test.example.com`;
+    const email     = `t${i + 1}@test.com`;
 
     const data = must(
       `createUser ${email}`,

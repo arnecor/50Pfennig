@@ -34,8 +34,10 @@ import type { QueryClient } from '@tanstack/react-query';
 import AppShell          from '../components/layout/AppShell';
 import HomePage          from '../pages/HomePage';
 import LoginPage         from '../pages/LoginPage';
+import CheckEmailPage    from '../pages/CheckEmailPage';
 import GroupsPage        from '../pages/GroupsPage';
 import GroupDetailPage   from '../pages/GroupDetailPage';
+import CreateGroupPage   from '../pages/CreateGroupPage';
 import ExpenseFormPage   from '../pages/ExpenseFormPage';
 import SettlementsPage   from '../pages/SettlementsPage';
 import FriendsPage       from '../pages/FriendsPage';
@@ -67,6 +69,16 @@ const loginRoute = createRoute({
   component:      LoginPage,
 });
 
+// Post-registration confirmation screen — no auth guard, shown before email is verified
+const checkEmailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/auth/check-email',
+  component:      CheckEmailPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    email: typeof search.email === 'string' ? search.email : undefined,
+  }),
+});
+
 // ---------------------------------------------------------------------------
 // Protected routes
 // ---------------------------------------------------------------------------
@@ -83,6 +95,15 @@ const groupsRoute = createRoute({
   path:           '/groups',
   beforeLoad:     requireAuth,
   component:      GroupsPage,
+});
+
+// /groups/new must be declared before /groups/$groupId so the static segment
+// wins over the dynamic param when the URL is exactly "/groups/new".
+const groupCreateRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/groups/new',
+  beforeLoad:     requireAuth,
+  component:      CreateGroupPage,
 });
 
 const groupDetailRoute = createRoute({
@@ -146,7 +167,9 @@ const accountRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   homeRoute,
   loginRoute,
+  checkEmailRoute,
   groupsRoute,
+  groupCreateRoute,
   groupDetailRoute,
   expenseNewRoute,
   expenseEditRoute,

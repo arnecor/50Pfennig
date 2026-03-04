@@ -30,7 +30,11 @@ function GroupCardSkeleton() {
   );
 }
 
-export default function GroupList() {
+type Props = {
+  onCreateGroup?: () => void;
+};
+
+export default function GroupList({ onCreateGroup }: Props) {
   const { t } = useTranslation();
   const { data: groups, isLoading } = useGroups();
 
@@ -51,7 +55,7 @@ export default function GroupList() {
         title={t('groups.empty_title')}
         description={t('groups.empty_description')}
         action={
-          <Button disabled>
+          <Button onClick={onCreateGroup}>
             {t('groups.create')}
           </Button>
         }
