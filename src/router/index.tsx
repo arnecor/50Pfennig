@@ -34,6 +34,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import AppShell          from '../components/layout/AppShell';
 import HomePage          from '../pages/HomePage';
 import LoginPage         from '../pages/LoginPage';
+import CheckEmailPage    from '../pages/CheckEmailPage';
 import GroupsPage        from '../pages/GroupsPage';
 import GroupDetailPage   from '../pages/GroupDetailPage';
 import CreateGroupPage   from '../pages/CreateGroupPage';
@@ -66,6 +67,16 @@ const loginRoute = createRoute({
   path:           '/login',
   beforeLoad:     requireGuest,
   component:      LoginPage,
+});
+
+// Post-registration confirmation screen — no auth guard, shown before email is verified
+const checkEmailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/auth/check-email',
+  component:      CheckEmailPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    email: typeof search.email === 'string' ? search.email : undefined,
+  }),
 });
 
 // ---------------------------------------------------------------------------
@@ -156,6 +167,7 @@ const accountRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   homeRoute,
   loginRoute,
+  checkEmailRoute,
   groupsRoute,
   groupCreateRoute,
   groupDetailRoute,

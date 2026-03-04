@@ -29,7 +29,10 @@
     "switch_to_sign_in": "Bereits ein Konto? Anmelden",
     "error_invalid_credentials": "E-Mail oder Passwort ist falsch.",
     "error_email_taken": "Diese E-Mail-Adresse wird bereits verwendet.",
-    "error_weak_password": "Das Passwort muss mindestens 6 Zeichen lang sein."
+    "error_weak_password": "Das Passwort muss mindestens 6 Zeichen lang sein.",
+    "check_email_title": "E-Mail bestätigen",
+    "check_email_message": "Wir haben einen Bestätigungslink an {{email}} gesendet. Tippe auf den Link in der E-Mail, um dein Konto zu aktivieren.",
+    "check_email_back": "Zurück zur Anmeldung"
   },
   "groups": {
     "title": "Gruppen",

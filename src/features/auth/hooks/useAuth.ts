@@ -33,9 +33,13 @@ export const useAuth = () => {
 
   const signUp = useCallback(
     async (email: string, password: string) => {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: 'com.pfennig50.app://auth/callback' },
+      });
       if (error) throw error;
-      await router.navigate({ to: '/home' });
+      await router.navigate({ to: '/auth/check-email', search: { email } });
     },
     [router],
   );
