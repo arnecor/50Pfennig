@@ -36,6 +36,7 @@ import HomePage          from '../pages/HomePage';
 import LoginPage         from '../pages/LoginPage';
 import GroupsPage        from '../pages/GroupsPage';
 import GroupDetailPage   from '../pages/GroupDetailPage';
+import CreateGroupPage   from '../pages/CreateGroupPage';
 import ExpenseFormPage   from '../pages/ExpenseFormPage';
 import SettlementsPage   from '../pages/SettlementsPage';
 import FriendsPage       from '../pages/FriendsPage';
@@ -83,6 +84,15 @@ const groupsRoute = createRoute({
   path:           '/groups',
   beforeLoad:     requireAuth,
   component:      GroupsPage,
+});
+
+// /groups/new must be declared before /groups/$groupId so the static segment
+// wins over the dynamic param when the URL is exactly "/groups/new".
+const groupCreateRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/groups/new',
+  beforeLoad:     requireAuth,
+  component:      CreateGroupPage,
 });
 
 const groupDetailRoute = createRoute({
@@ -147,6 +157,7 @@ const routeTree = rootRoute.addChildren([
   homeRoute,
   loginRoute,
   groupsRoute,
+  groupCreateRoute,
   groupDetailRoute,
   expenseNewRoute,
   expenseEditRoute,

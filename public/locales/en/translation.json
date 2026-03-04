@@ -46,7 +46,13 @@
     "share_section": "Share group",
     "share_coming_soon": "Link and QR code sharing coming soon.",
     "share_link": "Share link",
-    "share_qr": "QR code"
+    "share_qr": "QR code",
+    "create_title": "New group",
+    "name_label": "Group name",
+    "name_error_required": "Name is required.",
+    "add_members_hint": "You can add members later too.",
+    "create_button": "Create group",
+    "creating": "Creating group…"
   },
   "expenses": {
     "title": "Expenses",
