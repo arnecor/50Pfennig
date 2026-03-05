@@ -21,12 +21,18 @@
 
 
 -- =============================================================================
+-- 0. Enable pgcrypto (required for gen_random_bytes used in token generation)
+-- =============================================================================
+
+create extension if not exists pgcrypto with schema extensions;
+
+-- =============================================================================
 -- 1. friend_invites table
 -- =============================================================================
 
 create table public.friend_invites (
   id           uuid        primary key default gen_random_uuid(),
-  token        text        not null unique default encode(gen_random_bytes(16), 'hex'),
+  token        text        not null unique default encode(extensions.gen_random_bytes(16), 'hex'),
   inviter_id   uuid        not null references public.profiles(id) on delete cascade,
   used_by      uuid        references public.profiles(id) on delete set null,
   expires_at   timestamptz not null default (now() + interval '7 days'),
