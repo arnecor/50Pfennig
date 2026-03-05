@@ -46,30 +46,15 @@ export class SupabaseGroupRepository implements IGroupRepository {
   }
 
   async create(input: CreateGroupInput): Promise<Group> {
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) throw authError ?? new Error('Not authenticated');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: group, error } = await (supabase.rpc as any)('create_group', {
+      p_name: input.name,
+      p_member_ids: input.memberIds ?? [],
+    });
 
-    const { data: group, error: groupError } = await supabase
-      .from('groups')
-      .insert({ name: input.name, created_by: user.id })
-      .select()
-      .single();
+    if (error) throw error;
 
-    if (groupError) throw groupError;
-
-    // Insert the creator as a member — display_name comes from their profile row
-    const { data: member, error: memberError } = await supabase
-      .from('group_members')
-      .insert({ group_id: group.id, user_id: user.id })
-      .select('user_id, group_id, joined_at, profiles(display_name)')
-      .single();
-
-    if (memberError) throw memberError;
-
-    return mapGroup(group, [member as GroupMemberWithProfile]);
+    return this.getById((group as { id: string }).id as GroupId);
   }
 
   async addMember(groupId: GroupId, userId: UserId): Promise<GroupMember> {

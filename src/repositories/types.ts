@@ -35,6 +35,7 @@ import type {
 
 export type CreateGroupInput = {
   name: string;
+  memberIds: UserId[];
 };
 
 export interface IGroupRepository {
