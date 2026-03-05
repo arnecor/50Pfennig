@@ -110,6 +110,48 @@ export type Database = {
           },
         ]
       }
+      friend_invites: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          inviter_id: string
+          token: string
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          inviter_id: string
+          token?: string
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          inviter_id?: string
+          token?: string
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_invites_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -288,6 +330,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_friend_invite: {
+        Args: { p_token: string }
+        Returns: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "friendships"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      add_friend_by_id: {
+        Args: { p_friend_id: string }
+        Returns: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "friendships"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       can_access_expense: { Args: { p_expense_id: string }; Returns: boolean }
       create_expense: {
         Args: {
@@ -318,7 +392,48 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_friend_invite: {
+        Args: never
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          inviter_id: string
+          token: string
+          used_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "friend_invites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_group: {
+        Args: { p_member_ids?: string[]; p_name: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "groups"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_app_setting: { Args: { p_key: string }; Returns: string }
       is_group_member: { Args: { p_group_id: string }; Returns: boolean }
+      search_user_by_email: {
+        Args: { p_email: string }
+        Returns: {
+          display_name: string
+          email: string
+          user_id: string
+        }[]
+      }
       update_expense: {
         Args: {
           p_description: string

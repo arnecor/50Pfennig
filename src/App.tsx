@@ -28,6 +28,24 @@ import { useAuthStore }              from './features/auth/authStore';
 import ErrorBoundary                 from './components/ErrorBoundary';
 import { initPushNotifications, type NotificationData } from './lib/capacitor/pushNotifications';
 import { upsertPushToken, deletePushToken } from './repositories/supabase/pushTokenRepository';
+import { usePendingInviteStore } from './store/pendingInviteStore';
+import { friendRepository } from './repositories';
+import { checkInstallReferrer } from './lib/installReferrer';
+
+/**
+ * Accepts an invite token, invalidates the friends query, and navigates to /friends.
+ * Used by deep link handler and pending invite check.
+ */
+async function processInviteToken(token: string, queryClient: QueryClient) {
+  try {
+    await friendRepository.acceptInvite(token);
+    queryClient.invalidateQueries({ queryKey: ['friends'] });
+    router.navigate({ to: '/friends' });
+  } catch {
+    // Token may be expired, already used, or already friends — navigate anyway
+    router.navigate({ to: '/friends' });
+  }
+}
 
 export default function App() {
   const [queryClient] = useState(
@@ -53,6 +71,27 @@ export default function App() {
     const handleDeepLinkUrl = async (url: string) => {
       try {
         const urlObj = new URL(url);
+
+        // --- Invite deep link: com.pfennig50.app://invite/{token} ---
+        // Also matches URLs with /invite/{token} in the path (from Edge Function redirect)
+        const inviteMatch =
+          urlObj.pathname.match(/\/invite\/([a-f0-9]{32})$/) ??
+          (urlObj.host === 'invite' ? urlObj.pathname.match(/^\/([a-f0-9]{32})$/) : null);
+
+        if (inviteMatch?.[1]) {
+          const token = inviteMatch[1];
+          const session = useAuthStore.getState().session;
+          if (session) {
+            // User is logged in — accept the invite immediately
+            await processInviteToken(token, queryClient);
+          } else {
+            // Not logged in — store token for after login
+            usePendingInviteStore.getState().setToken(token);
+          }
+          return;
+        }
+
+        // --- Auth callback deep link ---
         // PKCE flow: Supabase passes ?code= query param
         const code = urlObj.searchParams.get('code');
         if (code) {
@@ -140,6 +179,28 @@ export default function App() {
 
     return () => cleanup();
   }, [isHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Check for pending invite tokens after auth hydration.
+  // Two sources: (1) pendingInviteStore (from deep link before login),
+  //              (2) Play Store install referrer (deferred deep link).
+  useEffect(() => {
+    if (!isHydrated) return;
+    const session = useAuthStore.getState().session;
+    if (!session) return;
+
+    // 1. Check pending invite store (deep link arrived before login)
+    const pendingToken = usePendingInviteStore.getState().token;
+    if (pendingToken) {
+      usePendingInviteStore.getState().clear();
+      void processInviteToken(pendingToken, queryClient);
+      return;
+    }
+
+    // 2. Check Play Store install referrer (deferred deep link after install)
+    void checkInstallReferrer().then((token) => {
+      if (token) void processInviteToken(token, queryClient);
+    });
+  }, [isHydrated, queryClient]);
 
   // Don't mount the router until we know the auth state.
   // This prevents a flash to /login when a session is already stored.

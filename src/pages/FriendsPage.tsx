@@ -76,7 +76,7 @@ export default function FriendsPage() {
   }, [friends, friendExpenses, currentUserId]);
 
   const handleAddFriend = () => {
-    window.alert(t('friends.add_friend_coming_soon'));
+    navigate({ to: '/friends/add' });
   };
 
   return (

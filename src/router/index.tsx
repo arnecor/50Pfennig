@@ -40,9 +40,13 @@ import GroupDetailPage   from '../pages/GroupDetailPage';
 import CreateGroupPage   from '../pages/CreateGroupPage';
 import ExpenseFormPage   from '../pages/ExpenseFormPage';
 import SettlementsPage   from '../pages/SettlementsPage';
-import FriendsPage       from '../pages/FriendsPage';
-import FriendDetailPage  from '../pages/FriendDetailPage';
-import AccountPage       from '../pages/AccountPage';
+import FriendsPage          from '../pages/FriendsPage';
+import AddFriendPage        from '../pages/AddFriendPage';
+import AddFriendQRPage      from '../pages/AddFriendQRPage';
+import AddFriendScanPage    from '../pages/AddFriendScanPage';
+import AddFriendEmailPage   from '../pages/AddFriendEmailPage';
+import FriendDetailPage     from '../pages/FriendDetailPage';
+import AccountPage          from '../pages/AccountPage';
 import { requireAuth, requireGuest } from './guards';
 
 // ---------------------------------------------------------------------------
@@ -146,6 +150,36 @@ const friendsRoute = createRoute({
   component:      FriendsPage,
 });
 
+// /friends/add/* routes must be declared before /friends/$friendId so the
+// static segments win over the dynamic param.
+const addFriendRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/friends/add',
+  beforeLoad:     requireAuth,
+  component:      AddFriendPage,
+});
+
+const addFriendQRRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/friends/add/qr',
+  beforeLoad:     requireAuth,
+  component:      AddFriendQRPage,
+});
+
+const addFriendScanRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/friends/add/scan',
+  beforeLoad:     requireAuth,
+  component:      AddFriendScanPage,
+});
+
+const addFriendEmailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/friends/add/email',
+  beforeLoad:     requireAuth,
+  component:      AddFriendEmailPage,
+});
+
 const friendDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path:           '/friends/$friendId',
@@ -175,6 +209,10 @@ const routeTree = rootRoute.addChildren([
   expenseEditRoute,
   settlementsRoute,
   friendsRoute,
+  addFriendRoute,
+  addFriendQRRoute,
+  addFriendScanRoute,
+  addFriendEmailRoute,
   friendDetailRoute,
   accountRoute,
 ]);

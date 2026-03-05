@@ -59,12 +59,38 @@ export interface IGroupRepository {
 // Friend repository
 // ---------------------------------------------------------------------------
 
+export type FriendInvite = {
+  readonly id: string;
+  readonly token: string;
+  readonly inviterId: UserId;
+  readonly expiresAt: Date;
+  readonly createdAt: Date;
+};
+
+export type EmailSearchResult = {
+  readonly userId: UserId;
+  readonly displayName: string;
+  readonly email: string;
+};
+
 export interface IFriendRepository {
   /** All accepted friends of the current user, with their display names. */
   getAll(): Promise<Friend[]>;
 
   /** Remove a friendship by its ID. Both parties may call this. */
   remove(friendshipId: FriendshipId): Promise<void>;
+
+  /** Create a shareable invite token (valid for 7 days). */
+  createInvite(): Promise<FriendInvite>;
+
+  /** Accept an invite token and create an accepted friendship. */
+  acceptInvite(token: string): Promise<void>;
+
+  /** Find a registered user by exact email match. Returns null if not found. */
+  searchByEmail(email: string): Promise<EmailSearchResult | null>;
+
+  /** Create an accepted friendship directly by user ID (for email search flow). */
+  addById(userId: UserId): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------

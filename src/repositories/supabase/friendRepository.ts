@@ -16,7 +16,7 @@ import { supabase } from '../../lib/supabase/client';
 import { type FriendshipWithProfiles, mapFriend } from '../../lib/supabase/mappers';
 import type { FriendshipId, UserId } from '../../domain/types';
 import type { Friend } from '../../domain/types';
-import type { IFriendRepository } from '../types';
+import type { EmailSearchResult, FriendInvite, IFriendRepository } from '../types';
 
 export class SupabaseFriendRepository implements IFriendRepository {
   async getAll(): Promise<Friend[]> {
@@ -48,6 +48,60 @@ export class SupabaseFriendRepository implements IFriendRepository {
       .from('friendships')
       .delete()
       .eq('id', friendshipId as string);
+
+    if (error) throw error;
+  }
+
+  // Note: The RPC functions below are defined in migration 0014_friend_invites.sql.
+  // After running the migration and `npm run db:types`, the `as any` casts can be
+  // removed because the generated types will include these function signatures.
+
+  async createInvite(): Promise<FriendInvite> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('create_friend_invite');
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      token: data.token,
+      inviterId: data.inviter_id as UserId,
+      expiresAt: new Date(data.expires_at),
+      createdAt: new Date(data.created_at),
+    };
+  }
+
+  async acceptInvite(token: string): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.rpc as any)('accept_friend_invite', {
+      p_token: token,
+    });
+
+    if (error) throw error;
+  }
+
+  async searchByEmail(email: string): Promise<EmailSearchResult | null> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('search_user_by_email', {
+      p_email: email,
+    });
+
+    if (error) throw error;
+    if (!data || data.length === 0) return null;
+
+    const row = data[0];
+    return {
+      userId: row.user_id as UserId,
+      displayName: row.display_name,
+      email: row.email,
+    };
+  }
+
+  async addById(userId: UserId): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.rpc as any)('add_friend_by_id', {
+      p_friend_id: userId as string,
+    });
 
     if (error) throw error;
   }
