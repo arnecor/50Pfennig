@@ -41,6 +41,7 @@ export default function QRCodeScanner() {
   const [friendName, setFriendName] = useState('');
 
   const stopScanning = useCallback(async () => {
+    document.documentElement.classList.remove('barcode-scanner-active');
     try {
       await BarcodeScanner.stopScan();
       await BarcodeScanner.removeAllListeners();
@@ -88,6 +89,9 @@ export default function QRCodeScanner() {
         }
       }
     });
+
+    // Make WebView transparent so the native camera layer shows through
+    document.documentElement.classList.add('barcode-scanner-active');
 
     // Start scanning
     await BarcodeScanner.startScan({
