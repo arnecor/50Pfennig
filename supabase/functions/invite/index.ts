@@ -177,10 +177,10 @@ Deno.serve(async (req: Request) => {
 </body>
 </html>`;
 
-  return new Response(html, {
-    status: 200,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  });
+  const headers = new Headers();
+  headers.set('content-type', 'text/html; charset=utf-8');
+
+  return new Response(html, { status: 200, headers });
 });
 
 function escapeHtml(str: string): string {
