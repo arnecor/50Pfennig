@@ -156,6 +156,9 @@ export default function FriendDetailPage() {
                 const paidByName = paidByCurrentUser
                   ? t('common.you')
                   : (friend?.displayName ?? '…');
+                const myShare = currentUserId
+                  ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
+                  : ZERO;
                 return (
                   <Card key={expense.id}>
                     <CardContent className="p-4">
@@ -176,10 +179,19 @@ export default function FriendDetailPage() {
                             })}
                           </p>
                         </div>
-                        <MoneyDisplay
-                          amount={expense.totalAmount}
-                          className="shrink-0 text-sm font-semibold tabular-nums"
-                        />
+                        <div className="shrink-0 text-right">
+                          <MoneyDisplay
+                            amount={myShare}
+                            className="text-sm font-semibold tabular-nums"
+                          />
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {t('friends.total')}{' '}
+                            <MoneyDisplay
+                              amount={expense.totalAmount}
+                              className="inline text-xs tabular-nums"
+                            />
+                          </p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
