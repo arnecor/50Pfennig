@@ -13,11 +13,12 @@ import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
 import { calculateParticipantBalances } from '@domain/balance';
-import { ZERO, type UserId } from '@domain/types';
+import { ZERO, type Expense, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
-import { friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
+import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
-import { useQuery } from '@tanstack/react-query';
+import { useGroups } from '@features/groups/hooks/useGroups';
+import { useQuery, useQueries } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { UserPlus, UserRound } from 'lucide-react';
 import { useMemo } from 'react';
@@ -42,28 +43,46 @@ export default function FriendsPage() {
   const navigate = useNavigate();
 
   const { data: friends = [], isLoading: friendsLoading } = useFriends();
-  const { data: friendExpenses = [], isLoading: expensesLoading } = useQuery(
+  const { data: friendExpenses = [], isLoading: friendExpensesLoading } = useQuery(
     friendExpensesQueryOptions(),
   );
+  const { data: groups = [], isLoading: groupsLoading } = useGroups();
   const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
 
-  const isLoading = friendsLoading || expensesLoading;
+  // Fetch group expenses (same data already cached by GroupCard/useTotalBalance).
+  const groupExpensesResults = useQueries({ queries: groups.map(g => expensesQueryOptions(g.id)) });
 
-  // For each friend: derive direct balance and date of last shared expense.
+  const isLoading =
+    friendsLoading ||
+    friendExpensesLoading ||
+    groupsLoading ||
+    groupExpensesResults.some(r => r.isLoading);
+
+  // Collect ALL expenses (friend + group) into one flat list for per-friend filtering.
+  const allExpenses = useMemo(() => {
+    const result: Expense[] = [...friendExpenses];
+    for (const r of groupExpensesResults) {
+      if (r.data) result.push(...r.data);
+    }
+    return result;
+  }, [friendExpenses, groupExpensesResults]);
+
+  // For each friend: derive balance across ALL shared expenses (group + friend).
+  // Uses calculateParticipantBalances on all expenses where the friend participates
+  // (same approach as FriendDetailPage for consistency).
   const friendsWithData = useMemo(() => {
     if (!currentUserId) return [];
 
     return friends
       .map(friend => {
         const friendIdStr = friend.userId as string;
-        const shared = friendExpenses.filter(
+        const shared = allExpenses.filter(
           e =>
             (e.paidBy as string) === friendIdStr ||
             e.splits.some(s => (s.userId as string) === friendIdStr),
         );
         const balances = calculateParticipantBalances(shared);
         const balance = balances.get(currentUserId) ?? ZERO;
-        // friendExpenses is already ordered newest-first by the repository
         const lastExpenseDate = shared[0]?.createdAt;
         return { friend, balance, lastExpenseDate };
       })
@@ -73,7 +92,7 @@ export default function FriendsPage() {
         if (!b.lastExpenseDate) return -1;
         return b.lastExpenseDate.getTime() - a.lastExpenseDate.getTime();
       });
-  }, [friends, friendExpenses, currentUserId]);
+  }, [friends, allExpenses, currentUserId]);
 
   const handleAddFriend = () => {
     navigate({ to: '/friends/add' });

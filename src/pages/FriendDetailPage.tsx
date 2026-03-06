@@ -17,7 +17,8 @@ import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
 import { calculateParticipantBalances } from '@domain/balance';
-import { ZERO, type GroupId, type UserId } from '@domain/types';
+import { isPositive, negate } from '@domain/money';
+import { ZERO, type GroupId, type Money, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { sharedExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
@@ -133,18 +134,23 @@ export default function FriendDetailPage() {
 
         {!isLoading && sharedExpenses.length > 0 && (
           <>
-            {/* Balance summary */}
+            {/* Balance summary — shows who owes whom */}
             <div className="mb-4 rounded-lg bg-muted/50 px-4 py-3 text-center">
-              <p className="mb-1 text-xs text-muted-foreground">{t('friends.net_balance')}</p>
               {netBalance === ZERO ? (
                 <p className="text-sm font-semibold">{t('friends.balanced')}</p>
               ) : (
-                <MoneyDisplay
-                  amount={netBalance}
-                  colored
-                  showSign
-                  className="text-lg font-bold tabular-nums"
-                />
+                <>
+                  <p className="mb-1 text-xs text-muted-foreground">
+                    {isPositive(netBalance)
+                      ? t('friends.friend_owes_you', { name: friend?.displayName ?? '…' })
+                      : t('friends.you_owe_friend', { name: friend?.displayName ?? '…' })}
+                  </p>
+                  <MoneyDisplay
+                    amount={isPositive(netBalance) ? netBalance : negate(netBalance)}
+                    colored={false}
+                    className="text-lg font-bold tabular-nums"
+                  />
+                </>
               )}
             </div>
 
@@ -159,6 +165,7 @@ export default function FriendDetailPage() {
                 const myShare = currentUserId
                   ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
                   : ZERO;
+                const participantCount = expense.splits.length;
                 return (
                   <Card key={expense.id}>
                     <CardContent className="p-4">
@@ -171,6 +178,9 @@ export default function FriendDetailPage() {
                             {expense.groupId
                               ? (groupNameMap.get(expense.groupId) ?? t('groups.title'))
                               : t('friends.direct_expense')}
+                            {participantCount > 2 && (
+                              <> · {t('friends.participant_count', { count: participantCount })}</>
+                            )}
                             {' · '}
                             {expense.createdAt.toLocaleDateString(dateLocale, {
                               day: '2-digit',
