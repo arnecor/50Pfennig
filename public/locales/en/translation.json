@@ -55,7 +55,12 @@
     "name_error_required": "Name is required.",
     "add_members_hint": "You can add members later too.",
     "create_button": "Create group",
-    "creating": "Creating group…"
+    "creating": "Creating group…",
+    "balanced": "Settled up",
+    "you_owe_group": "You owe",
+    "group_owes_you": "You are owed",
+    "total": "Total",
+    "participant_count": "{{count}} ppl."
   },
   "expenses": {
     "title": "Expenses",

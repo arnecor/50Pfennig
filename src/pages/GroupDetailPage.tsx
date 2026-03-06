@@ -12,7 +12,10 @@ import EmptyState from '@components/shared/EmptyState';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
-import type { GroupId, UserId } from '@domain/types';
+import { calculateGroupBalances } from '@domain/balance';
+import { isPositive, negate } from '@domain/money';
+import { ZERO, type GroupId, type Money, type UserId } from '@domain/types';
+import { useAuthStore } from '@features/auth/authStore';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import AddMemberOverlay from '@features/groups/components/AddMemberOverlay';
 import { useAddGroupMembers } from '@features/groups/hooks/useAddGroupMembers';
@@ -38,9 +41,11 @@ function ExpenseSkeleton() {
 }
 
 export default function GroupDetailPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { groupId } = useParams({ strict: false }) as { groupId: string };
+
+  const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
 
   const { data: group, isLoading: groupLoading } = useGroup(groupId as GroupId);
   const { data: expenses, isLoading: expensesLoading } = useExpenses(groupId as GroupId);
@@ -54,9 +59,18 @@ export default function GroupDetailPage() {
 
   const paidByName = useMemo(() => {
     if (!group || !expenses) return (userId: string) => userId;
-    return (userId: string) =>
-      group.members.find((m) => m.userId === userId)?.displayName ?? userId;
-  }, [group, expenses]);
+    return (userId: string) => {
+      if (currentUserId && userId === (currentUserId as string)) return t('common.you');
+      return group.members.find((m) => m.userId === userId)?.displayName ?? userId;
+    };
+  }, [group, expenses, currentUserId, t]);
+
+  const netBalance = useMemo(() => {
+    if (!currentUserId || !group || !expenses) return ZERO;
+    return calculateGroupBalances(expenses, [], group.members).get(currentUserId) ?? ZERO;
+  }, [expenses, group, currentUserId]);
+
+  const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
   const handleAddExpense = () => {
     navigate({ to: '/expenses/new', search: { groupId } });
@@ -127,28 +141,80 @@ export default function GroupDetailPage() {
         )}
 
         {!isLoading && expenses && expenses.length > 0 && (
-          <div className="space-y-3">
-            {expenses.map((expense) => (
-              <Card key={expense.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{expense.description}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {t('expenses.paid_by', {
-                          name: paidByName(expense.paidBy),
-                        })}
-                      </p>
-                    </div>
-                    <MoneyDisplay
-                      amount={expense.totalAmount}
-                      className="shrink-0 text-sm font-semibold tabular-nums"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <>
+            {/* Balance summary */}
+            <div className="mb-4 rounded-lg bg-muted/50 px-4 py-3 text-center">
+              {netBalance === ZERO ? (
+                <p className="text-sm font-semibold">{t('groups.balanced')}</p>
+              ) : (
+                <>
+                  <p className="mb-1 text-xs text-muted-foreground">
+                    {isPositive(netBalance)
+                      ? t('groups.group_owes_you')
+                      : t('groups.you_owe_group')}
+                  </p>
+                  <MoneyDisplay
+                    amount={isPositive(netBalance) ? netBalance : negate(netBalance)}
+                    colored={false}
+                    className="text-lg font-bold tabular-nums"
+                  />
+                </>
+              )}
+            </div>
+
+            {/* Expense list */}
+            <div className="space-y-3">
+              {expenses.map((expense) => {
+                const paidByCurrentUser =
+                  (expense.paidBy as string) === (currentUserId as string);
+                const myShare = currentUserId
+                  ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
+                  : ZERO;
+                const participantCount = expense.splits.length;
+                const signedShare = paidByCurrentUser
+                  ? ((expense.totalAmount - myShare) as Money)
+                  : negate(myShare);
+                return (
+                  <Card key={expense.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{expense.description}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {paidByName(expense.paidBy)}
+                            {participantCount > 2 && (
+                              <> · {t('groups.participant_count', { count: participantCount })}</>
+                            )}
+                            {' · '}
+                            {expense.createdAt.toLocaleDateString(dateLocale, {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <MoneyDisplay
+                            amount={signedShare}
+                            showSign
+                            colored
+                            className="text-sm font-semibold tabular-nums"
+                          />
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {t('groups.total')}{' '}
+                            <MoneyDisplay
+                              amount={expense.totalAmount}
+                              className="inline text-xs tabular-nums"
+                            />
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 

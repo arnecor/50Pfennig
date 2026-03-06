@@ -166,6 +166,9 @@ export default function FriendDetailPage() {
                   ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
                   : ZERO;
                 const participantCount = expense.splits.length;
+                const signedShare = paidByCurrentUser
+                  ? ((expense.totalAmount - myShare) as Money)
+                  : negate(myShare);
                 return (
                   <Card key={expense.id}>
                     <CardContent className="p-4">
@@ -191,7 +194,9 @@ export default function FriendDetailPage() {
                         </div>
                         <div className="shrink-0 text-right">
                           <MoneyDisplay
-                            amount={myShare}
+                            amount={signedShare}
+                            showSign
+                            colored
                             className="text-sm font-semibold tabular-nums"
                           />
                           <p className="mt-0.5 text-xs text-muted-foreground">
