@@ -25,6 +25,17 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
     return (data ?? []).map(mapSettlement);
   }
 
+  async getByParticipant(): Promise<Settlement[]> {
+    const { data, error } = await supabase
+      .from('settlements')
+      .select('*')
+      .is('group_id', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(mapSettlement);
+  }
+
   async create(input: CreateSettlementInput): Promise<Settlement> {
     const { data, error } = await supabase
       .from('settlements')

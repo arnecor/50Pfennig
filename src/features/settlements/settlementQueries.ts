@@ -19,3 +19,9 @@ export const settlementsQueryOptions = (groupId: GroupId) =>
     queryKey: ['settlements', groupId] as const,
     queryFn: () => settlementRepository.getByGroupId(groupId),
   });
+
+export const friendSettlementsQueryOptions = () =>
+  queryOptions({
+    queryKey: ['settlements', 'participant'] as const,
+    queryFn: () => settlementRepository.getByParticipant(),
+  });

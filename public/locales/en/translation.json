@@ -107,7 +107,13 @@
     "you_are_owed": "You are owed",
     "you_owe": "You owe",
     "total": "Total",
-    "add_expense": "Add expense"
+    "add_expense": "Add expense",
+    "recent_activity": "Recent activity",
+    "no_activity": "No activity yet.",
+    "load_more": "Load more",
+    "activity_you_paid_back": "You paid {{name}}",
+    "activity_paid_back_to_you": "{{name}} paid you",
+    "activity_group_joined": "Added to group «{{group}}»"
   },
   "friends": {
     "title": "Friends",
