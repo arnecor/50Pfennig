@@ -60,6 +60,7 @@
     "you_owe_group": "You owe",
     "group_owes_you": "You are owed",
     "total": "Total",
+    "total_spent": "Group total",
     "participant_count": "{{count}} ppl."
   },
   "expenses": {
