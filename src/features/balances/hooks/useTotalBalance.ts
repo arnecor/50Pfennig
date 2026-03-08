@@ -21,7 +21,7 @@ import { useQuery, useQueries } from '@tanstack/react-query';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
-import { settlementsQueryOptions } from '@features/settlements/settlementQueries';
+import { friendSettlementsQueryOptions, settlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { calculateGroupBalances, calculateParticipantBalances } from '@domain/balance';
 import { ZERO, add, isPositive, isNegative } from '@domain/money';
 import type { Money, UserId } from '@domain/types';
@@ -45,10 +45,15 @@ export function useTotalBalance(currentUserId: UserId | undefined): TotalBalance
   const { data: friendExpenses = [], isLoading: friendExpensesLoading } =
     useQuery(friendExpensesQueryOptions());
 
+  // Fetch friend settlements (group_id IS NULL) — needed for accurate friend balances.
+  const { data: allFriendSettlements = [], isLoading: friendSettlementsLoading } =
+    useQuery(friendSettlementsQueryOptions());
+
   const isLoading =
     groupsLoading ||
     friendsLoading ||
     friendExpensesLoading ||
+    friendSettlementsLoading ||
     expensesResults.some(r => r.isLoading) ||
     settlementsResults.some(r => r.isLoading);
 
@@ -85,7 +90,12 @@ export function useTotalBalance(currentUserId: UserId | undefined): TotalBalance
             e.splits.some(s => (s.userId as string) === friendIdStr),
         );
         if (shared.length === 0) continue;
-        const balanceMap = calculateParticipantBalances(shared);
+        const friendSettlements = allFriendSettlements.filter(
+          s =>
+            (s.fromUserId as string) === friendIdStr ||
+            (s.toUserId as string) === friendIdStr,
+        );
+        const balanceMap = calculateParticipantBalances(shared, friendSettlements);
         accumulate(balanceMap.get(currentUserId) ?? ZERO);
       }
     }
@@ -96,5 +106,5 @@ export function useTotalBalance(currentUserId: UserId | undefined): TotalBalance
       netTotal: add(youAreOwed, youOwe),
       isLoading,
     };
-  }, [currentUserId, groups, friends, expensesResults, settlementsResults, friendExpenses, isLoading]);
+  }, [currentUserId, groups, friends, expensesResults, settlementsResults, friendExpenses, allFriendSettlements, isLoading]);
 }

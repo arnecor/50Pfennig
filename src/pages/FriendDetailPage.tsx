@@ -24,6 +24,7 @@ import { sharedExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { useRemoveFriend } from '@features/friends/hooks/useRemoveFriend';
 import { useGroups } from '@features/groups/hooks/useGroups';
+import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Bell, Receipt, UserMinus } from 'lucide-react';
@@ -58,6 +59,9 @@ export default function FriendDetailPage() {
   const { data: sharedExpenses = [], isLoading } = useQuery(
     sharedExpensesQueryOptions(friendId as UserId),
   );
+  const { data: sharedSettlements = [] } = useQuery(
+    sharedSettlementsQueryOptions(friendId as UserId),
+  );
 
   const removeFriend = useRemoveFriend();
 
@@ -68,8 +72,8 @@ export default function FriendDetailPage() {
 
   const netBalance = useMemo(() => {
     if (!currentUserId) return ZERO;
-    return calculateParticipantBalances(sharedExpenses).get(currentUserId) ?? ZERO;
-  }, [sharedExpenses, currentUserId]);
+    return calculateParticipantBalances(sharedExpenses, sharedSettlements).get(currentUserId) ?? ZERO;
+  }, [sharedExpenses, sharedSettlements, currentUserId]);
 
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 

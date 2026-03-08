@@ -18,7 +18,8 @@ import { useAuthStore } from '@features/auth/authStore';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { useGroups } from '@features/groups/hooks/useGroups';
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { friendSettlementsQueryOptions } from '@features/settlements/settlementQueries';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { UserPlus, UserRound } from 'lucide-react';
 import { useMemo } from 'react';
@@ -46,6 +47,9 @@ export default function FriendsPage() {
   const { data: friendExpenses = [], isLoading: friendExpensesLoading } = useQuery(
     friendExpensesQueryOptions(),
   );
+  const { data: allFriendSettlements = [], isLoading: friendSettlementsLoading } = useQuery(
+    friendSettlementsQueryOptions(),
+  );
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
   const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
 
@@ -55,6 +59,7 @@ export default function FriendsPage() {
   const isLoading =
     friendsLoading ||
     friendExpensesLoading ||
+    friendSettlementsLoading ||
     groupsLoading ||
     groupExpensesResults.some(r => r.isLoading);
 
@@ -67,9 +72,8 @@ export default function FriendsPage() {
     return result;
   }, [friendExpenses, groupExpensesResults]);
 
-  // For each friend: derive balance across ALL shared expenses (group + friend).
-  // Uses calculateParticipantBalances on all expenses where the friend participates
-  // (same approach as FriendDetailPage for consistency).
+  // For each friend: derive balance across ALL shared expenses (group + friend)
+  // and ALL settlements between the two users.
   const friendsWithData = useMemo(() => {
     if (!currentUserId) return [];
 
@@ -81,7 +85,12 @@ export default function FriendsPage() {
             (e.paidBy as string) === friendIdStr ||
             e.splits.some(s => (s.userId as string) === friendIdStr),
         );
-        const balances = calculateParticipantBalances(shared);
+        const friendSettlements = allFriendSettlements.filter(
+          s =>
+            (s.fromUserId as string) === friendIdStr ||
+            (s.toUserId as string) === friendIdStr,
+        );
+        const balances = calculateParticipantBalances(shared, friendSettlements);
         const balance = balances.get(currentUserId) ?? ZERO;
         const lastExpenseDate = shared[0]?.createdAt;
         return { friend, balance, lastExpenseDate };
@@ -92,7 +101,7 @@ export default function FriendsPage() {
         if (!b.lastExpenseDate) return -1;
         return b.lastExpenseDate.getTime() - a.lastExpenseDate.getTime();
       });
-  }, [friends, allExpenses, currentUserId]);
+  }, [friends, allExpenses, allFriendSettlements, currentUserId]);
 
   const handleAddFriend = () => {
     navigate({ to: '/friends/add' });

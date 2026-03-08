@@ -17,10 +17,11 @@ import { add, isPositive, negate } from '@domain/money';
 import { ZERO, type GroupId, type Money, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
+import { useFriends } from '@features/friends/hooks/useFriends';
 import AddMemberOverlay from '@features/groups/components/AddMemberOverlay';
 import { useAddGroupMembers } from '@features/groups/hooks/useAddGroupMembers';
 import { useGroup } from '@features/groups/hooks/useGroups';
-import { useFriends } from '@features/friends/hooks/useFriends';
+import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Plus, Receipt, UserPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -49,13 +50,14 @@ export default function GroupDetailPage() {
 
   const { data: group, isLoading: groupLoading } = useGroup(groupId as GroupId);
   const { data: expenses, isLoading: expensesLoading } = useExpenses(groupId as GroupId);
+  const { data: settlements = [], isLoading: settlementsLoading } = useSettlements(groupId as GroupId);
   const { data: friends = [] } = useFriends();
 
   const addMembers = useAddGroupMembers();
 
   const [showMemberOverlay, setShowMemberOverlay] = useState(false);
 
-  const isLoading = groupLoading || expensesLoading;
+  const isLoading = groupLoading || expensesLoading || settlementsLoading;
 
   const paidByName = useMemo(() => {
     if (!group || !expenses) return (userId: string) => userId;
@@ -67,8 +69,8 @@ export default function GroupDetailPage() {
 
   const netBalance = useMemo(() => {
     if (!currentUserId || !group || !expenses) return ZERO;
-    return calculateGroupBalances(expenses, [], group.members).get(currentUserId) ?? ZERO;
-  }, [expenses, group, currentUserId]);
+    return calculateGroupBalances(expenses, settlements, group.members).get(currentUserId) ?? ZERO;
+  }, [expenses, settlements, group, currentUserId]);
 
   const totalGroupSpending = useMemo(() => {
     if (!expenses) return ZERO;
