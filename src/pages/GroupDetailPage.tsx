@@ -13,7 +13,7 @@ import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
 import { calculateGroupBalances } from '@domain/balance';
-import { isPositive, negate } from '@domain/money';
+import { add, isPositive, negate } from '@domain/money';
 import { ZERO, type GroupId, type Money, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
@@ -69,6 +69,11 @@ export default function GroupDetailPage() {
     if (!currentUserId || !group || !expenses) return ZERO;
     return calculateGroupBalances(expenses, [], group.members).get(currentUserId) ?? ZERO;
   }, [expenses, group, currentUserId]);
+
+  const totalGroupSpending = useMemo(() => {
+    if (!expenses) return ZERO;
+    return expenses.reduce((sum, e) => add(sum, e.totalAmount), ZERO);
+  }, [expenses]);
 
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
@@ -143,23 +148,40 @@ export default function GroupDetailPage() {
         {!isLoading && expenses && expenses.length > 0 && (
           <>
             {/* Balance summary */}
-            <div className="mb-4 rounded-lg bg-muted/50 px-4 py-3 text-center">
-              {netBalance === ZERO ? (
-                <p className="text-sm font-semibold">{t('groups.balanced')}</p>
-              ) : (
-                <>
-                  <p className="mb-1 text-xs text-muted-foreground">
-                    {isPositive(netBalance)
-                      ? t('groups.group_owes_you')
-                      : t('groups.you_owe_group')}
-                  </p>
+            <div className="mb-4 rounded-lg bg-muted/50 px-4 py-3">
+              <div className="flex items-center justify-between gap-4">
+                {/* Total group spending */}
+                <div className="text-center flex-1">
+                  <p className="mb-1 text-xs text-muted-foreground">{t('groups.total_spent')}</p>
                   <MoneyDisplay
-                    amount={isPositive(netBalance) ? netBalance : negate(netBalance)}
+                    amount={totalGroupSpending}
                     colored={false}
                     className="text-lg font-bold tabular-nums"
                   />
-                </>
-              )}
+                </div>
+
+                <div className="w-px self-stretch bg-border" />
+
+                {/* Current user's net balance */}
+                <div className="text-center flex-1">
+                  {netBalance === ZERO ? (
+                    <p className="text-sm font-semibold">{t('groups.balanced')}</p>
+                  ) : (
+                    <>
+                      <p className="mb-1 text-xs text-muted-foreground">
+                        {isPositive(netBalance)
+                          ? t('groups.group_owes_you')
+                          : t('groups.you_owe_group')}
+                      </p>
+                      <MoneyDisplay
+                        amount={isPositive(netBalance) ? netBalance : negate(netBalance)}
+                        colored={false}
+                        className="text-lg font-bold tabular-nums"
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Expense list */}
