@@ -19,6 +19,7 @@ An ADR captures a significant architectural decision: the context that led to it
 | [0009](0009-balances-never-stored.md) | Balances Are Never Stored — Always Derived | Accepted |
 | [0010](0010-i18n-from-day-one.md) | i18n Scaffolding from Day One (German + English) | Accepted |
 | [0011](0011-friends-and-flexible-expenses.md) | Friends Entity and Flexible Expense Context | Accepted |
+| [0012](0012-settlement-allocation-across-contexts.md) | Settlement Allocation Across Contexts | Proposed |
 
 ## How to add a new ADR
 

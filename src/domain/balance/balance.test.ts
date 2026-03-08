@@ -55,6 +55,7 @@ const makeSettlement = (
   amount: number,
 ): Settlement => ({
   id:          sid(id),
+  batchId:     null,
   groupId:     gid,
   fromUserId:  from,
   toUserId:    to,

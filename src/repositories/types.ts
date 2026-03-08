@@ -154,6 +154,19 @@ export type CreateSettlementInput = {
   note?: string;
 };
 
+/** Input for creating a settlement batch — one real-world payment split across contexts (ADR-0012) */
+export type CreateSettlementBatchInput = {
+  fromUserId: UserId;
+  toUserId: UserId;
+  note?: string;
+  allocations: ReadonlyArray<{
+    groupId: GroupId | null;
+    fromUserId: UserId;
+    toUserId: UserId;
+    amount: Money;
+  }>;
+};
+
 export interface ISettlementRepository {
   /** All settlements for a group, newest first */
   getByGroupId(groupId: GroupId): Promise<Settlement[]>;
@@ -164,9 +177,24 @@ export interface ISettlementRepository {
    */
   getByParticipant(): Promise<Settlement[]>;
 
+  /**
+   * All settlements between the current user and a specific user, across all
+   * contexts (any group_id). Used for FriendDetailPage settlement history.
+   */
+  getSharedWithUser(userId: UserId): Promise<Settlement[]>;
+
   /** Record a settlement (person A paid person B back) */
   create(input: CreateSettlementInput): Promise<Settlement>;
 
-  /** Delete a settlement */
+  /**
+   * Record a settlement batch — one real-world payment allocated across
+   * multiple contexts atomically. See ADR-0012.
+   */
+  createBatch(input: CreateSettlementBatchInput): Promise<Settlement[]>;
+
+  /** Delete a single settlement (non-batch) */
   delete(id: SettlementId): Promise<void>;
+
+  /** Delete all settlement records in a batch atomically (ADR-0012) */
+  deleteBatch(batchId: string): Promise<void>;
 }

@@ -290,6 +290,7 @@ export type Database = {
       settlements: {
         Row: {
           amount: number
+          batch_id: string | null
           created_at: string
           from_user_id: string
           group_id: string | null
@@ -299,6 +300,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          batch_id?: string | null
           created_at?: string
           from_user_id: string
           group_id?: string | null
@@ -308,6 +310,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          batch_id?: string | null
           created_at?: string
           from_user_id?: string
           group_id?: string | null
@@ -433,6 +436,19 @@ export type Database = {
           email: string
           user_id: string
         }[]
+      }
+      create_settlement_batch: {
+        Args: {
+          p_from_user_id: string
+          p_to_user_id: string
+          p_note: string
+          p_allocations: Json
+        }
+        Returns: string
+      }
+      delete_settlement_batch: {
+        Args: { p_batch_id: string }
+        Returns: undefined
       }
       update_expense: {
         Args: {
