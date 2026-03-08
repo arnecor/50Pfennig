@@ -174,7 +174,8 @@ export default function GroupDetailPage() {
                           : t('groups.you_owe_group')}
                       </p>
                       <MoneyDisplay
-                        amount={isPositive(netBalance) ? netBalance : negate(netBalance)}
+                        amount={netBalance}
+                        showSign
                         colored={false}
                         className="text-lg font-bold tabular-nums"
                       />
