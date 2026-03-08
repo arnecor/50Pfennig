@@ -183,6 +183,15 @@ export default function GroupDetailPage() {
                       />
                     </>
                   )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate({ to: '/groups/$groupId/settlements', params: { groupId } })
+                    }
+                    className="mt-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    {t('settlements.view_settlements')} →
+                  </button>
                 </div>
               </div>
             </div>
