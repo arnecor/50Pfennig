@@ -158,6 +158,12 @@ export interface ISettlementRepository {
   /** All settlements for a group, newest first */
   getByGroupId(groupId: GroupId): Promise<Settlement[]>;
 
+  /**
+   * All friend settlements (group_id IS NULL) where the current user is a party.
+   * RLS limits visibility to only settlements the user is part of.
+   */
+  getByParticipant(): Promise<Settlement[]>;
+
   /** Record a settlement (person A paid person B back) */
   create(input: CreateSettlementInput): Promise<Settlement>;
 

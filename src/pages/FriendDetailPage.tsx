@@ -162,11 +162,13 @@ export default function FriendDetailPage() {
                 const paidByName = paidByCurrentUser
                   ? t('common.you')
                   : (friend?.displayName ?? '…');
-                // The current user's share of this expense (what they owe).
                 const myShare = currentUserId
-                  ? (expense.splits.find(s => s.userId === currentUserId)?.amount ?? (0 as Money))
-                  : (0 as Money);
+                  ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
+                  : ZERO;
                 const participantCount = expense.splits.length;
+                const signedShare = paidByCurrentUser
+                  ? ((expense.totalAmount - myShare) as Money)
+                  : negate(myShare);
                 return (
                   <Card key={expense.id}>
                     <CardContent className="p-4">
@@ -192,14 +194,18 @@ export default function FriendDetailPage() {
                         </div>
                         <div className="shrink-0 text-right">
                           <MoneyDisplay
-                            amount={expense.totalAmount}
+                            amount={signedShare}
+                            showSign
+                            colored
                             className="text-sm font-semibold tabular-nums"
                           />
-                          {participantCount > 1 && (
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {t('friends.your_share')}: <MoneyDisplay amount={myShare} className="text-xs" />
-                            </p>
-                          )}
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {t('friends.total')}{' '}
+                            <MoneyDisplay
+                              amount={expense.totalAmount}
+                              className="inline text-xs tabular-nums"
+                            />
+                          </p>
                         </div>
                       </div>
                     </CardContent>

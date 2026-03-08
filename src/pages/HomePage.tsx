@@ -3,21 +3,25 @@
  *
  * Route: /home
  *
- * Landing screen for authenticated users. Shows a personal greeting and a
- * cross-group + cross-friend balance summary (total owed, total owing, net).
- * Single CTA button navigates to /expenses/new.
+ * Landing screen for authenticated users. Shows:
+ *   1. Personal greeting
+ *   2. Cross-group + cross-friend balance summary
+ *   3. Recent activity feed (paginated, newest first)
+ *   4. Floating action button (FAB) to add a new expense
  */
 
 import MoneyDisplay from '@/components/shared/MoneyDisplay';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { isNegative, isPositive } from '@/domain/money';
 import type { UserId } from '@/domain/types';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTotalBalance } from '@/features/balances/hooks/useTotalBalance';
+import ActivityFeed from '@/features/activities/ActivityFeed';
+import { useRecentActivity } from '@/features/activities/useRecentActivity';
 import { useNavigate } from '@tanstack/react-router';
-import { PlusCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -28,6 +32,11 @@ export default function HomePage() {
   const currentUserId = user?.id as UserId | undefined;
   const { youAreOwed, youOwe, netTotal, isLoading } = useTotalBalance(currentUserId);
 
+  const { items, isLoading: activityLoading, hasMore, loadMore } = useRecentActivity(
+    currentUserId,
+    t('common.you'),
+  );
+
   const netColorClass = isPositive(netTotal)
     ? 'text-green-600'
     : isNegative(netTotal)
@@ -35,55 +44,74 @@ export default function HomePage() {
       : 'text-foreground';
 
   return (
-    <div className="flex flex-col gap-6 p-4 pt-6">
-      {/* Greeting */}
-      <h1 className="text-2xl font-bold">{t('home.greeting', { name: displayName })}</h1>
+    <div className="flex flex-col min-h-full">
+      {/* Scrollable content — extra bottom padding so FAB doesn't cover last item */}
+      <div className="flex-1 overflow-y-auto px-4 pt-6 pb-28 space-y-6">
+        {/* Greeting */}
+        <h1 className="text-2xl font-bold">{t('home.greeting', { name: displayName })}</h1>
 
-      {/* Balance summary card */}
-      <Card>
-        <CardContent className="pt-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">{t('home.you_are_owed')}</span>
-            {isLoading ? (
-              <span className="text-muted-foreground">…</span>
-            ) : (
-              <MoneyDisplay amount={youAreOwed} colored className="font-medium" />
-            )}
-          </div>
+        {/* Balance summary card */}
+        <Card>
+          <CardContent className="pt-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t('home.you_are_owed')}</span>
+              {isLoading ? (
+                <span className="text-muted-foreground">…</span>
+              ) : (
+                <MoneyDisplay amount={youAreOwed} colored className="font-medium" />
+              )}
+            </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">{t('home.you_owe')}</span>
-            {isLoading ? (
-              <span className="text-muted-foreground">…</span>
-            ) : (
-              <MoneyDisplay amount={youOwe} colored className="font-medium" />
-            )}
-          </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t('home.you_owe')}</span>
+              {isLoading ? (
+                <span className="text-muted-foreground">…</span>
+              ) : (
+                <MoneyDisplay amount={youOwe} colored className="font-medium" />
+              )}
+            </div>
 
-          <div className="border-t" />
+            <div className="border-t" />
 
-          <div className="flex items-center justify-between">
-            <span className="font-semibold">{t('home.total')}</span>
-            {isLoading ? (
-              <span className="text-muted-foreground">…</span>
-            ) : (
-              <span className={`text-lg font-bold ${netColorClass}`}>
-                <MoneyDisplay amount={netTotal} />
-              </span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">{t('home.total')}</span>
+              {isLoading ? (
+                <span className="text-muted-foreground">…</span>
+              ) : (
+                <span className={`text-lg font-bold ${netColorClass}`}>
+                  <MoneyDisplay amount={netTotal} />
+                </span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Add expense CTA */}
-      <Button
-        size="lg"
-        className="w-full gap-2"
-        onClick={() => navigate({ to: '/expenses/new', search: { groupId: undefined } })}
+        {/* Recent activity */}
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold">{t('home.recent_activity')}</h2>
+          <ActivityFeed
+            items={items}
+            isLoading={activityLoading}
+            hasMore={hasMore}
+            onLoadMore={loadMore}
+          />
+        </div>
+      </div>
+
+      {/* Floating action button — fixed above the bottom nav */}
+      <div
+        className="fixed left-0 right-0 z-10 flex justify-center px-4"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4rem + 0.75rem)' }}
       >
-        <PlusCircle className="h-5 w-5" />
-        {t('home.add_expense')}
-      </Button>
+        <Button
+          size="lg"
+          onClick={() => navigate({ to: '/expenses/new', search: { groupId: undefined } })}
+          className="gap-2 rounded-full px-6 shadow-lg"
+        >
+          <Plus className="h-5 w-5" />
+          {t('home.add_expense')}
+        </Button>
+      </div>
     </div>
   );
 }

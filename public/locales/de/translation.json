@@ -56,7 +56,12 @@
     "name_error_required": "Name ist erforderlich.",
     "add_members_hint": "Du kannst Mitglieder auch später noch hinzufügen.",
     "create_button": "Gruppe erstellen",
-    "creating": "Gruppe wird erstellt…"
+    "creating": "Gruppe wird erstellt…",
+    "balanced": "Ausgeglichen",
+    "you_owe_group": "Du schuldest",
+    "group_owes_you": "Du bekommst",
+    "total": "Gesamt",
+    "participant_count": "{{count}} Pers."
   },
   "expenses": {
     "title": "Ausgaben",
@@ -103,7 +108,13 @@
     "you_are_owed": "Du bekommst",
     "you_owe": "Du schuldest",
     "total": "Gesamt",
-    "add_expense": "Ausgabe hinzufügen"
+    "add_expense": "Ausgabe hinzufügen",
+    "recent_activity": "Letzte Aktivitäten",
+    "no_activity": "Noch keine Aktivitäten.",
+    "load_more": "Mehr laden",
+    "activity_you_paid_back": "Du hast {{name}} bezahlt",
+    "activity_paid_back_to_you": "{{name}} hat dich bezahlt",
+    "activity_group_joined": "Zur Gruppe «{{group}}» hinzugefügt"
   },
   "friends": {
     "title": "Freunde",
@@ -119,6 +130,8 @@
     "remove_friend_confirm": "Möchtest du diese Freundschaft wirklich beenden?",
     "send_reminder": "Erinnerung senden",
     "send_reminder_coming_soon": "Erinnerungen kommen bald.",
+    "your_share": "Dein Anteil",
+    "total": "Gesamt",
     "net_balance": "Gesamtbilanz",
     "friend_owes_you": "{{name}} schuldet dir",
     "you_owe_friend": "Du schuldest {{name}}",
