@@ -1,12 +1,6 @@
 {
-  "companyAnnouncements": [
-    "MOIN!"
-  ],
   "env": {
     "ENABLE_LSP_TOOL": "1"
-  },
-    "enabledPlugins": {
-    "typescript-lsp@claude-plugins-official": true
   },
   "permissions": {
     "allow": [
@@ -58,7 +52,14 @@
       "Bash(npx supabase db reset)",
       "Bash(gh pr create)",
       "Bash(gh issue view)",
-      "Bash(grep)"
+      "Bash(grep)",
+      "Bash(npx tsc:*)"
     ]
-  }
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
+  },
+  "companyAnnouncements": [
+    "MOIN!"
+  ]
 }

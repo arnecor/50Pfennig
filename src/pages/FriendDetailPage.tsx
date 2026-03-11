@@ -20,7 +20,7 @@ import EmptyState from '@components/shared/EmptyState';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
-import { calculateParticipantBalances } from '@domain/balance';
+import { computeBilateralBalance } from '@domain/balance';
 import { add, isPositive, negate } from '@domain/money';
 import { ZERO, type GroupId, type Money, type Settlement, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
@@ -104,13 +104,21 @@ export default function FriendDetailPage() {
   );
 
   const netBalance = useMemo(() => {
-    if (!currentUserId) return ZERO;
-    return calculateParticipantBalances(sharedExpenses, sharedSettlements).get(currentUserId) ?? ZERO;
-  }, [sharedExpenses, sharedSettlements, currentUserId]);
+    if (!currentUserId || !friend) return ZERO;
+    return computeBilateralBalance(sharedExpenses, sharedSettlements, currentUserId, friend.userId);
+  }, [sharedExpenses, sharedSettlements, currentUserId, friend]);
 
-  // Build unified activity feed (expenses + settlement batches), newest first
+  // Build unified activity feed (expenses + settlement batches), newest first.
+  // Only include expenses where current user or friend paid (bilateral effect).
   const feedItems = useMemo((): FeedItem[] => {
-    const items: FeedItem[] = sharedExpenses.map(e => ({ kind: 'expense' as const, data: e }));
+    const bilateralExpenses = friend
+      ? sharedExpenses.filter(
+          e =>
+            (e.paidBy as string) === (currentUserId as string) ||
+            (e.paidBy as string) === (friend.userId as string),
+        )
+      : sharedExpenses;
+    const items: FeedItem[] = bilateralExpenses.map(e => ({ kind: 'expense' as const, data: e }));
 
     // Group settlements by batchId; null batchId = standalone single record
     const batchMap = new Map<string, Settlement[]>();
@@ -138,7 +146,7 @@ export default function FriendDetailPage() {
     });
 
     return items;
-  }, [sharedExpenses, sharedSettlements]);
+  }, [sharedExpenses, sharedSettlements, friend, currentUserId]);
 
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
@@ -248,13 +256,15 @@ export default function FriendDetailPage() {
                   const paidByName = paidByCurrentUser
                     ? t('common.you')
                     : (friend?.displayName ?? '…');
-                  const myShare = currentUserId
-                    ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
-                    : ZERO;
                   const participantCount = expense.splits.length;
+                  // Bilateral share: only the effect between current user and friend
                   const signedShare = paidByCurrentUser
-                    ? ((expense.totalAmount - myShare) as Money)
-                    : negate(myShare);
+                    ? (expense.splits.find(s => (s.userId as string) === (friend?.userId as string))?.amount ?? ZERO)
+                    : negate(
+                        currentUserId
+                          ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
+                          : ZERO,
+                      );
 
                   return (
                     <Card key={`expense-${String(expense.id)}`}>

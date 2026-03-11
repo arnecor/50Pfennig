@@ -21,7 +21,8 @@ import type { ContextDebt } from '@domain/settlement';
 import { allocateSettlement } from '@domain/settlement';
 import type { Expense, Friend, GroupId, Money, Settlement, UserId } from '@domain/types';
 import { ZERO, money } from '@domain/types';
-import { abs, add, isNegative, negate, subtract } from '@domain/money';
+import { abs, add, isNegative, negate } from '@domain/money';
+import { computeBilateralBalance } from '@domain/balance';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
 import { ArrowRight, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -43,55 +44,6 @@ type Props = {
   sharedSettlements: Settlement[];
   onClose: () => void;
 };
-
-// ---------------------------------------------------------------------------
-// Bilateral balance helper
-//
-// Returns how much friend owes currentUser in a specific set of
-// expenses/settlements (positive = friend owes me, negative = I owe friend).
-// ---------------------------------------------------------------------------
-
-function computeBilateralBalance(
-  expenses: readonly Expense[],
-  settlements: readonly Settlement[],
-  meId: UserId,
-  friendId: UserId,
-): Money {
-  let balance: Money = ZERO;
-
-  for (const e of expenses) {
-    if ((e.paidBy as string) === (meId as string)) {
-      // I paid — friend's split is their debt to me
-      const friendSplit =
-        e.splits.find(s => (s.userId as string) === (friendId as string))?.amount ?? ZERO;
-      balance = add(balance, friendSplit);
-    } else if ((e.paidBy as string) === (friendId as string)) {
-      // Friend paid — my split is my debt to friend
-      const mySplit =
-        e.splits.find(s => (s.userId as string) === (meId as string))?.amount ?? ZERO;
-      balance = subtract(balance, mySplit);
-    }
-    // Third party paid — no bilateral effect between me and friend
-  }
-
-  for (const s of settlements) {
-    if (
-      (s.fromUserId as string) === (friendId as string) &&
-      (s.toUserId as string) === (meId as string)
-    ) {
-      // Friend paid me — friend's debt decreases
-      balance = subtract(balance, s.amount);
-    } else if (
-      (s.fromUserId as string) === (meId as string) &&
-      (s.toUserId as string) === (friendId as string)
-    ) {
-      // I paid friend — my debt to friend decreases
-      balance = add(balance, s.amount);
-    }
-  }
-
-  return balance;
-}
 
 // ---------------------------------------------------------------------------
 // Amount parsing helpers

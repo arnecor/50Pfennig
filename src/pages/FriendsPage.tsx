@@ -12,7 +12,7 @@ import EmptyState from '@components/shared/EmptyState';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
-import { calculateParticipantBalances } from '@domain/balance';
+import { computeBilateralBalance } from '@domain/balance';
 import { ZERO, type Expense, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
@@ -90,8 +90,7 @@ export default function FriendsPage() {
             (s.fromUserId as string) === friendIdStr ||
             (s.toUserId as string) === friendIdStr,
         );
-        const balances = calculateParticipantBalances(shared, friendSettlements);
-        const balance = balances.get(currentUserId) ?? ZERO;
+        const balance = computeBilateralBalance(shared, friendSettlements, currentUserId, friend.userId);
         const lastExpenseDate = shared[0]?.createdAt;
         return { friend, balance, lastExpenseDate };
       })

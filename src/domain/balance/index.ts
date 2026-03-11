@@ -3,7 +3,7 @@
  *
  * Balance derivation and debt simplification.
  *
- * Exports two pure functions:
+ * Exports pure functions:
  *
  *   calculateGroupBalances()
  *     Computes the net balance for every member of a group from the full
@@ -17,6 +17,11 @@
  *       For each settlement:
  *         sender receives CREDIT equal to amount
  *         receiver receives DEBIT equal to amount
+ *
+ *   computeBilateralBalance()
+ *     Computes the net bilateral balance between two specific users.
+ *     Only considers expenses where one of the two users paid.
+ *     Third-party payers have no bilateral effect.
  *
  *   simplifyDebts()
  *     Reduces a BalanceMap to the minimum set of payment instructions
@@ -116,6 +121,59 @@ export const calculateParticipantBalances = (
   }
 
   return balances;
+};
+
+/**
+ * Computes the net bilateral balance between two specific users across a set
+ * of expenses and settlements.
+ *
+ * Only considers expenses where meId or friendId is the payer.
+ * Third-party payers have no bilateral effect between the two users.
+ *
+ * Result:
+ *   positive → friend owes me money
+ *   negative → I owe friend money
+ */
+export const computeBilateralBalance = (
+  expenses: readonly Expense[],
+  settlements: readonly Settlement[],
+  meId: UserId,
+  friendId: UserId,
+): Money => {
+  let balance: Money = ZERO;
+
+  for (const e of expenses) {
+    if ((e.paidBy as string) === (meId as string)) {
+      // I paid — friend's split is their debt to me
+      const friendSplit =
+        e.splits.find(s => (s.userId as string) === (friendId as string))?.amount ?? ZERO;
+      balance = add(balance, friendSplit);
+    } else if ((e.paidBy as string) === (friendId as string)) {
+      // Friend paid — my split is my debt to friend
+      const mySplit =
+        e.splits.find(s => (s.userId as string) === (meId as string))?.amount ?? ZERO;
+      balance = subtract(balance, mySplit);
+    }
+    // Third party paid — no bilateral effect between me and friend
+  }
+
+  for (const s of settlements) {
+    if (
+      (s.fromUserId as string) === (friendId as string) &&
+      (s.toUserId as string) === (meId as string)
+    ) {
+      // Friend paid me — friend's debt decreases
+      balance = subtract(balance, s.amount);
+    } else if (
+      (s.fromUserId as string) === (meId as string) &&
+      (s.toUserId as string) === (friendId as string)
+    ) {
+      // I paid friend — my debt to friend decreases
+      balance = add(balance, s.amount);
+    }
+  }
+
+  return balance;
 };
 
 /**
