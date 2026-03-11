@@ -18,7 +18,7 @@ import { useAuthStore } from '@features/auth/authStore';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { useGroups } from '@features/groups/hooks/useGroups';
-import { friendSettlementsQueryOptions } from '@features/settlements/settlementQueries';
+import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { UserPlus, UserRound } from 'lucide-react';
@@ -47,21 +47,23 @@ export default function FriendsPage() {
   const { data: friendExpenses = [], isLoading: friendExpensesLoading } = useQuery(
     friendExpensesQueryOptions(),
   );
-  const { data: allFriendSettlements = [], isLoading: friendSettlementsLoading } = useQuery(
-    friendSettlementsQueryOptions(),
-  );
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
   const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
 
   // Fetch group expenses (same data already cached by GroupCard/useTotalBalance).
   const groupExpensesResults = useQueries({ queries: groups.map(g => expensesQueryOptions(g.id)) });
 
+  // Per-friend: all settlements (any groupId) — needed for cross-context batch settlements.
+  const sharedSettlementsResults = useQueries({
+    queries: friends.map(f => sharedSettlementsQueryOptions(f.userId)),
+  });
+
   const isLoading =
     friendsLoading ||
     friendExpensesLoading ||
-    friendSettlementsLoading ||
     groupsLoading ||
-    groupExpensesResults.some(r => r.isLoading);
+    groupExpensesResults.some(r => r.isLoading) ||
+    sharedSettlementsResults.some(r => r.isLoading);
 
   // Collect ALL expenses (friend + group) into one flat list for per-friend filtering.
   const allExpenses = useMemo(() => {
@@ -78,18 +80,16 @@ export default function FriendsPage() {
     if (!currentUserId) return [];
 
     return friends
-      .map(friend => {
+      .map((friend, i) => {
         const friendIdStr = friend.userId as string;
         const shared = allExpenses.filter(
           e =>
             (e.paidBy as string) === friendIdStr ||
             e.splits.some(s => (s.userId as string) === friendIdStr),
         );
-        const friendSettlements = allFriendSettlements.filter(
-          s =>
-            (s.fromUserId as string) === friendIdStr ||
-            (s.toUserId as string) === friendIdStr,
-        );
+        // Use per-friend shared settlements (any groupId) so cross-context
+        // batch allocations are included in the balance calculation.
+        const friendSettlements = sharedSettlementsResults[i]?.data ?? [];
         const balance = computeBilateralBalance(shared, friendSettlements, currentUserId, friend.userId);
         const lastExpenseDate = shared[0]?.createdAt;
         return { friend, balance, lastExpenseDate };
@@ -100,7 +100,7 @@ export default function FriendsPage() {
         if (!b.lastExpenseDate) return -1;
         return b.lastExpenseDate.getTime() - a.lastExpenseDate.getTime();
       });
-  }, [friends, allExpenses, allFriendSettlements, currentUserId]);
+  }, [friends, allExpenses, sharedSettlementsResults, currentUserId]);
 
   const handleAddFriend = () => {
     navigate({ to: '/friends/add' });

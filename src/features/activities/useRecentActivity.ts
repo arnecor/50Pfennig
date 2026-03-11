@@ -19,8 +19,8 @@ import { useGroups } from '@features/groups/hooks/useGroups';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { settlementsQueryOptions, friendSettlementsQueryOptions } from '@features/settlements/settlementQueries';
-import { ZERO } from '@domain/money';
-import type { Friend, Group, UserId } from '@domain/types';
+import { abs, money, ZERO } from '@domain/money';
+import type { Friend, Group, Settlement, UserId } from '@domain/types';
 import type { ActivityItem } from './types';
 
 const PAGE_SIZE = 10;
@@ -69,11 +69,10 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
     const getName = (uid: string) => resolveName(uid, currentIdStr, youLabel, groups, friends);
     const items: ActivityItem[] = [];
 
-    // ── Group expenses + settlements ─────────────────────────────────────────
+    // ── Group expenses ────────────────────────────────────────────────────────
     for (let i = 0; i < groups.length; i++) {
-      const group      = groups[i]!;
-      const expenses   = expensesResults[i]?.data   ?? [];
-      const settlements = settlementsResults[i]?.data ?? [];
+      const group    = groups[i]!;
+      const expenses = expensesResults[i]?.data ?? [];
 
       for (const expense of expenses) {
         const isInvolved =
@@ -93,28 +92,6 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
           paidByCurrentUser,
           paidByName: getName(expense.paidBy as string),
           myShare,
-          context: 'group',
-          groupName: group.name,
-          groupId: group.id,
-        });
-      }
-
-      for (const settlement of settlements) {
-        const isInvolved =
-          (settlement.fromUserId as string) === currentIdStr ||
-          (settlement.toUserId as string) === currentIdStr;
-        if (!isInvolved) continue;
-
-        const isMePaying = (settlement.fromUserId as string) === currentIdStr;
-        items.push({
-          id: settlement.id,
-          date: settlement.createdAt,
-          type: 'settlement',
-          amount: settlement.amount,
-          isMePaying,
-          otherPartyName: isMePaying
-            ? getName(settlement.toUserId as string)
-            : getName(settlement.fromUserId as string),
           context: 'group',
           groupName: group.name,
           groupId: group.id,
@@ -140,18 +117,59 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
       });
     }
 
-    // ── Friend settlements ────────────────────────────────────────────────────
-    for (const settlement of friendSettlements) {
-      const isMePaying = (settlement.fromUserId as string) === currentIdStr;
+    // ── Settlements (all contexts, merged by batchId) ─────────────────────────
+    // Collect every settlement record the current user is involved in, across
+    // all groups and the direct (null groupId) context, then de-duplicate by id
+    // and group by batchId. One real-world payment → one activity item.
+    const allSettlementRecords = new Map<string, Settlement>();
+    for (let i = 0; i < groups.length; i++) {
+      for (const s of settlementsResults[i]?.data ?? []) {
+        const isInvolved =
+          (s.fromUserId as string) === currentIdStr ||
+          (s.toUserId as string) === currentIdStr;
+        if (isInvolved) allSettlementRecords.set(String(s.id), s);
+      }
+    }
+    for (const s of friendSettlements) {
+      allSettlementRecords.set(String(s.id), s);
+    }
+
+    // Group by batchId (null batchId = standalone record, keyed by its own id)
+    const batchMap = new Map<string, Settlement[]>();
+    for (const s of allSettlementRecords.values()) {
+      const key = s.batchId ?? String(s.id);
+      const existing = batchMap.get(key) ?? [];
+      existing.push(s);
+      batchMap.set(key, existing);
+    }
+
+    for (const records of batchMap.values()) {
+      // Compute net from currentUser's perspective (handles cross-direction records).
+      let netFromMe = 0;
+      let otherPartyId: string | null = null;
+      let latestDate = new Date(0);
+      for (const r of records) {
+        const from = r.fromUserId as string;
+        const to   = r.toUserId as string;
+        if (from === currentIdStr) {
+          netFromMe += r.amount;
+          otherPartyId = to;
+        } else {
+          netFromMe -= r.amount;
+          otherPartyId = from;
+        }
+        if (r.createdAt > latestDate) latestDate = r.createdAt;
+      }
+      if (otherPartyId === null) continue;
+
+      const isMePaying = netFromMe >= 0;
       items.push({
-        id: settlement.id,
-        date: settlement.createdAt,
+        id: records[0]!.id,
+        date: latestDate,
         type: 'settlement',
-        amount: settlement.amount,
+        amount: abs(money(netFromMe)),
         isMePaying,
-        otherPartyName: isMePaying
-          ? getName(settlement.toUserId as string)
-          : getName(settlement.fromUserId as string),
+        otherPartyName: getName(otherPartyId),
         context: 'friend',
       });
     }

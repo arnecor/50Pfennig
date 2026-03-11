@@ -21,7 +21,7 @@ import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
 import { computeBilateralBalance } from '@domain/balance';
-import { add, isPositive, negate } from '@domain/money';
+import { abs, add, isNegative, isPositive, negate, subtract } from '@domain/money';
 import { ZERO, type GroupId, type Money, type Settlement, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { sharedExpensesQueryOptions } from '@features/expenses/expenseQueries';
@@ -44,7 +44,10 @@ import type { Expense } from '@domain/types';
 
 type SettlementBatch = {
   records: Settlement[];
+  /** Net amount of the real-world payment (always positive). */
   total: Money;
+  /** True when currentUser is the net payer; false when friend is. */
+  iMePaying: boolean;
   note?: string;
   date: Date;
 };
@@ -130,13 +133,25 @@ export default function FriendDetailPage() {
     }
 
     for (const records of batchMap.values()) {
-      const total = records.reduce((sum, r) => add(sum, r.amount), ZERO) as Money;
+      // Compute direction-aware net from currentUser's perspective.
+      // Batch records can have mixed from/to (cross-direction full settlements),
+      // so a simple sum would overcount. Instead: +amount when I pay, -amount when I receive.
+      let netFromMe: Money = ZERO;
+      for (const r of records) {
+        if ((r.fromUserId as string) === (currentUserId as string)) {
+          netFromMe = add(netFromMe, r.amount);
+        } else {
+          netFromMe = subtract(netFromMe, r.amount);
+        }
+      }
+      const iMePaying = !isNegative(netFromMe);
+      const total = abs(netFromMe) as Money;
       const note  = records.find(r => r.note)?.note;
       const date  = records.reduce(
         (latest, r) => (r.createdAt > latest ? r.createdAt : latest),
         (records[0] ?? { createdAt: new Date(0) }).createdAt,
       );
-      items.push({ kind: 'settlement', batch: { records, total, ...(note !== undefined && { note }), date } });
+      items.push({ kind: 'settlement', batch: { records, total, iMePaying, ...(note !== undefined && { note }), date } });
     }
 
     items.sort((a, b) => {
@@ -312,11 +327,9 @@ export default function FriendDetailPage() {
 
                 // Settlement row
                 const { batch } = item;
-                const paidByFriend =
-                  (batch.records[0]?.fromUserId as string) === (friend?.userId as string);
-                const label = paidByFriend
-                  ? t('settlements.friend_paid_you', { name: friend?.displayName ?? '…' })
-                  : t('settlements.you_paid_friend', { name: friend?.displayName ?? '…' });
+                const label = batch.iMePaying
+                  ? t('settlements.you_paid_friend', { name: friend?.displayName ?? '…' })
+                  : t('settlements.friend_paid_you', { name: friend?.displayName ?? '…' });
 
                 return (
                   <div
