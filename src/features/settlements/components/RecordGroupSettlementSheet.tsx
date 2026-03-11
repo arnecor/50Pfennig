@@ -89,10 +89,11 @@ export default function RecordGroupSettlementSheet({
 
     setAmountError('');
 
+    const trimmedNote = note.trim();
     await createSettlement.mutateAsync({
       fromUserId,
       toUserId,
-      note: note.trim() || undefined,
+      ...(trimmedNote ? { note: trimmedNote } : {}),
       allocations: [{ groupId: group.id, fromUserId, toUserId, amount: money(cents) as Money }],
     });
     onClose();

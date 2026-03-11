@@ -190,10 +190,11 @@ export default function RecordFriendSettlementSheet({
       debtsForAllocation,
     );
 
+    const trimmedNote = note.trim();
     await createSettlement.mutateAsync({
       fromUserId,
       toUserId,
-      note: note.trim() || undefined,
+      ...(trimmedNote ? { note: trimmedNote } : {}),
       allocations,
     });
     onClose();

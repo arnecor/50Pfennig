@@ -227,7 +227,7 @@ export default function SettlementsPage() {
         <RecordGroupSettlementSheet
           group={group}
           currentUserId={currentUserId}
-          suggestion={suggestion}
+          {...(suggestion !== undefined && { suggestion })}
           onClose={handleCloseSheet}
         />
       )}

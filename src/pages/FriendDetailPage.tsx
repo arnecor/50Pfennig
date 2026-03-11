@@ -128,7 +128,7 @@ export default function FriendDetailPage() {
         (latest, r) => (r.createdAt > latest ? r.createdAt : latest),
         (records[0] ?? { createdAt: new Date(0) }).createdAt,
       );
-      items.push({ kind: 'settlement', batch: { records, total, note, date } });
+      items.push({ kind: 'settlement', batch: { records, total, ...(note !== undefined && { note }), date } });
     }
 
     items.sort((a, b) => {

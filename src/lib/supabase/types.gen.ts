@@ -441,7 +441,7 @@ export type Database = {
         Args: {
           p_from_user_id: string
           p_to_user_id: string
-          p_note: string
+          p_note: string | null
           p_allocations: Json
         }
         Returns: string
