@@ -22,7 +22,7 @@ import { useGroups } from '@features/groups/hooks/useGroups';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { friendSettlementsQueryOptions, settlementsQueryOptions } from '@features/settlements/settlementQueries';
-import { calculateGroupBalances, calculateParticipantBalances } from '@domain/balance';
+import { calculateGroupBalances, computeBilateralBalance } from '@domain/balance';
 import { ZERO, add, isPositive, isNegative } from '@domain/money';
 import type { Money, UserId } from '@domain/types';
 
@@ -95,8 +95,7 @@ export function useTotalBalance(currentUserId: UserId | undefined): TotalBalance
             (s.fromUserId as string) === friendIdStr ||
             (s.toUserId as string) === friendIdStr,
         );
-        const balanceMap = calculateParticipantBalances(shared, friendSettlements);
-        accumulate(balanceMap.get(currentUserId) ?? ZERO);
+        accumulate(computeBilateralBalance(shared, friendSettlements, currentUserId, friend.userId));
       }
     }
 
