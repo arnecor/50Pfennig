@@ -53,7 +53,13 @@
       "Bash(gh pr create)",
       "Bash(gh issue view)",
       "Bash(grep)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(find /c/Privat/50Pfennig -name .env* -o -name .env.example -o -name .env.local)",
+      "Bash(find /c/Privat/50Pfennig/docs -type f -name *.md)",
+      "Bash(xargs grep:*)",
+      "Bash(find /c/Privat/50Pfennig/android -name build.gradle*)",
+      "Bash(find /c/Privat/50Pfennig/supabase/migrations -type f -name *.sql)",
+      "Bash(ls -1 /c/Privat/50Pfennig/supabase/migrations/*.sql)"
     ]
   },
   "enabledPlugins": {
