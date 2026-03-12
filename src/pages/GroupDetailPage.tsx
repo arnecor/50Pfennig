@@ -14,7 +14,7 @@ import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
 import { calculateGroupBalances } from '@domain/balance';
 import { add, isPositive, negate } from '@domain/money';
-import { ZERO, type GroupId, type Money, type UserId } from '@domain/types';
+import { ZERO, type Expense, type GroupId, type Money, type Settlement, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import { useFriends } from '@features/friends/hooks/useFriends';
@@ -26,6 +26,10 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Plus, Receipt, UserPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+type ActivityExpense = { kind: 'expense'; data: Expense };
+type ActivitySettlement = { kind: 'settlement'; data: Settlement };
+type GroupActivityItem = ActivityExpense | ActivitySettlement;
 
 function ExpenseSkeleton() {
   return (
@@ -76,6 +80,14 @@ export default function GroupDetailPage() {
     if (!expenses) return ZERO;
     return expenses.reduce((sum, e) => add(sum, e.totalAmount), ZERO);
   }, [expenses]);
+
+  const allItems = useMemo((): GroupActivityItem[] => {
+    const expenseItems: ActivityExpense[] = (expenses ?? []).map(e => ({ kind: 'expense', data: e }));
+    const settlementItems: ActivitySettlement[] = settlements.map(s => ({ kind: 'settlement', data: s }));
+    return [...expenseItems, ...settlementItems].sort(
+      (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
+    );
+  }, [expenses, settlements]);
 
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
@@ -133,7 +145,7 @@ export default function GroupDetailPage() {
           </div>
         )}
 
-        {!isLoading && expenses && expenses.length === 0 && (
+        {!isLoading && allItems.length === 0 && (
           <EmptyState
             icon={<Receipt className="h-12 w-12" />}
             title={t('expenses.empty_title')}
@@ -147,7 +159,7 @@ export default function GroupDetailPage() {
           />
         )}
 
-        {!isLoading && expenses && expenses.length > 0 && (
+        {!isLoading && allItems.length > 0 && (
           <>
             {/* Balance summary */}
             <div className="mb-4 rounded-lg bg-muted/50 px-4 py-3">
@@ -196,52 +208,84 @@ export default function GroupDetailPage() {
               </div>
             </div>
 
-            {/* Expense list */}
+            {/* Activity list — expenses and group settlements merged, newest first */}
             <div className="space-y-3">
-              {expenses.map((expense) => {
-                const paidByCurrentUser =
-                  (expense.paidBy as string) === (currentUserId as string);
-                const myShare = currentUserId
-                  ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
-                  : ZERO;
-                const participantCount = expense.splits.length;
-                const signedShare = paidByCurrentUser
-                  ? ((expense.totalAmount - myShare) as Money)
-                  : negate(myShare);
+              {allItems.map((item) => {
+                if (item.kind === 'expense') {
+                  const expense = item.data;
+                  const paidByCurrentUser =
+                    (expense.paidBy as string) === (currentUserId as string);
+                  const myShare = currentUserId
+                    ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
+                    : ZERO;
+                  const participantCount = expense.splits.length;
+                  const signedShare = paidByCurrentUser
+                    ? ((expense.totalAmount - myShare) as Money)
+                    : negate(myShare);
+                  return (
+                    <Card key={expense.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">{expense.description}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {paidByName(expense.paidBy)}
+                              {participantCount > 2 && (
+                                <> · {t('groups.participant_count', { count: participantCount })}</>
+                              )}
+                              {' · '}
+                              {expense.createdAt.toLocaleDateString(dateLocale, {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <MoneyDisplay
+                              amount={signedShare}
+                              showSign
+                              colored
+                              className="text-sm font-semibold tabular-nums"
+                            />
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {t('groups.total')}{' '}
+                              <MoneyDisplay
+                                amount={expense.totalAmount}
+                                className="inline text-xs tabular-nums"
+                              />
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+
+                // settlement
+                const s = item.data;
+                const payerName = paidByName(s.fromUserId);
+                const payeeName = paidByName(s.toUserId);
                 return (
-                  <Card key={expense.id}>
+                  <Card key={s.id}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{expense.description}</p>
+                          <p className="truncate text-sm text-muted-foreground">
+                            {t('groups.activity_settlement', { payer: payerName, payee: payeeName })}
+                          </p>
                           <p className="mt-0.5 text-xs text-muted-foreground">
-                            {paidByName(expense.paidBy)}
-                            {participantCount > 2 && (
-                              <> · {t('groups.participant_count', { count: participantCount })}</>
-                            )}
-                            {' · '}
-                            {expense.createdAt.toLocaleDateString(dateLocale, {
+                            {s.createdAt.toLocaleDateString(dateLocale, {
                               day: '2-digit',
                               month: '2-digit',
                               year: 'numeric',
                             })}
                           </p>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <MoneyDisplay
-                            amount={signedShare}
-                            showSign
-                            colored
-                            className="text-sm font-semibold tabular-nums"
-                          />
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {t('groups.total')}{' '}
-                            <MoneyDisplay
-                              amount={expense.totalAmount}
-                              className="inline text-xs tabular-nums"
-                            />
-                          </p>
-                        </div>
+                        <MoneyDisplay
+                          amount={s.amount}
+                          className="shrink-0 text-sm tabular-nums text-muted-foreground"
+                        />
                       </div>
                     </CardContent>
                   </Card>

@@ -61,7 +61,8 @@
     "group_owes_you": "You are owed",
     "total": "Total",
     "total_spent": "Group total",
-    "participant_count": "{{count}} ppl."
+    "participant_count": "{{count}} ppl.",
+    "activity_settlement": "{{payer}} paid {{payee}} (group share)"
   },
   "expenses": {
     "title": "Expenses",

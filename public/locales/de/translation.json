@@ -62,7 +62,8 @@
     "group_owes_you": "Du bekommst",
     "total": "Gesamt",
     "total_spent": "Gruppenausgaben",
-    "participant_count": "{{count}} Pers."
+    "participant_count": "{{count}} Pers.",
+    "activity_settlement": "{{payer}} hat {{payee}} bezahlt (Gruppenanteil)"
   },
   "expenses": {
     "title": "Ausgaben",
