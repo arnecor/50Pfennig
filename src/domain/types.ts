@@ -126,7 +126,8 @@ export type Expense = {
 
 export type Settlement = {
   readonly id: SettlementId;
-  readonly groupId: GroupId | null; // null = friend settlement (not associated with a group)
+  readonly batchId: string | null; // links records from one real-world payment (ADR-0012)
+  readonly groupId: GroupId | null; // null = friend/direct settlement
   readonly fromUserId: UserId; // who paid (sent money)
   readonly toUserId: UserId;   // who received money
   readonly amount: Money;

@@ -61,7 +61,8 @@
     "group_owes_you": "You are owed",
     "total": "Total",
     "total_spent": "Group total",
-    "participant_count": "{{count}} ppl."
+    "participant_count": "{{count}} ppl.",
+    "activity_settlement": "{{payer}} paid {{payee}} (group share)"
   },
   "expenses": {
     "title": "Expenses",
@@ -192,10 +193,26 @@
   "settlements": {
     "title": "Settlements",
     "record": "Record payment",
+    "record_group_title": "Record payment",
+    "record_friend_title": "Settle up with {{name}}",
     "empty_title": "No settlements yet",
+    "empty_description": "No payments recorded yet.",
     "from": "From",
     "to": "To",
     "amount_label": "Amount",
-    "note_label": "Note (optional)"
+    "amount_error_required": "Please enter an amount.",
+    "amount_error_positive": "Amount must be greater than 0.",
+    "note_label": "Note (optional)",
+    "note_placeholder": "What's this for?",
+    "submit": "Record payment",
+    "suggested_title": "Suggested payments",
+    "settle_now": "Settle now",
+    "view_settlements": "Payments",
+    "history_title": "History",
+    "settle_up": "Settle up",
+    "delete_aria": "Delete payment",
+    "delete_confirm": "Delete this payment?",
+    "you_paid_friend": "You paid {{name}}",
+    "friend_paid_you": "{{name}} paid you"
   }
 }

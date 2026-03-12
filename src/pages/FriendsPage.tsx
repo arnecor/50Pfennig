@@ -12,13 +12,14 @@ import EmptyState from '@components/shared/EmptyState';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
-import { calculateParticipantBalances } from '@domain/balance';
+import { computeBilateralBalance } from '@domain/balance';
 import { ZERO, type Expense, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { useGroups } from '@features/groups/hooks/useGroups';
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { UserPlus, UserRound } from 'lucide-react';
 import { useMemo } from 'react';
@@ -52,11 +53,17 @@ export default function FriendsPage() {
   // Fetch group expenses (same data already cached by GroupCard/useTotalBalance).
   const groupExpensesResults = useQueries({ queries: groups.map(g => expensesQueryOptions(g.id)) });
 
+  // Per-friend: all settlements (any groupId) — needed for cross-context batch settlements.
+  const sharedSettlementsResults = useQueries({
+    queries: friends.map(f => sharedSettlementsQueryOptions(f.userId)),
+  });
+
   const isLoading =
     friendsLoading ||
     friendExpensesLoading ||
     groupsLoading ||
-    groupExpensesResults.some(r => r.isLoading);
+    groupExpensesResults.some(r => r.isLoading) ||
+    sharedSettlementsResults.some(r => r.isLoading);
 
   // Collect ALL expenses (friend + group) into one flat list for per-friend filtering.
   const allExpenses = useMemo(() => {
@@ -67,22 +74,23 @@ export default function FriendsPage() {
     return result;
   }, [friendExpenses, groupExpensesResults]);
 
-  // For each friend: derive balance across ALL shared expenses (group + friend).
-  // Uses calculateParticipantBalances on all expenses where the friend participates
-  // (same approach as FriendDetailPage for consistency).
+  // For each friend: derive balance across ALL shared expenses (group + friend)
+  // and ALL settlements between the two users.
   const friendsWithData = useMemo(() => {
     if (!currentUserId) return [];
 
     return friends
-      .map(friend => {
+      .map((friend, i) => {
         const friendIdStr = friend.userId as string;
         const shared = allExpenses.filter(
           e =>
             (e.paidBy as string) === friendIdStr ||
             e.splits.some(s => (s.userId as string) === friendIdStr),
         );
-        const balances = calculateParticipantBalances(shared);
-        const balance = balances.get(currentUserId) ?? ZERO;
+        // Use per-friend shared settlements (any groupId) so cross-context
+        // batch allocations are included in the balance calculation.
+        const friendSettlements = sharedSettlementsResults[i]?.data ?? [];
+        const balance = computeBilateralBalance(shared, friendSettlements, currentUserId, friend.userId);
         const lastExpenseDate = shared[0]?.createdAt;
         return { friend, balance, lastExpenseDate };
       })
@@ -92,7 +100,7 @@ export default function FriendsPage() {
         if (!b.lastExpenseDate) return -1;
         return b.lastExpenseDate.getTime() - a.lastExpenseDate.getTime();
       });
-  }, [friends, allExpenses, currentUserId]);
+  }, [friends, allExpenses, sharedSettlementsResults, currentUserId]);
 
   const handleAddFriend = () => {
     navigate({ to: '/friends/add' });

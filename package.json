@@ -20,7 +20,9 @@
     "db:types": "supabase gen types typescript --local > src/lib/supabase/types.gen.ts",
     "db:migrate": "supabase db push",
     "db:reset": "supabase db reset",
-    "db:seed": "node --env-file=.env.local scripts/seed.js"
+    "db:seed": "node --env-file=.env.local scripts/seed.js",
+    "db:seed-val-users": "node --env-file=.env.local scripts/seed-val-users.js",
+    "db:remove-val-users": "node --env-file=.env.local scripts/remove-val-users.js"
   },
   "dependencies": {
     "@capacitor-mlkit/barcode-scanning": "^6.2.0",

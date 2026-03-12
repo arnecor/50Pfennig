@@ -1,9 +1,11 @@
 {
+  "env": {
+    "ENABLE_LSP_TOOL": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(ls)",
       "Bash(cd)",
-      "Bash(pwd)",
       "Bash(cat)",
       "Bash(echo)",
       "Bash(test -f /c/Privat/50Pfennig/package.json)",
@@ -36,7 +38,7 @@
       "Bash(gh project field-list)",
       "Bash(gh project item-list)",
       "Bash(gh project item-edit)",
-      "Bash(git branch -b"),
+      "Bash(git branch -b)",
       "Bash(git pull)",
       "Bash(npx biome check *)",
       "Bash(git commit)",
@@ -50,7 +52,14 @@
       "Bash(npx supabase db reset)",
       "Bash(gh pr create)",
       "Bash(gh issue view)",
-      "Bash(grep)"
+      "Bash(grep)",
+      "Bash(npx tsc:*)"
     ]
-  }
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
+  },
+  "companyAnnouncements": [
+    "MOIN!"
+  ]
 }
