@@ -47,6 +47,8 @@ import AddFriendScanPage    from '../pages/AddFriendScanPage';
 import AddFriendEmailPage   from '../pages/AddFriendEmailPage';
 import FriendDetailPage     from '../pages/FriendDetailPage';
 import AccountPage          from '../pages/AccountPage';
+import ExpenseDetailPage    from '../pages/ExpenseDetailPage';
+import SettlementDetailPage from '../pages/SettlementDetailPage';
 import { requireAuth, requireGuest } from './guards';
 
 // ---------------------------------------------------------------------------
@@ -143,6 +145,20 @@ const expenseNewRoute = createRoute({
   }),
 });
 
+const expenseDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/expenses/$expenseId',
+  beforeLoad:     requireAuth,
+  component:      ExpenseDetailPage,
+});
+
+const settlementDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path:           '/settlements/$settlementId',
+  beforeLoad:     requireAuth,
+  component:      SettlementDetailPage,
+});
+
 const friendsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path:           '/friends',
@@ -206,8 +222,10 @@ const routeTree = rootRoute.addChildren([
   groupCreateRoute,
   groupDetailRoute,
   expenseNewRoute,
+  expenseDetailRoute,
   expenseEditRoute,
   settlementsRoute,
+  settlementDetailRoute,
   friendsRoute,
   addFriendRoute,
   addFriendQRRoute,

@@ -12,7 +12,7 @@
  * Balance display updates automatically (derives from expense + settlement cache).
  */
 
-import type { GroupId, UserId } from '@domain/types';
+import type { GroupId, SettlementId, UserId } from '@domain/types';
 import { settlementRepository } from '@repositories';
 import { queryOptions } from '@tanstack/react-query';
 
@@ -33,4 +33,10 @@ export const sharedSettlementsQueryOptions = (userId: UserId) =>
   queryOptions({
     queryKey: ['settlements', 'shared', userId] as const,
     queryFn: () => settlementRepository.getSharedWithUser(userId),
+  });
+
+export const settlementByIdQueryOptions = (settlementId: SettlementId) =>
+  queryOptions({
+    queryKey: ['settlements', 'detail', settlementId] as const,
+    queryFn: () => settlementRepository.getById(settlementId),
   });

@@ -53,7 +53,9 @@
       "Bash(gh pr create)",
       "Bash(gh issue view)",
       "Bash(grep)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git -C c:/Privat/50Pfennig log --oneline -5)",
+      "Bash(dir c:Privat50Pfennigsrcpages)"
     ]
   },
   "enabledPlugins": {

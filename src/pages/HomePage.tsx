@@ -18,6 +18,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTotalBalance } from '@/features/balances/hooks/useTotalBalance';
 import ActivityFeed from '@/features/activities/ActivityFeed';
 import { useRecentActivity } from '@/features/activities/useRecentActivity';
+import type { ActivityItem } from '@/features/activities/types';
 import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +37,14 @@ export default function HomePage() {
     currentUserId,
     t('common.you'),
   );
+
+  const handleActivityClick = (item: ActivityItem) => {
+    if (item.type === 'expense') {
+      navigate({ to: '/expenses/$expenseId', params: { expenseId: String(item.id) } });
+    } else if (item.type === 'settlement') {
+      navigate({ to: '/settlements/$settlementId', params: { settlementId: String(item.id) } });
+    }
+  };
 
   const netColorClass = isPositive(netTotal)
     ? 'text-green-600'
@@ -94,6 +103,7 @@ export default function HomePage() {
             isLoading={activityLoading}
             hasMore={hasMore}
             onLoadMore={loadMore}
+            onItemClick={handleActivityClick}
           />
         </div>
       </div>

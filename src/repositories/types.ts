@@ -109,6 +109,9 @@ export type CreateExpenseInput = {
 export type UpdateExpenseInput = Partial<Omit<CreateExpenseInput, 'groupId'>>;
 
 export interface IExpenseRepository {
+  /** Single expense by ID */
+  getById(id: ExpenseId): Promise<Expense>;
+
   /** All expenses for a group, newest first */
   getByGroupId(groupId: GroupId): Promise<Expense[]>;
 
@@ -168,6 +171,9 @@ export type CreateSettlementBatchInput = {
 };
 
 export interface ISettlementRepository {
+  /** Single settlement by ID */
+  getById(id: SettlementId): Promise<Settlement>;
+
   /** All settlements for a group, newest first */
   getByGroupId(groupId: GroupId): Promise<Settlement[]>;
 
