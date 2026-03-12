@@ -57,8 +57,8 @@ function ActivityRow({ icon, iconBg, primary, secondary, amount, showSign, color
       {amount !== undefined && (
         <MoneyDisplay
           amount={amount}
-          showSign={showSign}
-          colored={colored}
+          {...(showSign && { showSign })}
+          {...(colored && { colored })}
           className="shrink-0 text-sm font-semibold tabular-nums"
         />
       )}
