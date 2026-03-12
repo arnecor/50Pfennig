@@ -21,14 +21,13 @@ import { useFriends } from '@features/friends/hooks/useFriends';
 import { groupDetailQueryOptions } from '@features/groups/groupQueries';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export default function ExpenseDetailPage() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const { expenseId } = useParams({ strict: false }) as { expenseId: string };
 
   const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
@@ -85,7 +84,7 @@ export default function ExpenseDetailPage() {
     return (
       <div className="flex flex-col min-h-full">
         <header className="flex items-center gap-3 border-b px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate({ to: -1 as never })} aria-label={t('common.back')}>
+          <Button variant="ghost" size="icon" onClick={() => window.history.back()} aria-label={t('common.back')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold">{t('payment_detail.expense_title')}</h1>
@@ -103,7 +102,7 @@ export default function ExpenseDetailPage() {
     return (
       <div className="flex flex-col min-h-full">
         <header className="flex items-center gap-3 border-b px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate({ to: -1 as never })} aria-label={t('common.back')}>
+          <Button variant="ghost" size="icon" onClick={() => window.history.back()} aria-label={t('common.back')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold">{t('payment_detail.expense_title')}</h1>
@@ -123,7 +122,7 @@ export default function ExpenseDetailPage() {
     <div className="flex flex-col min-h-full">
       {/* Header */}
       <header className="flex items-center gap-3 border-b px-4 py-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate({ to: -1 as never })} aria-label={t('common.back')}>
+        <Button variant="ghost" size="icon" onClick={() => window.history.back()} aria-label={t('common.back')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-lg font-semibold">{t('payment_detail.expense_title')}</h1>
