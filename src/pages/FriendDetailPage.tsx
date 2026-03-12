@@ -282,7 +282,11 @@ export default function FriendDetailPage() {
                       );
 
                   return (
-                    <Card key={`expense-${String(expense.id)}`}>
+                    <Card
+                      key={`expense-${String(expense.id)}`}
+                      className="cursor-pointer hover:bg-muted/30 transition-colors"
+                      onClick={() => navigate({ to: '/expenses/$expenseId', params: { expenseId: String(expense.id) } })}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -334,7 +338,11 @@ export default function FriendDetailPage() {
                 return (
                   <div
                     key={`settlement-${String(batch.records[0]?.id ?? idx)}`}
-                    className="flex items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3"
+                    className="flex items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      const id = batch.records[0]?.id;
+                      if (id) navigate({ to: '/settlements/$settlementId', params: { settlementId: String(id) } });
+                    }}
                   >
                     <ArrowLeftRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0 flex-1">

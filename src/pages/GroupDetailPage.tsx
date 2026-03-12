@@ -223,7 +223,11 @@ export default function GroupDetailPage() {
                     ? ((expense.totalAmount - myShare) as Money)
                     : negate(myShare);
                   return (
-                    <Card key={expense.id}>
+                    <Card
+                      key={expense.id}
+                      className="cursor-pointer hover:bg-muted/30 transition-colors"
+                      onClick={() => navigate({ to: '/expenses/$expenseId', params: { expenseId: String(expense.id) } })}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -267,7 +271,11 @@ export default function GroupDetailPage() {
                 const payerName = paidByName(s.fromUserId);
                 const payeeName = paidByName(s.toUserId);
                 return (
-                  <Card key={s.id}>
+                  <Card
+                    key={s.id}
+                    className="cursor-pointer hover:bg-muted/30 transition-colors"
+                    onClick={() => navigate({ to: '/settlements/$settlementId', params: { settlementId: String(s.id) } })}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">

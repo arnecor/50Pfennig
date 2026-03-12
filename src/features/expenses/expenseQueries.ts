@@ -6,6 +6,7 @@
  * Query keys:
  *   ['expenses', groupId]      → all expenses for a group
  *   ['expenses', 'participant'] → all friend expenses for the current user
+ *   ['expenses', 'detail', id] → single expense by ID
  *
  * Invalidation:
  *   Group expense mutation   → invalidate ['expenses', groupId]
@@ -13,7 +14,7 @@
  *   Both invalidations cascade into useTotalBalance automatically.
  */
 
-import type { GroupId, UserId } from '@domain/types';
+import type { ExpenseId, GroupId, UserId } from '@domain/types';
 import { expenseRepository } from '@repositories';
 import { queryOptions } from '@tanstack/react-query';
 
@@ -33,4 +34,10 @@ export const sharedExpensesQueryOptions = (friendUserId: UserId) =>
   queryOptions({
     queryKey: ['expenses', 'shared', friendUserId] as const,
     queryFn: () => expenseRepository.getSharedWithUser(friendUserId),
+  });
+
+export const expenseByIdQueryOptions = (expenseId: ExpenseId) =>
+  queryOptions({
+    queryKey: ['expenses', 'detail', expenseId] as const,
+    queryFn: () => expenseRepository.getById(expenseId),
   });

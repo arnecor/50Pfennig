@@ -190,6 +190,18 @@
     "language_en": "English",
     "session_section_title": "Session"
   },
+  "payment_detail": {
+    "expense_title": "Expense Details",
+    "settlement_title": "Payment Details",
+    "settlement_label": "Payment",
+    "paid_by": "Paid by {{name}}",
+    "time_suffix": "",
+    "split_section": "Split",
+    "participant_count": "{{count}} ppl.",
+    "transaction_section": "Transaction",
+    "note_section": "Note",
+    "recorded_by": "Recorded by"
+  },
   "settlements": {
     "title": "Settlements",
     "record": "Record payment",

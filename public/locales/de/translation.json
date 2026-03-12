@@ -191,6 +191,18 @@
     "language_en": "English",
     "session_section_title": "Sitzung"
   },
+  "payment_detail": {
+    "expense_title": "Ausgabe Details",
+    "settlement_title": "Zahlung Details",
+    "settlement_label": "Zahlung",
+    "paid_by": "Bezahlt von {{name}}",
+    "time_suffix": "Uhr",
+    "split_section": "Aufteilung",
+    "participant_count": "{{count}} Pers.",
+    "transaction_section": "Transaktion",
+    "note_section": "Notiz",
+    "recorded_by": "Erfasst von"
+  },
   "settlements": {
     "title": "Zahlungen",
     "record": "Zahlung erfassen",

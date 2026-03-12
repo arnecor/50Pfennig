@@ -23,6 +23,19 @@ import type { IExpenseRepository, CreateExpenseInput, UpdateExpenseInput } from 
 import type { Expense, ExpenseId, GroupId } from '../../domain/types';
 
 export class SupabaseExpenseRepository implements IExpenseRepository {
+  async getById(id: ExpenseId): Promise<Expense> {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*, expense_splits(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    const splits = (data as typeof data & { expense_splits: unknown[] }).expense_splits;
+    return mapExpense(data, splits as never[]);
+  }
+
   async getByGroupId(groupId: GroupId): Promise<Expense[]> {
     const { data, error } = await supabase
       .from('expenses')
