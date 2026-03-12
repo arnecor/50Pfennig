@@ -114,6 +114,7 @@ export const mapFriend = (row: FriendshipWithProfiles, currentUserId: UserId): F
 
 export const mapSettlement = (row: SettlementRow): Settlement => ({
   id: row.id as SettlementId,
+  batchId: row.batch_id ?? null,
   groupId: row.group_id ? (row.group_id as GroupId) : null,
   fromUserId: row.from_user_id as UserId,
   toUserId: row.to_user_id as UserId,

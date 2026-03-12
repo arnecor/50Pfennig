@@ -62,7 +62,8 @@
     "group_owes_you": "Du bekommst",
     "total": "Gesamt",
     "total_spent": "Gruppenausgaben",
-    "participant_count": "{{count}} Pers."
+    "participant_count": "{{count}} Pers.",
+    "activity_settlement": "{{payer}} hat {{payee}} bezahlt (Gruppenanteil)"
   },
   "expenses": {
     "title": "Ausgaben",
@@ -193,10 +194,26 @@
   "settlements": {
     "title": "Zahlungen",
     "record": "Zahlung erfassen",
+    "record_group_title": "Zahlung erfassen",
+    "record_friend_title": "Begleichen mit {{name}}",
     "empty_title": "Noch keine Zahlungen",
+    "empty_description": "Noch keine Zahlungen erfasst.",
     "from": "Von",
     "to": "An",
     "amount_label": "Betrag",
-    "note_label": "Notiz (optional)"
+    "amount_error_required": "Bitte gib einen Betrag ein.",
+    "amount_error_positive": "Der Betrag muss größer als 0 sein.",
+    "note_label": "Notiz (optional)",
+    "note_placeholder": "Worum geht's?",
+    "submit": "Zahlung erfassen",
+    "suggested_title": "Vorschläge",
+    "settle_now": "Jetzt begleichen",
+    "view_settlements": "Zahlungen",
+    "history_title": "Verlauf",
+    "settle_up": "Begleichen",
+    "delete_aria": "Zahlung löschen",
+    "delete_confirm": "Zahlung wirklich löschen?",
+    "you_paid_friend": "Du hast {{name}} bezahlt",
+    "friend_paid_you": "{{name}} hat dich bezahlt"
   }
 }
