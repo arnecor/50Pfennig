@@ -149,42 +149,43 @@ async function sendFcmMessage(
   body: string,
   data: Record<string, string>,
 ): Promise<{ success: boolean; tokenInvalid: boolean }> {
-  const res = await fetch(
-    `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        message: {
-          token: deviceToken,
-          notification: { title, body },
-          data: { ...data, title, body },
-          android: {
-            priority: 'HIGH',
-            notification: {
-              channel_id: 'default',
-              click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            },
+  const tokenPrefix = deviceToken.slice(0, 20);
+  const url = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+  console.log(`[FCM] Sending to token ${tokenPrefix}…`);
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      message: {
+        token: deviceToken,
+        notification: { title, body },
+        data: { ...data, title, body },
+        android: {
+          priority: 'HIGH',
+          notification: {
+            channel_id: 'default',
           },
         },
-      }),
-    },
-  );
+      },
+    }),
+  });
+
+  const responseText = await res.text();
+  console.log(`[FCM] HTTP ${res.status} for token ${tokenPrefix}: ${responseText}`);
 
   if (res.ok) return { success: true, tokenInvalid: false };
 
-  const err = await res.json().catch(() => ({}));
-  const status = (err as { error?: { status?: string } })?.error?.status ?? '';
+  let err: { error?: { status?: string } } = {};
+  try { err = JSON.parse(responseText); } catch { /* ignore */ }
+  const status = err?.error?.status ?? '';
   const tokenInvalid =
     status === 'INVALID_ARGUMENT' || status === 'UNREGISTERED';
 
-  console.error('FCM send failed', {
-    status,
-    deviceToken: deviceToken.slice(0, 20),
-  });
+  console.error('[FCM] Send failed', { httpStatus: res.status, fcmStatus: status, tokenPrefix });
   return { success: false, tokenInvalid };
 }
 
@@ -202,8 +203,9 @@ async function dispatchPushJobs(
   let accessToken: string;
   try {
     accessToken = await getFcmAccessToken(sa);
+    console.log('[FCM] OAuth2 access token obtained successfully');
   } catch (err) {
-    console.error('Failed to get FCM access token', err);
+    console.error('[FCM] Failed to get access token', err);
     return;
   }
 
@@ -218,6 +220,7 @@ async function dispatchPushJobs(
         console.error('Failed to fetch push tokens for', recipientId, error);
         return;
       }
+      console.log(`[send-push] Found ${tokens?.length ?? 0} token(s) for recipient ${recipientId}`);
       if (!tokens || tokens.length === 0) return;
 
       const staleTokenIds: string[] = [];
@@ -351,6 +354,8 @@ Deno.serve(async (req: Request) => {
     return new Response('Invalid JSON body', { status: 400 });
   }
 
+  console.log(`[send-push] Webhook received: table=${webhook.table} type=${webhook.type}`);
+
   if (webhook.type !== 'INSERT') {
     // Webhooks for UPDATE/DELETE are not expected; ignore gracefully.
     return new Response('ok', { status: 200 });
@@ -371,6 +376,7 @@ Deno.serve(async (req: Request) => {
     console.warn('Unexpected webhook table:', webhook.table);
   }
 
+  console.log(`[send-push] Dispatching ${jobs.length} push job(s)`);
   await dispatchPushJobs(supabase, sa, jobs);
 
   return new Response('ok', { status: 200 });

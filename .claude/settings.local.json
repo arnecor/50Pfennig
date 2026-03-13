@@ -63,7 +63,9 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:supabase.com)",
-      "WebFetch(domain:tomaspozo.com)"
+      "WebFetch(domain:tomaspozo.com)",
+      "Bash(dir \"c:\\\\Privat\\\\50Pfennig\\\\supabase\")",
+      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\supabase\")"
     ]
   },
   "enabledPlugins": {

@@ -130,6 +130,11 @@ export default function App() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (event === 'SIGNED_IN' && currentPushToken.current) {
+          // Token arrived before login (e.g. fresh install) — save it now.
+          void upsertPushToken(currentPushToken.current);
+        }
+
         if (event === 'SIGNED_OUT') {
           // Remove this device's push token so the user stops receiving
           // notifications after signing out.

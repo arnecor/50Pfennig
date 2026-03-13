@@ -10,7 +10,11 @@ import { supabase } from '../../lib/supabase/client';
 
 export async function upsertPushToken(token: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) {
+    console.warn('[Push] upsertPushToken called but no auth session — token not saved');
+    return;
+  }
+  console.info('[Push] upserting token for user', user.id.slice(0, 8));
 
   const { error } = await supabase
     .from('push_tokens')

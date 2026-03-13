@@ -51,17 +51,28 @@ export async function initPushNotifications(
 
   // Request permission (required on Android 13+ / API level 33)
   const { receive } = await PushNotifications.requestPermissions();
+  console.info('[Push] permission result:', receive);
   if (receive !== 'granted') {
-    console.info('Push notification permission denied');
     return () => {};
   }
 
+  // Ensure the notification channel exists (required on Android 8+).
+  // The channel_id sent by the Edge Function must match this id.
+  await PushNotifications.createChannel({
+    id: 'default',
+    name: 'Benachrichtigungen',
+    importance: 4, // IMPORTANCE_HIGH — shows heads-up notification
+    vibration: true,
+  });
+
   // Kick off FCM registration; token arrives via the 'registration' event
+  console.info('[Push] calling PushNotifications.register()');
   await PushNotifications.register();
 
   const registrationListener = await PushNotifications.addListener(
     'registration',
     (token: Token) => {
+      console.info('[Push] FCM token received:', token.value.slice(0, 20) + '…');
       onToken(token.value);
     },
   );
