@@ -19,6 +19,7 @@ type Props = {
   isLoading: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
+  onItemClick?: (item: ActivityItem) => void;
 };
 
 function ActivitySkeleton() {
@@ -66,7 +67,7 @@ function ActivityRow({ icon, iconBg, primary, secondary, amount, showSign, color
   );
 }
 
-export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore }: Props) {
+export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore, onItemClick }: Props) {
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
@@ -95,6 +96,11 @@ export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore }: 
     <div className="space-y-0">
       <div className="divide-y rounded-xl border bg-card overflow-hidden">
         {items.map(item => {
+          const isClickable = onItemClick && (item.type === 'expense' || item.type === 'settlement');
+          const wrapperClass = isClickable
+            ? 'cursor-pointer hover:bg-muted/50 transition-colors'
+            : '';
+
           if (item.type === 'expense') {
             // Signed share: positive = I'm owed (I paid), negative = I owe (I didn't pay)
             const signedShare: Money = item.paidByCurrentUser
@@ -108,16 +114,17 @@ export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore }: 
             const secondary = `${item.paidByName} · ${contextLabel} · ${formatDate(item.date)}`;
 
             return (
-              <ActivityRow
-                key={item.id}
-                icon={<Receipt className="h-4 w-4 text-primary" />}
-                iconBg="bg-primary/10"
-                primary={item.description}
-                secondary={secondary}
-                amount={signedShare}
-                showSign
-                colored
-              />
+              <div key={item.id} className={wrapperClass} onClick={isClickable ? () => onItemClick(item) : undefined} role={isClickable ? 'button' : undefined}>
+                <ActivityRow
+                  icon={<Receipt className="h-4 w-4 text-primary" />}
+                  iconBg="bg-primary/10"
+                  primary={item.description}
+                  secondary={secondary}
+                  amount={signedShare}
+                  showSign
+                  colored
+                />
+              </div>
             );
           }
 
@@ -132,20 +139,21 @@ export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore }: 
             const displayAmount: Money = item.isMePaying ? negate(item.amount) : item.amount;
 
             return (
-              <ActivityRow
-                key={item.id}
-                icon={
-                  item.isMePaying
-                    ? <ArrowUpRight className="h-4 w-4 text-red-600" />
-                    : <ArrowDownLeft className="h-4 w-4 text-green-600" />
-                }
-                iconBg={item.isMePaying ? 'bg-red-50' : 'bg-green-50'}
-                primary={primary}
-                secondary={secondary}
-                amount={displayAmount}
-                showSign
-                colored
-              />
+              <div key={item.id} className={wrapperClass} onClick={isClickable ? () => onItemClick(item) : undefined} role={isClickable ? 'button' : undefined}>
+                <ActivityRow
+                  icon={
+                    item.isMePaying
+                      ? <ArrowUpRight className="h-4 w-4 text-red-600" />
+                      : <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                  }
+                  iconBg={item.isMePaying ? 'bg-red-50' : 'bg-green-50'}
+                  primary={primary}
+                  secondary={secondary}
+                  amount={displayAmount}
+                  showSign
+                  colored
+                />
+              </div>
             );
           }
 

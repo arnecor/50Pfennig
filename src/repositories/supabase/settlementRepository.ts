@@ -16,6 +16,17 @@ import type { Json } from '../../lib/supabase/types.gen';
 import type { CreateSettlementBatchInput, CreateSettlementInput, ISettlementRepository } from '../types';
 
 export class SupabaseSettlementRepository implements ISettlementRepository {
+  async getById(id: SettlementId): Promise<Settlement> {
+    const { data, error } = await supabase
+      .from('settlements')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return mapSettlement(data);
+  }
+
   async getByGroupId(groupId: GroupId): Promise<Settlement[]> {
     const { data, error } = await supabase
       .from('settlements')
