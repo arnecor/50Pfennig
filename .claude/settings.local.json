@@ -54,8 +54,18 @@
       "Bash(gh issue view)",
       "Bash(grep)",
       "Bash(npx tsc:*)",
-      "Bash(git -C c:/Privat/50Pfennig log --oneline -5)",
-      "Bash(dir c:Privat50Pfennigsrcpages)"
+      "Bash(find /c/Privat/50Pfennig -name .env* -o -name .env.example -o -name .env.local)",
+      "Bash(find /c/Privat/50Pfennig/docs -type f -name *.md)",
+      "Bash(xargs grep:*)",
+      "Bash(find /c/Privat/50Pfennig/android -name build.gradle*)",
+      "Bash(find /c/Privat/50Pfennig/supabase/migrations -type f -name *.sql)",
+      "Bash(ls -1 /c/Privat/50Pfennig/supabase/migrations/*.sql)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:tomaspozo.com)",
+      "Bash(dir \"c:\\\\Privat\\\\50Pfennig\\\\supabase\")",
+      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\supabase\")"
     ]
   },
   "enabledPlugins": {
