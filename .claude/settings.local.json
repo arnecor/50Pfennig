@@ -59,7 +59,11 @@
       "Bash(xargs grep:*)",
       "Bash(find /c/Privat/50Pfennig/android -name build.gradle*)",
       "Bash(find /c/Privat/50Pfennig/supabase/migrations -type f -name *.sql)",
-      "Bash(ls -1 /c/Privat/50Pfennig/supabase/migrations/*.sql)"
+      "Bash(ls -1 /c/Privat/50Pfennig/supabase/migrations/*.sql)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:tomaspozo.com)"
     ]
   },
   "enabledPlugins": {

@@ -1,38 +1,32 @@
 /**
  * Edge Function: send-push
  *
- * Sends a Firebase Cloud Messaging (FCM) push notification to all registered
- * devices of a given user.
+ * Sends Firebase Cloud Messaging (FCM) push notifications triggered by
+ * Supabase Database Webhooks.  Two webhooks call this function:
  *
- * Called by Postgres triggers (via pg_net) after:
- *   - a new expense is created (notifies non-payer participants)
- *   - a user is added to a group (notifies the new member)
+ *   1. expenses     → INSERT  — notifies every non-payer split participant
+ *   2. group_members → INSERT  — notifies the newly added member
  *
- * Request body:
+ * The webhook body is the standard Supabase envelope:
  *   {
- *     recipientId: string;   // auth.users UUID of the target user
- *     title:       string;   // notification title
- *     body:        string;   // notification body text
- *     data:        {         // navigation payload for the client
- *       type:      'expense' | 'group_member';
- *       expenseId?: string;
- *       groupId?:  string;
- *       friendId?: string;   // payer's user_id for friend expenses
- *     };
+ *     type:       'INSERT';
+ *     table:      'expenses' | 'group_members';
+ *     schema:     'public';
+ *     record:     Record<string, unknown>;   // the inserted row
+ *     old_record: null;
  *   }
  *
- * Required environment variables (set via `supabase secrets set`):
- *   SUPABASE_URL                — project URL (auto-injected by Supabase)
- *   SUPABASE_SERVICE_ROLE_KEY   — service role key (auto-injected)
- *   FCM_SERVICE_ACCOUNT_JSON    — Firebase service account JSON (full JSON string)
+ * Required environment variables:
+ *   SUPABASE_URL              — auto-injected by Supabase
+ *   SUPABASE_SERVICE_ROLE_KEY — auto-injected by Supabase
+ *   FCM_SERVICE_ACCOUNT_JSON  — Firebase service account JSON
+ *                               (set via `supabase secrets set`)
  *
- * FCM setup:
- *   1. Create a Firebase project at https://console.firebase.google.com
- *   2. Add an Android app with package name "com.pfennig50.app"
- *   3. Download google-services.json and place it in android/app/
- *   4. Go to Project Settings → Service Accounts → Generate new private key
- *   5. Set the downloaded JSON as FCM_SERVICE_ACCOUNT_JSON:
- *      supabase secrets set FCM_SERVICE_ACCOUNT_JSON="$(cat service-account.json)"
+ * Dashboard setup (one-time):
+ *   Database → Webhooks → Create webhook
+ *   Table: expenses,      Event: INSERT, URL: .../functions/v1/send-push
+ *   Table: group_members, Event: INSERT, URL: .../functions/v1/send-push
+ *   Header: Authorization: Bearer <service_role_key>
  */
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -41,11 +35,12 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 // Types
 // ---------------------------------------------------------------------------
 
-interface PushPayload {
-  recipientId: string;
-  title: string;
-  body: string;
-  data: Record<string, string>;
+interface WebhookPayload {
+  type: 'INSERT' | 'UPDATE' | 'DELETE';
+  table: string;
+  schema: string;
+  record: Record<string, unknown>;
+  old_record: Record<string, unknown> | null;
 }
 
 interface FcmServiceAccount {
@@ -54,14 +49,17 @@ interface FcmServiceAccount {
   client_email: string;
 }
 
+interface PushJob {
+  recipientId: string;
+  title: string;
+  body: string;
+  data: Record<string, string>;
+}
+
 // ---------------------------------------------------------------------------
 // Google OAuth2 — exchange service account credentials for a short-lived token
 // ---------------------------------------------------------------------------
 
-/**
- * Signs a JWT using the RS256 algorithm with the service account private key.
- * Deno's WebCrypto API is used directly — no external JWT libraries needed.
- */
 async function signJWT(
   payload: Record<string, unknown>,
   privateKeyPem: string,
@@ -69,14 +67,13 @@ async function signJWT(
   const header = { alg: 'RS256', typ: 'JWT' };
 
   const encode = (obj: unknown) =>
-    btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(
-      /\//g,
-      '_',
-    );
+    btoa(JSON.stringify(obj))
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
 
   const signingInput = `${encode(header)}.${encode(payload)}`;
 
-  // Strip PEM armor and decode
   const pemBody = privateKeyPem
     .replace(/-----BEGIN PRIVATE KEY-----/, '')
     .replace(/-----END PRIVATE KEY-----/, '')
@@ -99,14 +96,14 @@ async function signJWT(
 
   const encodedSig = btoa(
     String.fromCharCode(...new Uint8Array(signature)),
-  ).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  )
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
 
   return `${signingInput}.${encodedSig}`;
 }
 
-/**
- * Obtains a short-lived Google OAuth2 access token for the FCM send scope.
- */
 async function getFcmAccessToken(sa: FcmServiceAccount): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
@@ -141,7 +138,7 @@ async function getFcmAccessToken(sa: FcmServiceAccount): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// FCM HTTP v1 — send to a single device token
+// FCM HTTP v1
 // ---------------------------------------------------------------------------
 
 async function sendFcmMessage(
@@ -164,7 +161,6 @@ async function sendFcmMessage(
         message: {
           token: deviceToken,
           notification: { title, body },
-          // data payload is delivered even when the app is in the background
           data: { ...data, title, body },
           android: {
             priority: 'HIGH',
@@ -182,12 +178,147 @@ async function sendFcmMessage(
 
   const err = await res.json().catch(() => ({}));
   const status = (err as { error?: { status?: string } })?.error?.status ?? '';
-  // INVALID_ARGUMENT or UNREGISTERED → token is stale, should be deleted
-  const tokenInvalid = status === 'INVALID_ARGUMENT' ||
-    status === 'UNREGISTERED';
+  const tokenInvalid =
+    status === 'INVALID_ARGUMENT' || status === 'UNREGISTERED';
 
-  console.error('FCM send failed', { status, deviceToken: deviceToken.slice(0, 20) });
+  console.error('FCM send failed', {
+    status,
+    deviceToken: deviceToken.slice(0, 20),
+  });
   return { success: false, tokenInvalid };
+}
+
+// ---------------------------------------------------------------------------
+// Send push notifications to a list of recipients
+// ---------------------------------------------------------------------------
+
+async function dispatchPushJobs(
+  supabase: ReturnType<typeof createClient>,
+  sa: FcmServiceAccount,
+  jobs: PushJob[],
+): Promise<void> {
+  if (jobs.length === 0) return;
+
+  let accessToken: string;
+  try {
+    accessToken = await getFcmAccessToken(sa);
+  } catch (err) {
+    console.error('Failed to get FCM access token', err);
+    return;
+  }
+
+  await Promise.all(
+    jobs.map(async ({ recipientId, title, body, data }) => {
+      const { data: tokens, error } = await supabase
+        .from('push_tokens')
+        .select('id, token')
+        .eq('user_id', recipientId);
+
+      if (error) {
+        console.error('Failed to fetch push tokens for', recipientId, error);
+        return;
+      }
+      if (!tokens || tokens.length === 0) return;
+
+      const staleTokenIds: string[] = [];
+
+      await Promise.all(
+        tokens.map(async ({ id, token }: { id: string; token: string }) => {
+          const result = await sendFcmMessage(
+            sa.project_id,
+            accessToken,
+            token,
+            title,
+            body,
+            data,
+          );
+          if (result.tokenInvalid) staleTokenIds.push(id);
+        }),
+      );
+
+      if (staleTokenIds.length > 0) {
+        await supabase.from('push_tokens').delete().in('id', staleTokenIds);
+        console.log(`Pruned ${staleTokenIds.length} stale push token(s)`);
+      }
+    }),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Webhook handlers
+// ---------------------------------------------------------------------------
+
+/**
+ * expenses INSERT — notify every non-payer participant.
+ */
+async function handleExpenseInsert(
+  supabase: ReturnType<typeof createClient>,
+  record: Record<string, unknown>,
+): Promise<PushJob[]> {
+  const expenseId = record.id as string;
+  const paidBy = record.paid_by as string;
+  const description = (record.description as string) || '';
+  const groupId = record.group_id as string | null;
+
+  // Payer display name
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', paidBy)
+    .maybeSingle();
+
+  const payerName = (profile?.display_name as string | null) ?? 'Jemand';
+
+  // Non-payer split participants
+  const { data: splits, error } = await supabase
+    .from('expense_splits')
+    .select('user_id')
+    .eq('expense_id', expenseId)
+    .neq('user_id', paidBy);
+
+  if (error) {
+    console.error('Failed to fetch expense_splits', error);
+    return [];
+  }
+
+  return (splits ?? []).map(({ user_id }: { user_id: string }) => ({
+    recipientId: user_id,
+    title: `${payerName} hat eine Ausgabe hinzugefügt`,
+    body: description,
+    data:
+      groupId != null
+        ? { type: 'expense', expenseId, groupId }
+        : { type: 'expense', expenseId, friendId: paidBy },
+  }));
+}
+
+/**
+ * group_members INSERT — notify the new member (skip creator self-join).
+ */
+async function handleGroupMemberInsert(
+  supabase: ReturnType<typeof createClient>,
+  record: Record<string, unknown>,
+): Promise<PushJob[]> {
+  const userId = record.user_id as string;
+  const groupId = record.group_id as string;
+
+  const { data: group } = await supabase
+    .from('groups')
+    .select('name, created_by')
+    .eq('id', groupId)
+    .maybeSingle();
+
+  // Skip creator auto-join (mirrors the original trigger's auth.uid() check)
+  if (group?.created_by === userId) return [];
+
+  return [
+    {
+      recipientId: userId,
+      title: 'Du wurdest zu einer Gruppe hinzugefügt',
+      body: (group?.name as string | null) ?? '',
+      data: { type: 'group_member', groupId },
+    },
+  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -199,9 +330,6 @@ Deno.serve(async (req: Request) => {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  // -------------------------------------------------------------------------
-  // Parse and validate FCM service account from env
-  // -------------------------------------------------------------------------
   const saJson = Deno.env.get('FCM_SERVICE_ACCOUNT_JSON');
   if (!saJson) {
     console.warn('FCM_SERVICE_ACCOUNT_JSON not set — skipping push');
@@ -216,84 +344,34 @@ Deno.serve(async (req: Request) => {
     return new Response('Server configuration error', { status: 500 });
   }
 
-  // -------------------------------------------------------------------------
-  // Parse request body
-  // -------------------------------------------------------------------------
-  let payload: PushPayload;
+  let webhook: WebhookPayload;
   try {
-    payload = (await req.json()) as PushPayload;
+    webhook = (await req.json()) as WebhookPayload;
   } catch {
     return new Response('Invalid JSON body', { status: 400 });
   }
 
-  const { recipientId, title, body, data } = payload;
-  if (!recipientId || !title || !body) {
-    return new Response('Missing required fields', { status: 400 });
+  if (webhook.type !== 'INSERT') {
+    // Webhooks for UPDATE/DELETE are not expected; ignore gracefully.
+    return new Response('ok', { status: 200 });
   }
 
-  // Ensure all data values are strings (FCM data payload requirement)
-  const stringData: Record<string, string> = {};
-  for (const [k, v] of Object.entries(data ?? {})) {
-    stringData[k] = String(v);
-  }
-
-  // -------------------------------------------------------------------------
-  // Fetch push tokens for the recipient (service role bypasses RLS)
-  // -------------------------------------------------------------------------
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   );
 
-  const { data: tokens, error: tokensError } = await supabase
-    .from('push_tokens')
-    .select('id, token')
-    .eq('user_id', recipientId);
+  let jobs: PushJob[] = [];
 
-  if (tokensError) {
-    console.error('Failed to fetch push tokens', tokensError);
-    return new Response('Database error', { status: 500 });
+  if (webhook.table === 'expenses') {
+    jobs = await handleExpenseInsert(supabase, webhook.record);
+  } else if (webhook.table === 'group_members') {
+    jobs = await handleGroupMemberInsert(supabase, webhook.record);
+  } else {
+    console.warn('Unexpected webhook table:', webhook.table);
   }
 
-  if (!tokens || tokens.length === 0) {
-    // Recipient has no registered devices — that's fine, nothing to do
-    return new Response('ok', { status: 200 });
-  }
-
-  // -------------------------------------------------------------------------
-  // Get FCM access token (one per invocation; valid for 1 hour)
-  // -------------------------------------------------------------------------
-  let accessToken: string;
-  try {
-    accessToken = await getFcmAccessToken(sa);
-  } catch (err) {
-    console.error('Failed to get FCM access token', err);
-    return new Response('FCM auth failed', { status: 500 });
-  }
-
-  // -------------------------------------------------------------------------
-  // Send to each device token; prune stale tokens
-  // -------------------------------------------------------------------------
-  const staleTokenIds: string[] = [];
-
-  await Promise.all(
-    tokens.map(async ({ id, token }: { id: string; token: string }) => {
-      const result = await sendFcmMessage(
-        sa.project_id,
-        accessToken,
-        token,
-        title,
-        body,
-        stringData,
-      );
-      if (result.tokenInvalid) staleTokenIds.push(id);
-    }),
-  );
-
-  if (staleTokenIds.length > 0) {
-    await supabase.from('push_tokens').delete().in('id', staleTokenIds);
-    console.log(`Pruned ${staleTokenIds.length} stale push token(s)`);
-  }
+  await dispatchPushJobs(supabase, sa, jobs);
 
   return new Response('ok', { status: 200 });
 });
