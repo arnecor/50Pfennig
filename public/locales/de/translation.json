@@ -10,7 +10,8 @@
     "loading": "Wird geladen…",
     "error_generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "back": "Zurück",
-    "you": "Du"
+    "you": "Du",
+    "close": "Schließen"
   },
   "auth": {
     "sign_in": "Anmelden",
@@ -125,6 +126,8 @@
     "empty_title": "Noch keine Freunde",
     "empty_description": "Freunde hinzufügen, um Ausgaben zu teilen.",
     "balanced": "Ausgeglichen",
+    "owes_you": "Schuldet dir",
+    "you_owe": "Du schuldest",
     "no_shared_expenses": "Keine gemeinsamen Ausgaben",
     "no_shared_expenses_description": "Ihr habt noch keine Ausgaben geteilt.",
     "direct_expense": "Direkt",
@@ -193,6 +196,7 @@
   },
   "payment_detail": {
     "expense_title": "Ausgabe Details",
+    "total_amount": "Gesamtbetrag",
     "settlement_title": "Zahlung Details",
     "settlement_label": "Zahlung",
     "paid_by": "Bezahlt von {{name}}",

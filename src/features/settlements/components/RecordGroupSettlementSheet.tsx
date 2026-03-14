@@ -13,6 +13,7 @@
 import type { DebtInstruction, Group, Money, UserId } from '@domain/types';
 import { money } from '@domain/types';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { Circle, CircleDot, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -102,11 +103,11 @@ export default function RecordGroupSettlementSheet({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} onKeyDown={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 z-[55] bg-black/40" onClick={onClose} onKeyDown={onClose} aria-hidden="true" />
 
       {/* Sheet */}
       <div
-        className="fixed left-0 right-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-xl"
+        className="fixed left-0 right-0 z-[60] flex flex-col rounded-t-2xl bg-background shadow-xl"
         style={{ bottom: 0, maxHeight: 'min(90dvh, calc(100vh - env(safe-area-inset-top, 24px)))' }}
       >
         {/* Header */}
@@ -142,11 +143,12 @@ export default function RecordGroupSettlementSheet({
                       : 'hover:bg-muted'
                   }`}
                 >
+                  <UserAvatar name={m.displayName} size="sm" />
+                  <span className="flex-1 text-left">{memberName(m.userId)}</span>
                   {fromUserId === m.userId
                     ? <CircleDot className="h-4 w-4 shrink-0 text-primary" />
                     : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
                   }
-                  {memberName(m.userId)}
                 </button>
               ))}
             </div>
@@ -171,11 +173,12 @@ export default function RecordGroupSettlementSheet({
                         : 'hover:bg-muted'
                     }`}
                   >
+                    <UserAvatar name={m.displayName} size="sm" />
+                    <span className="flex-1 text-left">{memberName(m.userId)}</span>
                     {toUserId === m.userId
                       ? <CircleDot className="h-4 w-4 shrink-0 text-primary" />
                       : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
                     }
-                    {memberName(m.userId)}
                   </button>
                 ))}
             </div>
@@ -214,19 +217,30 @@ export default function RecordGroupSettlementSheet({
 
         {/* Footer */}
         <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <Button
-            size="lg"
-            className="w-full"
-            disabled={
-              !fromUserId ||
-              !toUserId ||
-              fromUserId === toUserId ||
-              createSettlement.isPending
-            }
-            onClick={handleSubmit}
-          >
-            {createSettlement.isPending ? t('common.loading') : t('settlements.submit')}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              size="lg"
+              variant="outline"
+              className="flex-1"
+              onClick={onClose}
+              disabled={createSettlement.isPending}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1"
+              disabled={
+                !fromUserId ||
+                !toUserId ||
+                fromUserId === toUserId ||
+                createSettlement.isPending
+              }
+              onClick={handleSubmit}
+            >
+              {createSettlement.isPending ? t('common.loading') : t('settlements.submit')}
+            </Button>
+          </div>
           {createSettlement.isError && (
             <p className="mt-2 text-center text-xs text-destructive">{t('common.error_generic')}</p>
           )}

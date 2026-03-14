@@ -10,7 +10,7 @@
 
 import EmptyState from '@components/shared/EmptyState';
 import { PageHeader } from '@components/shared/PageHeader';
-import { FriendListItem } from '@components/shared/FriendCard';
+import { FriendCard } from '@components/shared/FriendCard';
 import { computeBilateralBalance } from '@domain/balance';
 import type { Expense, UserId } from '@domain/types';
 import { ZERO } from '@domain/types';
@@ -27,7 +27,7 @@ import { useTranslation } from 'react-i18next';
 
 function FriendSkeleton() {
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-border last:border-0 px-1">
+    <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
       <div className="h-10 w-10 animate-pulse rounded-full bg-muted shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-4 w-32 animate-pulse rounded bg-muted" />
@@ -106,7 +106,7 @@ export default function FriendsPage() {
 
       <div className="px-5">
         {isLoading && (
-          <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
+          <div className="space-y-3">
             <FriendSkeleton />
             <FriendSkeleton />
             <FriendSkeleton />
@@ -130,9 +130,9 @@ export default function FriendsPage() {
         )}
 
         {!isLoading && friendsWithData.length > 0 && (
-          <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
+          <div className="space-y-3">
             {friendsWithData.map(({ friend, balance }) => (
-              <FriendListItem
+              <FriendCard
                 key={friend.userId}
                 name={friend.displayName}
                 balance={balance ?? ZERO}

@@ -9,7 +9,8 @@
     "loading": "Loading…",
     "error_generic": "Something went wrong. Please try again.",
     "back": "Back",
-    "you": "You"
+    "you": "You",
+    "close": "Close"
   },
   "auth": {
     "sign_in": "Sign in",
@@ -124,6 +125,8 @@
     "empty_title": "No friends yet",
     "empty_description": "Add friends to split expenses with them.",
     "balanced": "Settled up",
+    "owes_you": "Owes you",
+    "you_owe": "You owe",
     "no_shared_expenses": "No shared expenses",
     "no_shared_expenses_description": "You haven't shared any expenses yet.",
     "direct_expense": "Direct",
@@ -192,6 +195,7 @@
   },
   "payment_detail": {
     "expense_title": "Expense Details",
+    "total_amount": "Total amount",
     "settlement_title": "Payment Details",
     "settlement_label": "Payment",
     "paid_by": "Paid by {{name}}",

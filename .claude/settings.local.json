@@ -74,7 +74,8 @@
       "Bash(npx vite:*)",
       "Bash(npx vitest:*)",
       "Bash(grep -E \"\\\\.\\(config|json\\)$|tailwind|vite\")",
-      "Bash(ls -1 *.config.* *.config)"
+      "Bash(ls -1 *.config.* *.config)",
+      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\src\\\\features\\\\expenses\\\\components\")"
     ]
   },
   "enabledPlugins": {

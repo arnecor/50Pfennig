@@ -59,24 +59,21 @@ supabase/
 @router       → src/router/
 @             → src/          (fallback, prefer the specific aliases above)
 ```
-## Code Intelligence
+## LSP Usage — Mandatory
 
-Prefer LSP over Grep/Glob/Read for code navigation:
-- `goToDefinition` / `goToImplementation` to jump to source
-- `findReferences` to see all usages across the codebase
-- `workspaceSymbol` to find where something is defined
-- `documentSymbol` to list all symbols in a file
-- `hover` for type info without reading the file
-- `incomingCalls` / `outgoingCalls` for call hierarchy
+Before using Grep/Glob/Read to navigate TypeScript code, you MUST call
+`ToolSearch` with `"select:LSP"` to load the LSP tool and use it instead.
 
-Before renaming or changing a function signature, use
-`findReferences` to find all call sites first.
+Specifically: finding a type/function definition → `goToDefinition`,
+finding all usages → `findReferences`, discovering symbols → `workspaceSymbol`,
+checking types → `hover`, listing file symbols → `documentSymbol`.
 
-Use Grep/Glob only for text/pattern searches (comments,
-strings, config values) where LSP doesn't help.
+Grep/Glob is only acceptable for: comments, string literals, config files,
+non-TypeScript files, or when LSP returns no results.
 
 After writing or editing code, check LSP diagnostics before
 moving on. Fix any type errors or missing imports immediately.
+
 ## UI Components
 
 Only these shadcn/ui components are installed: `button`, `card`, `input`, `label`.

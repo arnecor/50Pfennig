@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button } from '@components/ui/button';
-import { Card, CardContent } from '@components/ui/card';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 import { money } from '@domain/types';
@@ -219,11 +218,9 @@ export default function ExpenseForm({
         {/* Paid by (read-only) */}
         <div className="flex flex-col gap-1.5">
           <Label>{t('expenses.form.paid_by_label')}</Label>
-          <Card className="bg-muted/40">
-            <CardContent className="px-3 py-2.5">
-              <p className="text-sm font-medium">{currentUserDisplayName}</p>
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border border-border bg-muted/40 px-3 py-2.5">
+            <p className="text-sm font-medium">{currentUserDisplayName}</p>
+          </div>
         </div>
 
         {/* Split with — picker trigger */}

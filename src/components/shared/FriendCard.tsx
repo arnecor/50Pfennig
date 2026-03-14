@@ -53,9 +53,9 @@ export function FriendCard({
         >
           {name}
         </p>
-        {!settled && balanceLabel && (
+        {!settled && (
           <p className="text-xs text-muted-foreground mt-0.5">
-            {balanceLabel}
+            {balanceLabel ?? (positive ? t('friends.owes_you') : t('friends.you_owe'))}
           </p>
         )}
       </div>
