@@ -184,6 +184,7 @@
     "display_name_label": "Display name",
     "display_name_placeholder": "What should we call you?",
     "email_label": "Email",
+    "profile_picture_label": "Profile picture",
     "edit_display_name_aria": "Edit display name",
     "save_display_name_aria": "Save display name",
     "cancel_edit_aria": "Cancel editing",
@@ -191,7 +192,11 @@
     "language_section_title": "Language",
     "language_de": "Deutsch",
     "language_en": "English",
-    "session_section_title": "Session"
+    "language_select_label": "Select language",
+    "session_section_title": "Session",
+    "support_link": "Help & Support",
+    "feedback_link": "Send feedback",
+    "help_section_title": "Help"
   },
   "payment_detail": {
     "expense_title": "Expense Details",
