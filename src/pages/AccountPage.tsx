@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Check, X, LogOut, Mail, User } from 'lucide-react';
+import { Pencil, Check, X, LogOut, Mail, User, HelpCircle, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,10 +63,10 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-xl font-semibold">{t('account.title')}</h1>
+    <div className="p-4 space-y-6 pb-8">
+      <h1 className="text-2xl font-semibold">{t('account.title')}</h1>
 
-      {/* Profile */}
+      {/* Profile Section */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{t('account.profile_section_title')}</CardTitle>
@@ -86,7 +86,7 @@ export default function AccountPage() {
           {!isEditing && (
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">{t('account.display_name_label')}</Label>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <User className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="text-sm truncate">{currentDisplayName}</span>
@@ -96,6 +96,7 @@ export default function AccountPage() {
                   size="icon"
                   aria-label={t('account.edit_display_name_aria')}
                   onClick={() => setIsEditing(true)}
+                  className="shrink-0"
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -121,6 +122,7 @@ export default function AccountPage() {
                   size="icon"
                   disabled={isSubmitting}
                   aria-label={t('account.save_display_name_aria')}
+                  className="shrink-0"
                 >
                   {isSubmitting ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -135,6 +137,7 @@ export default function AccountPage() {
                   disabled={isSubmitting}
                   aria-label={t('account.cancel_edit_aria')}
                   onClick={handleCancelEdit}
+                  className="shrink-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -151,32 +154,53 @@ export default function AccountPage() {
         </CardContent>
       </Card>
 
-      {/* Language */}
+      {/* Language Section */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{t('account.language_section_title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
-            <Button
-              variant={i18n.language === 'de' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => i18n.changeLanguage('de')}
+          <div className="space-y-2">
+            <Label htmlFor="language-select" className="text-xs text-muted-foreground">{t('account.language_select_label')}</Label>
+            <select
+              id="language-select"
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="w-full px-3 py-2 rounded-md border bg-background text-foreground text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
-              {t('account.language_de')}
-            </Button>
-            <Button
-              variant={i18n.language === 'en' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => i18n.changeLanguage('en')}
-            >
-              {t('account.language_en')}
-            </Button>
+              <option value="de">{t('account.language_de')}</option>
+              <option value="en">{t('account.language_en')}</option>
+            </select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Session */}
+      {/* Help Section */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t('account.help_section_title')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-left h-auto px-3 py-2"
+            onClick={() => window.open('https://vercel.com/help', '_blank')}
+          >
+            <HelpCircle className="h-4 w-4 mr-2 shrink-0" />
+            <span className="truncate">{t('account.support_link')}</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-left h-auto px-3 py-2"
+            onClick={() => window.open('https://vercel.com/help', '_blank')}
+          >
+            <MessageSquare className="h-4 w-4 mr-2 shrink-0" />
+            <span className="truncate">{t('account.feedback_link')}</span>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Session Section */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{t('account.session_section_title')}</CardTitle>

@@ -185,6 +185,7 @@
     "display_name_label": "Anzeigename",
     "display_name_placeholder": "Wie soll man dich nennen?",
     "email_label": "E-Mail",
+    "profile_picture_label": "Profilbild",
     "edit_display_name_aria": "Anzeigename bearbeiten",
     "save_display_name_aria": "Anzeigename speichern",
     "cancel_edit_aria": "Bearbeitung abbrechen",
@@ -192,7 +193,11 @@
     "language_section_title": "Sprache",
     "language_de": "Deutsch",
     "language_en": "English",
-    "session_section_title": "Sitzung"
+    "language_select_label": "Sprache wählen",
+    "session_section_title": "Sitzung",
+    "support_link": "Hilfe und Support",
+    "feedback_link": "Feedback geben",
+    "help_section_title": "Hilfe"
   },
   "payment_detail": {
     "expense_title": "Ausgabe Details",
