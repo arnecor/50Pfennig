@@ -92,15 +92,15 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — above the nav bar (z-50) */}
       <div
-        className="fixed inset-0 z-40 bg-black/40"
+        className="fixed inset-0 z-[55] bg-black/40"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Sheet — fixed height so the overlay never jumps when the keyboard opens */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-xl h-[70dvh] max-h-[70dvh]">
+      {/* Sheet — sits above backdrop and nav bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-[60] flex flex-col rounded-t-2xl bg-background shadow-xl h-[70dvh] max-h-[70dvh]">
         {/* Handle + Header */}
         <div className="flex items-center justify-between border-b px-4 py-4">
           <h2 className="text-base font-semibold">{t('expenses.form.picker_title')}</h2>
