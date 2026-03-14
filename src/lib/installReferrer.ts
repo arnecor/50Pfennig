@@ -10,42 +10,12 @@
  * via a localStorage flag.
  */
 
-import { Capacitor } from '@capacitor/core';
-
-const REFERRER_CHECKED_KEY = '50pfennig_referrer_checked';
+// TODO: @dudod/capacitor-plugin-install-referrer removed (incompatible with Capacitor 6).
+// Restore when a compatible version is available.
 
 /**
- * Attempts to extract an invite token from the Play Store install referrer.
- * Returns the token string if found, or null otherwise.
- * Only runs once per installation (idempotent via localStorage flag).
+ * Stub — always returns null until the install referrer plugin is restored.
  */
 export async function checkInstallReferrer(): Promise<string | null> {
-  // Only run on native Android
-  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
-    return null;
-  }
-
-  // Only check once per installation
-  if (localStorage.getItem(REFERRER_CHECKED_KEY)) {
-    return null;
-  }
-
-  try {
-    const { InstallReferrer } = await import(
-      '@dudod/capacitor-plugin-install-referrer'
-    );
-
-    const result = await InstallReferrer.getReferrerDetails();
-    localStorage.setItem(REFERRER_CHECKED_KEY, '1');
-
-    if (!result?.referrerUrl) return null;
-
-    // Parse referrer string: "invite_token=abc123&utm_source=..."
-    const params = new URLSearchParams(result.referrerUrl);
-    return params.get('invite_token') ?? null;
-  } catch {
-    // Plugin not available or failed — mark as checked to avoid retrying
-    localStorage.setItem(REFERRER_CHECKED_KEY, '1');
-    return null;
-  }
+  return null;
 }

@@ -7,10 +7,10 @@
  */
 
 import MoneyDisplay from '@components/shared/MoneyDisplay';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { allocate } from '@domain/money';
 import { money } from '@domain/types';
 import type { GroupMember, Money } from '@domain/types';
-import { Equal } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -35,24 +35,24 @@ export default function EqualSplit({ totalAmount, participants }: Props) {
   }, [totalAmount, participants]);
 
   return (
-    <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 p-3">
-      {/* Info badge */}
-      <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-        <Equal className="h-4 w-4 shrink-0" />
-        <span>{t('expenses.form.split_equal_info')}</span>
-      </div>
-
-      {/* Per-person preview */}
+    <div className="rounded-xl border border-border overflow-hidden bg-card">
       {shares.length > 0 && (
-        <ul className="space-y-1.5">
+        <ul>
           {shares.map(({ member, amount }) => (
-            <li key={member.userId} className="flex items-center justify-between text-sm">
-              <span className="text-foreground">{member.displayName}</span>
-              <MoneyDisplay amount={amount} className="font-medium tabular-nums" />
+            <li
+              key={member.userId}
+              className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0"
+            >
+              <UserAvatar name={member.displayName} size="sm" />
+              <span className="flex-1 text-sm font-medium text-foreground">{member.displayName}</span>
+              <MoneyDisplay amount={amount} className="text-sm font-semibold tabular-nums" />
             </li>
           ))}
         </ul>
       )}
+      <div className="px-4 py-2 text-center text-xs text-muted-foreground bg-muted/30 border-t border-border">
+        {t('expenses.form.split_equal_info')}
+      </div>
     </div>
   );
 }

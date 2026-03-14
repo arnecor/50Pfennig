@@ -9,11 +9,11 @@
  */
 
 import EmptyState from '@components/shared/EmptyState';
-import MoneyDisplay from '@components/shared/MoneyDisplay';
-import { Button } from '@components/ui/button';
-import { Card, CardContent } from '@components/ui/card';
+import { PageHeader } from '@components/shared/PageHeader';
+import { FriendCard } from '@components/shared/FriendCard';
 import { computeBilateralBalance } from '@domain/balance';
-import { ZERO, type Expense, type UserId } from '@domain/types';
+import type { Expense, UserId } from '@domain/types';
+import { ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
@@ -21,20 +21,19 @@ import { useGroups } from '@features/groups/hooks/useGroups';
 import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { UserPlus, UserRound } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 function FriendSkeleton() {
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 animate-pulse rounded-full bg-muted shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-32 animate-pulse rounded bg-muted" />
-        </div>
-        <div className="h-4 w-16 animate-pulse rounded bg-muted shrink-0" />
+    <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+      <div className="h-10 w-10 animate-pulse rounded-full bg-muted shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-20 animate-pulse rounded bg-muted" />
       </div>
+      <div className="h-4 w-16 animate-pulse rounded bg-muted shrink-0" />
     </div>
   );
 }
@@ -50,10 +49,7 @@ export default function FriendsPage() {
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
   const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
 
-  // Fetch group expenses (same data already cached by GroupCard/useTotalBalance).
   const groupExpensesResults = useQueries({ queries: groups.map(g => expensesQueryOptions(g.id)) });
-
-  // Per-friend: all settlements (any groupId) — needed for cross-context batch settlements.
   const sharedSettlementsResults = useQueries({
     queries: friends.map(f => sharedSettlementsQueryOptions(f.userId)),
   });
@@ -65,7 +61,6 @@ export default function FriendsPage() {
     groupExpensesResults.some(r => r.isLoading) ||
     sharedSettlementsResults.some(r => r.isLoading);
 
-  // Collect ALL expenses (friend + group) into one flat list for per-friend filtering.
   const allExpenses = useMemo(() => {
     const result: Expense[] = [...friendExpenses];
     for (const r of groupExpensesResults) {
@@ -74,11 +69,8 @@ export default function FriendsPage() {
     return result;
   }, [friendExpenses, groupExpensesResults]);
 
-  // For each friend: derive balance across ALL shared expenses (group + friend)
-  // and ALL settlements between the two users.
   const friendsWithData = useMemo(() => {
     if (!currentUserId) return [];
-
     return friends
       .map((friend, i) => {
         const friendIdStr = friend.userId as string;
@@ -87,8 +79,6 @@ export default function FriendsPage() {
             (e.paidBy as string) === friendIdStr ||
             e.splits.some(s => (s.userId as string) === friendIdStr),
         );
-        // Use per-friend shared settlements (any groupId) so cross-context
-        // batch allocations are included in the balance calculation.
         const friendSettlements = sharedSettlementsResults[i]?.data ?? [];
         const balance = computeBilateralBalance(shared, friendSettlements, currentUserId, friend.userId);
         const lastExpenseDate = shared[0]?.createdAt;
@@ -102,21 +92,19 @@ export default function FriendsPage() {
       });
   }, [friends, allExpenses, sharedSettlementsResults, currentUserId]);
 
-  const handleAddFriend = () => {
-    navigate({ to: '/friends/add' });
-  };
+  const handleAddFriend = () => navigate({ to: '/friends/add' });
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="flex items-center justify-between border-b px-4 py-4">
-        <h1 className="text-xl font-semibold">{t('friends.title')}</h1>
-        <Button variant="ghost" size="sm" onClick={handleAddFriend} className="gap-1.5">
-          <UserPlus className="h-4 w-4" />
-          {t('friends.add_friend')}
-        </Button>
-      </header>
+    <div className="min-h-full pb-24">
+      <PageHeader
+        title={t('friends.title')}
+        variant="large"
+        onAction={handleAddFriend}
+        actionIcon={<UserPlus className="w-5 h-5" />}
+        actionLabel={t('friends.add_friend')}
+      />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="px-5">
         {isLoading && (
           <div className="space-y-3">
             <FriendSkeleton />
@@ -127,14 +115,16 @@ export default function FriendsPage() {
 
         {!isLoading && friends.length === 0 && (
           <EmptyState
-            icon={<UserRound className="h-12 w-12" />}
             title={t('friends.empty_title')}
             description={t('friends.empty_description')}
             action={
-              <Button onClick={handleAddFriend} className="gap-2">
-                <UserPlus className="h-4 w-4" />
+              <button
+                type="button"
+                onClick={handleAddFriend}
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
                 {t('friends.add_friend')}
-              </Button>
+              </button>
             }
           />
         )}
@@ -142,39 +132,17 @@ export default function FriendsPage() {
         {!isLoading && friendsWithData.length > 0 && (
           <div className="space-y-3">
             {friendsWithData.map(({ friend, balance }) => (
-              <Card
+              <FriendCard
                 key={friend.userId}
-                className="cursor-pointer active:opacity-80"
+                name={friend.displayName}
+                balance={balance ?? ZERO}
                 onClick={() =>
                   navigate({
                     to: '/friends/$friendId',
                     params: { friendId: friend.userId as string },
                   })
                 }
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold">
-                      {friend.displayName[0]?.toUpperCase() ?? '?'}
-                    </div>
-                    <p className="min-w-0 flex-1 truncate font-medium">{friend.displayName}</p>
-                    <div className="shrink-0 text-right">
-                      {balance === ZERO ? (
-                        <span className="text-sm text-muted-foreground">
-                          {t('friends.balanced')}
-                        </span>
-                      ) : (
-                        <MoneyDisplay
-                          amount={balance}
-                          colored
-                          showSign
-                          className="text-sm font-semibold tabular-nums"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              />
             ))}
           </div>
         )}

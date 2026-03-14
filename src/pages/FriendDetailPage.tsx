@@ -5,23 +5,15 @@
  *
  * Shows a unified activity list (expenses + settlements) between the current
  * user and a specific friend, ordered newest first.
- *
- * Settlement rows are visually distinct from expense rows.
- * Settlements are grouped by batchId so one batch = one row (full amount shown).
- *
- * Actions:
- *   - Begleichen        → opens RecordFriendSettlementSheet (when netBalance ≠ 0)
- *   - Delete settlement → calls useDeleteSettlement (full batch)
- *   - Send reminder     → placeholder
- *   - Remove friend     → calls friendRepository.remove, navigates back on success
  */
 
 import EmptyState from '@components/shared/EmptyState';
+import { PageHeader } from '@components/shared/PageHeader';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
-import { Card, CardContent } from '@components/ui/card';
+import { cn } from '@/lib/utils';
 import { computeBilateralBalance } from '@domain/balance';
-import { abs, add, isNegative, isPositive, negate, subtract } from '@domain/money';
+import { abs, add, formatMoney, isNegative, isPositive, negate, subtract } from '@domain/money';
 import { ZERO, type GroupId, type Money, type Settlement, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { sharedExpensesQueryOptions } from '@features/expenses/expenseQueries';
@@ -33,20 +25,14 @@ import { useDeleteSettlement } from '@features/settlements/hooks/useDeleteSettle
 import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft, ArrowLeftRight, Bell, Receipt, Trash2, UserMinus } from 'lucide-react';
+import { ArrowLeftRight, Bell, Receipt, Trash2, UserMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Expense } from '@domain/types';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 type SettlementBatch = {
   records: Settlement[];
-  /** Net amount of the real-world payment (always positive). */
   total: Money;
-  /** True when currentUser is the net payer; false when friend is. */
   iMePaying: boolean;
   note?: string;
   date: Date;
@@ -56,27 +42,18 @@ type FeedItem =
   | { kind: 'expense'; data: Expense }
   | { kind: 'settlement'; batch: SettlementBatch };
 
-// ---------------------------------------------------------------------------
-// Skeletons
-// ---------------------------------------------------------------------------
-
 function ItemSkeleton() {
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-2">
-          <div className="h-4 w-40 animate-pulse rounded bg-muted" />
-          <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-        </div>
-        <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+    <div className="flex items-center gap-3 py-3 border-b border-border last:border-0 px-1">
+      <div className="w-8 h-8 rounded-full bg-muted animate-pulse shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-24 animate-pulse rounded bg-muted" />
       </div>
+      <div className="h-4 w-16 animate-pulse rounded bg-muted shrink-0" />
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function FriendDetailPage() {
   const { t, i18n } = useTranslation();
@@ -98,7 +75,6 @@ export default function FriendDetailPage() {
 
   const removeFriend = useRemoveFriend();
   const deleteSettlement = useDeleteSettlement();
-
   const [showSettleSheet, setShowSettleSheet] = useState(false);
 
   const groupNameMap = useMemo(
@@ -111,8 +87,6 @@ export default function FriendDetailPage() {
     return computeBilateralBalance(sharedExpenses, sharedSettlements, currentUserId, friend.userId);
   }, [sharedExpenses, sharedSettlements, currentUserId, friend]);
 
-  // Build unified activity feed (expenses + settlement batches), newest first.
-  // Only include expenses where current user or friend paid (bilateral effect).
   const feedItems = useMemo((): FeedItem[] => {
     const bilateralExpenses = friend
       ? sharedExpenses.filter(
@@ -123,7 +97,6 @@ export default function FriendDetailPage() {
       : sharedExpenses;
     const items: FeedItem[] = bilateralExpenses.map(e => ({ kind: 'expense' as const, data: e }));
 
-    // Group settlements by batchId; null batchId = standalone single record
     const batchMap = new Map<string, Settlement[]>();
     for (const s of sharedSettlements) {
       const key = s.batchId ?? String(s.id);
@@ -133,9 +106,6 @@ export default function FriendDetailPage() {
     }
 
     for (const records of batchMap.values()) {
-      // Compute direction-aware net from currentUser's perspective.
-      // Batch records can have mixed from/to (cross-direction full settlements),
-      // so a simple sum would overcount. Instead: +amount when I pay, -amount when I receive.
       let netFromMe: Money = ZERO;
       for (const r of records) {
         if ((r.fromUserId as string) === (currentUserId as string)) {
@@ -166,11 +136,7 @@ export default function FriendDetailPage() {
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
   const handleBack = () => navigate({ to: '/friends' });
-
-  const handleSendReminder = () => {
-    window.alert(t('friends.send_reminder_coming_soon'));
-  };
-
+  const handleSendReminder = () => window.alert(t('friends.send_reminder_coming_soon'));
   const handleRemoveFriend = () => {
     if (!friend) return;
     if (!window.confirm(t('friends.remove_friend_confirm'))) return;
@@ -179,42 +145,27 @@ export default function FriendDetailPage() {
       onError: () => window.alert(t('common.error_generic')),
     });
   };
-
   const handleDeleteSettlement = (batch: SettlementBatch) => {
     if (!window.confirm(t('settlements.delete_confirm'))) return;
     deleteSettlement.mutate(batch.records);
   };
 
-  return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <header className="flex shrink-0 items-center gap-3 border-b px-4 py-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleBack}
-          aria-label={t('common.back')}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="min-w-0 flex-1 truncate text-lg font-semibold">
-          {friend?.displayName ?? '…'}
-        </h1>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleSendReminder}
-          className="shrink-0 gap-1.5"
-        >
-          <Bell className="h-4 w-4" />
-          {t('friends.send_reminder')}
-        </Button>
-      </header>
+  const balanceSettled = netBalance === ZERO;
+  const balancePositive = isPositive(netBalance);
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+  return (
+    <div className="min-h-full pb-24">
+      <PageHeader
+        title={friend?.displayName ?? '…'}
+        onBack={handleBack}
+        onAction={handleSendReminder}
+        actionIcon={<Bell className="w-5 h-5" />}
+        actionLabel={t('friends.send_reminder')}
+      />
+
+      <div className="px-5">
         {isLoading && (
-          <div className="space-y-3">
+          <div className="bg-card rounded-2xl border border-border overflow-hidden px-4 mb-5">
             <ItemSkeleton />
             <ItemSkeleton />
             <ItemSkeleton />
@@ -231,48 +182,41 @@ export default function FriendDetailPage() {
 
         {!isLoading && feedItems.length > 0 && (
           <>
-            {/* Balance summary */}
-            <div className="mb-4 rounded-lg bg-muted/50 px-4 py-3 text-center">
-              {netBalance === ZERO ? (
-                <p className="text-sm font-semibold">{t('friends.balanced')}</p>
+            {/* Balance summary card */}
+            <div className="bg-card rounded-2xl border border-border p-6 mb-5 text-center">
+              {balanceSettled ? (
+                <p className="text-lg font-bold text-foreground">{t('friends.balanced')}</p>
               ) : (
                 <>
-                  <p className="mb-1 text-xs text-muted-foreground">
-                    {isPositive(netBalance)
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {balancePositive
                       ? t('friends.friend_owes_you', { name: friend?.displayName ?? '…' })
                       : t('friends.you_owe_friend', { name: friend?.displayName ?? '…' })}
                   </p>
-                  <MoneyDisplay
-                    amount={isPositive(netBalance) ? netBalance : negate(netBalance)}
-                    colored={false}
-                    className="text-lg font-bold tabular-nums"
-                  />
-                  <div className="mt-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => setShowSettleSheet(true)}
-                      disabled={!friend || !currentUserId}
-                    >
-                      {t('settlements.settle_up')}
-                    </Button>
-                  </div>
+                  <p className={cn(
+                    'text-4xl font-bold mb-4',
+                    balancePositive ? 'text-owed-to-you' : 'text-you-owe',
+                  )}>
+                    {balancePositive ? '+' : ''}{formatMoney(netBalance)}
+                  </p>
+                  <Button
+                    onClick={() => setShowSettleSheet(true)}
+                    disabled={!friend || !currentUserId}
+                    className="w-full h-12 font-semibold bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    {t('settlements.settle_up')}
+                  </Button>
                 </>
               )}
             </div>
 
-            {/* Unified activity list */}
-            <div className="space-y-3">
+            {/* Activity list */}
+            <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
               {feedItems.map((item, idx) => {
                 if (item.kind === 'expense') {
                   const expense = item.data;
-                  const paidByCurrentUser =
-                    (expense.paidBy as string) === (currentUserId as string);
-                  const paidByName = paidByCurrentUser
-                    ? t('common.you')
-                    : (friend?.displayName ?? '…');
-                  const participantCount = expense.splits.length;
-                  // Bilateral share: only the effect between current user and friend
+                  const paidByCurrentUser = (expense.paidBy as string) === (currentUserId as string);
+                  const paidByName = paidByCurrentUser ? t('common.you') : (friend?.displayName ?? '…');
                   const signedShare = paidByCurrentUser
                     ? (expense.splits.find(s => (s.userId as string) === (friend?.userId as string))?.amount ?? ZERO)
                     : negate(
@@ -280,56 +224,42 @@ export default function FriendDetailPage() {
                           ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
                           : ZERO,
                       );
+                  const signedPositive = !isNegative(signedShare);
 
                   return (
-                    <Card
+                    <button
                       key={`expense-${String(expense.id)}`}
-                      className="cursor-pointer hover:bg-muted/30 transition-colors"
+                      type="button"
                       onClick={() => navigate({ to: '/expenses/$expenseId', params: { expenseId: String(expense.id) } })}
+                      className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium">{expense.description}</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {paidByName}
-                              {' · '}
-                              {expense.groupId
-                                ? (groupNameMap.get(expense.groupId) ?? t('groups.title'))
-                                : t('friends.direct_expense')}
-                              {participantCount > 2 && (
-                                <> · {t('friends.participant_count', { count: participantCount })}</>
-                              )}
-                              {' · '}
-                              {expense.createdAt.toLocaleDateString(dateLocale, {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <MoneyDisplay
-                              amount={signedShare}
-                              showSign
-                              colored
-                              className="text-sm font-semibold tabular-nums"
-                            />
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {t('friends.total')}{' '}
-                              <MoneyDisplay
-                                amount={expense.totalAmount}
-                                className="inline text-xs tabular-nums"
-                              />
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{expense.description}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {paidByName}
+                          {' · '}
+                          {expense.groupId
+                            ? (groupNameMap.get(expense.groupId) ?? t('groups.title'))
+                            : t('friends.direct_expense')}
+                          {' · '}
+                          {expense.createdAt.toLocaleDateString(dateLocale, {
+                            day: '2-digit', month: '2-digit', year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className={cn('text-sm font-semibold tabular-nums', signedPositive ? 'text-owed-to-you' : 'text-you-owe')}>
+                          {signedPositive ? '+' : ''}{formatMoney(signedShare)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('friends.total')} {formatMoney(expense.totalAmount)}
+                        </p>
+                      </div>
+                    </button>
                   );
                 }
 
-                // Settlement row
+                // settlement row
                 const { batch } = item;
                 const label = batch.iMePaying
                   ? t('settlements.you_paid_friend', { name: friend?.displayName ?? '…' })
@@ -338,34 +268,39 @@ export default function FriendDetailPage() {
                 return (
                   <div
                     key={`settlement-${String(batch.records[0]?.id ?? idx)}`}
-                    className="flex items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => {
-                      const id = batch.records[0]?.id;
-                      if (id) navigate({ to: '/settlements/$settlementId', params: { settlementId: String(id) } });
-                    }}
+                    className="flex items-center gap-3 py-3 border-b border-border last:border-0"
                   >
-                    <ArrowLeftRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{label}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {batch.note && <>{batch.note} · </>}
-                        {batch.date.toLocaleDateString(dateLocale, {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                    <MoneyDisplay
-                      amount={batch.total}
-                      className="shrink-0 text-sm font-semibold tabular-nums"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const id = batch.records[0]?.id;
+                        if (id) navigate({ to: '/settlements/$settlementId', params: { settlementId: String(id) } });
+                      }}
+                      className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {batch.note && <>{batch.note} · </>}
+                          {batch.date.toLocaleDateString(dateLocale, {
+                            day: '2-digit', month: '2-digit', year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <MoneyDisplay
+                        amount={batch.total}
+                        className="shrink-0 text-sm font-semibold tabular-nums"
+                      />
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleDeleteSettlement(batch)}
                       disabled={deleteSettlement.isPending}
                       aria-label={t('settlements.delete_aria')}
-                      className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+                      className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -373,26 +308,37 @@ export default function FriendDetailPage() {
                 );
               })}
             </div>
+
+            {/* Remove friend */}
+            <div className="mt-5">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={handleRemoveFriend}
+                disabled={removeFriend.isPending || !friend}
+              >
+                <UserMinus className="mr-2 h-4 w-4" />
+                {t('friends.remove_friend')}
+              </Button>
+            </div>
           </>
+        )}
+
+        {!isLoading && feedItems.length === 0 && sharedExpenses.length === 0 && sharedSettlements.length === 0 && (
+          <div className="mt-5">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={handleRemoveFriend}
+              disabled={removeFriend.isPending || !friend}
+            >
+              <UserMinus className="mr-2 h-4 w-4" />
+              {t('friends.remove_friend')}
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Remove friend — sticky footer */}
-      {!isLoading && (
-        <div className="shrink-0 border-t px-4 py-3">
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={handleRemoveFriend}
-            disabled={removeFriend.isPending || !friend}
-          >
-            <UserMinus className="mr-2 h-4 w-4" />
-            {t('friends.remove_friend')}
-          </Button>
-        </div>
-      )}
-
-      {/* Settle up sheet */}
       {showSettleSheet && friend && currentUserId && (
         <RecordFriendSettlementSheet
           friend={friend}

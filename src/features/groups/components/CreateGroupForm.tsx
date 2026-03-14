@@ -13,7 +13,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, CheckSquare, Square } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,8 @@ import { z } from 'zod';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
+import { UserAvatar } from '@components/shared/UserAvatar';
+import { cn } from '@/lib/utils';
 import type { Friend, GroupId, UserId } from '@domain/types';
 import { useCreateGroup } from '../hooks/useCreateGroup';
 
@@ -136,7 +138,7 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
         {friends.length === 0 ? (
           <p className="py-2 text-sm text-muted-foreground">{t('groups.no_friends_at_all')}</p>
         ) : (
-          <div className="mt-1 flex flex-col gap-1">
+          <div className="mt-1 flex flex-col gap-2">
             {friends.map((friend) => {
               const isChecked = selectedFriends.includes(friend.userId);
               return (
@@ -144,16 +146,35 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
                   key={friend.userId}
                   type="button"
                   onClick={() => handleToggleFriend(friend.userId)}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-muted
-                    ${isChecked ? 'font-medium text-primary' : 'text-foreground'}
-                  `}
-                >
-                  {isChecked ? (
-                    <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
-                  ) : (
-                    <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  className={cn(
+                    'w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left',
+                    isChecked
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border bg-card hover:bg-muted/50',
                   )}
-                  <span className="flex-1 text-left">{friend.displayName}</span>
+                >
+                  <div
+                    className={cn(
+                      'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors',
+                      isChecked ? 'bg-primary border-primary' : 'border-muted-foreground',
+                    )}
+                  >
+                    {isChecked && (
+                      <svg
+                        className="w-3 h-3 text-primary-foreground"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <UserAvatar name={friend.displayName} size="md" />
+                  <span className="font-medium text-foreground">{friend.displayName}</span>
                 </button>
               );
             })}
@@ -170,7 +191,11 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
       )}
 
       {/* Submit button */}
-      <Button type="submit" size="lg" className="w-full" disabled={isPending}>
+      <Button
+        type="submit"
+        className="w-full h-12 font-semibold text-base bg-accent hover:bg-accent/90 text-accent-foreground"
+        disabled={isPending}
+      >
         {isPending ? t('groups.creating') : t('groups.create_button')}
       </Button>
     </form>

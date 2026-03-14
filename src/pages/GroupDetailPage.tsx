@@ -9,11 +9,12 @@
  */
 
 import EmptyState from '@components/shared/EmptyState';
+import { PageHeader } from '@components/shared/PageHeader';
+import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
-import { Button } from '@components/ui/button';
-import { Card, CardContent } from '@components/ui/card';
+import { cn } from '@/lib/utils';
 import { calculateGroupBalances } from '@domain/balance';
-import { add, isPositive, negate } from '@domain/money';
+import { add, formatMoney, isNegative, isPositive, isZero, negate } from '@domain/money';
 import { ZERO, type Expense, type GroupId, type Money, type Settlement, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
@@ -23,7 +24,7 @@ import { useAddGroupMembers } from '@features/groups/hooks/useAddGroupMembers';
 import { useGroup } from '@features/groups/hooks/useGroups';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft, Plus, Receipt, UserPlus } from 'lucide-react';
+import { ArrowLeftRight, Receipt, UserPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -31,16 +32,15 @@ type ActivityExpense = { kind: 'expense'; data: Expense };
 type ActivitySettlement = { kind: 'settlement'; data: Settlement };
 type GroupActivityItem = ActivityExpense | ActivitySettlement;
 
-function ExpenseSkeleton() {
+function ItemSkeleton() {
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-2">
-          <div className="h-4 w-40 animate-pulse rounded bg-muted" />
-          <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-        </div>
-        <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+    <div className="flex items-center gap-3 py-3 border-b border-border last:border-0 px-1">
+      <div className="w-10 h-10 rounded-lg bg-muted animate-pulse shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-24 animate-pulse rounded bg-muted" />
       </div>
+      <div className="h-4 w-16 animate-pulse rounded bg-muted shrink-0" />
     </div>
   );
 }
@@ -58,7 +58,6 @@ export default function GroupDetailPage() {
   const { data: friends = [] } = useFriends();
 
   const addMembers = useAddGroupMembers();
-
   const [showMemberOverlay, setShowMemberOverlay] = useState(false);
 
   const isLoading = groupLoading || expensesLoading || settlementsLoading;
@@ -91,13 +90,8 @@ export default function GroupDetailPage() {
 
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
-  const handleAddExpense = () => {
-    navigate({ to: '/expenses/new', search: { groupId } });
-  };
-
-  const handleBack = () => {
-    navigate({ to: '/groups' });
-  };
+  const handleAddExpense = () => navigate({ to: '/expenses/new', search: { groupId } });
+  const handleBack = () => navigate({ to: '/groups' });
 
   function handleAddMembers(userIds: UserId[]) {
     if (!group) return;
@@ -107,41 +101,26 @@ export default function GroupDetailPage() {
     );
   }
 
-  return (
-    <div className="flex flex-col min-h-full">
-      {/* Header */}
-      <header className="flex items-center gap-3 border-b px-4 py-4">
-        <Button variant="ghost" size="icon" onClick={handleBack} aria-label={t('common.back')}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="truncate text-lg font-semibold">{groupLoading ? '…' : group?.name}</h1>
-          {group && (
-            <p className="text-xs text-muted-foreground">
-              {group.members.length} {t('groups.members')}
-            </p>
-          )}
-        </div>
-        {/* "+ Mitglieder" — secondary so it doesn't steal attention from the FAB */}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setShowMemberOverlay(true)}
-          className="gap-1.5 shrink-0"
-          disabled={groupLoading}
-        >
-          <UserPlus className="h-4 w-4" />
-          {t('groups.manage_members')}
-        </Button>
-      </header>
+  const balanceSettled = isZero(netBalance);
+  const balancePositive = isPositive(netBalance);
 
-      {/* Expense list — extra bottom padding so content isn't hidden behind the FAB */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-28">
+  return (
+    <div className="min-h-full pb-24">
+      <PageHeader
+        title={groupLoading ? '…' : (group?.name ?? '')}
+        {...(group && { subtitle: `${group.members.length} ${t('groups.members')}` })}
+        onBack={handleBack}
+        onAction={() => setShowMemberOverlay(true)}
+        actionIcon={<UserPlus className="w-5 h-5" />}
+        actionLabel={t('groups.manage_members')}
+      />
+
+      <div className="px-5">
         {isLoading && (
-          <div className="space-y-3">
-            <ExpenseSkeleton />
-            <ExpenseSkeleton />
-            <ExpenseSkeleton />
+          <div className="bg-card rounded-2xl border border-border overflow-hidden px-4 mb-5">
+            <ItemSkeleton />
+            <ItemSkeleton />
+            <ItemSkeleton />
           </div>
         )}
 
@@ -151,152 +130,133 @@ export default function GroupDetailPage() {
             title={t('expenses.empty_title')}
             description={t('expenses.empty_description')}
             action={
-              <Button onClick={handleAddExpense} className="gap-2">
-                <Plus className="h-4 w-4" />
+              <button
+                type="button"
+                onClick={handleAddExpense}
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
                 {t('expenses.add')}
-              </Button>
+              </button>
             }
           />
         )}
 
         {!isLoading && allItems.length > 0 && (
           <>
-            {/* Balance summary */}
-            <div className="mb-4 rounded-lg bg-muted/50 px-4 py-3">
-              <div className="flex items-center justify-between gap-4">
-                {/* Total group spending */}
-                <div className="text-center flex-1">
-                  <p className="mb-1 text-xs text-muted-foreground">{t('groups.total_spent')}</p>
+            {/* Balance summary card */}
+            <div className="bg-card rounded-2xl border border-border p-5 mb-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">{t('groups.total_spent')}</p>
                   <MoneyDisplay
                     amount={totalGroupSpending}
                     colored={false}
-                    className="text-lg font-bold tabular-nums"
+                    className="text-xl font-bold tabular-nums"
                   />
                 </div>
-
-                <div className="w-px self-stretch bg-border" />
-
-                {/* Current user's net balance */}
-                <div className="text-center flex-1">
-                  {netBalance === ZERO ? (
-                    <p className="text-sm font-semibold">{t('groups.balanced')}</p>
-                  ) : (
-                    <>
-                      <p className="mb-1 text-xs text-muted-foreground">
-                        {isPositive(netBalance)
-                          ? t('groups.group_owes_you')
-                          : t('groups.you_owe_group')}
-                      </p>
-                      <MoneyDisplay
-                        amount={netBalance}
-                        showSign
-                        colored={false}
-                        className="text-lg font-bold tabular-nums"
-                      />
-                    </>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate({ to: '/groups/$groupId/settlements', params: { groupId } })
-                    }
-                    className="mt-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
-                  >
-                    {t('settlements.view_settlements')} →
-                  </button>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {balanceSettled
+                      ? t('groups.balanced')
+                      : balancePositive
+                        ? t('groups.group_owes_you')
+                        : t('groups.you_owe_group')}
+                  </p>
+                  <p className={cn(
+                    'text-xl font-bold',
+                    balanceSettled
+                      ? 'text-muted-foreground'
+                      : balancePositive
+                        ? 'text-owed-to-you'
+                        : 'text-you-owe',
+                  )}>
+                    {balanceSettled ? '—' : `${balancePositive ? '+' : ''}${formatMoney(netBalance)}`}
+                  </p>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => navigate({ to: '/groups/$groupId/settlements', params: { groupId } })}
+                className="mt-3 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+              >
+                {t('settlements.view_settlements')} →
+              </button>
             </div>
 
-            {/* Activity list — expenses and group settlements merged, newest first */}
-            <div className="space-y-3">
+            {/* Activity list */}
+            <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
               {allItems.map((item) => {
                 if (item.kind === 'expense') {
                   const expense = item.data;
-                  const paidByCurrentUser =
-                    (expense.paidBy as string) === (currentUserId as string);
+                  const paidByCurrentUser = (expense.paidBy as string) === (currentUserId as string);
                   const myShare = currentUserId
                     ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
                     : ZERO;
-                  const participantCount = expense.splits.length;
                   const signedShare = paidByCurrentUser
                     ? ((expense.totalAmount - myShare) as Money)
                     : negate(myShare);
+                  const signedPositive = !isNegative(signedShare);
+
                   return (
-                    <Card
+                    <button
                       key={expense.id}
-                      className="cursor-pointer hover:bg-muted/30 transition-colors"
+                      type="button"
                       onClick={() => navigate({ to: '/expenses/$expenseId', params: { expenseId: String(expense.id) } })}
+                      className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium">{expense.description}</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {paidByName(expense.paidBy)}
-                              {participantCount > 2 && (
-                                <> · {t('groups.participant_count', { count: participantCount })}</>
-                              )}
-                              {' · '}
-                              {expense.createdAt.toLocaleDateString(dateLocale, {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <MoneyDisplay
-                              amount={signedShare}
-                              showSign
-                              colored
-                              className="text-sm font-semibold tabular-nums"
-                            />
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {t('groups.total')}{' '}
-                              <MoneyDisplay
-                                amount={expense.totalAmount}
-                                className="inline text-xs tabular-nums"
-                              />
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{expense.description}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {paidByName(expense.paidBy)}
+                          {' · '}
+                          {expense.createdAt.toLocaleDateString(dateLocale, {
+                            day: '2-digit', month: '2-digit', year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className={cn('text-sm font-semibold tabular-nums', signedPositive ? 'text-owed-to-you' : 'text-you-owe')}>
+                          {signedPositive ? '+' : ''}{formatMoney(signedShare)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('groups.total')} {formatMoney(expense.totalAmount)}
+                        </p>
+                      </div>
+                    </button>
                   );
                 }
 
-                // settlement
+                // settlement row
                 const s = item.data;
                 const payerName = paidByName(s.fromUserId);
                 const payeeName = paidByName(s.toUserId);
                 return (
-                  <Card
+                  <button
                     key={s.id}
-                    className="cursor-pointer hover:bg-muted/30 transition-colors"
+                    type="button"
                     onClick={() => navigate({ to: '/settlements/$settlementId', params: { settlementId: String(s.id) } })}
+                    className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm text-muted-foreground">
-                            {t('groups.activity_settlement', { payer: payerName, payee: payeeName })}
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {s.createdAt.toLocaleDateString(dateLocale, {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                            })}
-                          </p>
-                        </div>
-                        <MoneyDisplay
-                          amount={s.amount}
-                          className="shrink-0 text-sm tabular-nums text-muted-foreground"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-muted-foreground truncate">
+                        {t('groups.activity_settlement', { payer: payerName, payee: payeeName })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {s.createdAt.toLocaleDateString(dateLocale, {
+                          day: '2-digit', month: '2-digit', year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                    <MoneyDisplay
+                      amount={s.amount}
+                      colored={false}
+                      className="shrink-0 text-sm tabular-nums text-muted-foreground"
+                    />
+                  </button>
                 );
               })}
             </div>
@@ -304,22 +264,8 @@ export default function GroupDetailPage() {
         )}
       </div>
 
-      {/* Floating action button — fixed above the bottom nav */}
-      <div
-        className="fixed left-0 right-0 z-10 flex justify-center px-4"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4rem + 0.75rem)' }}
-      >
-        <Button
-          size="lg"
-          onClick={handleAddExpense}
-          className="gap-2 rounded-full px-6 shadow-lg"
-        >
-          <Plus className="h-5 w-5" />
-          {t('expenses.add')}
-        </Button>
-      </div>
+      <FloatingActionButton onClick={handleAddExpense} label={t('expenses.add')} />
 
-      {/* Add member overlay */}
       {showMemberOverlay && group && (
         <AddMemberOverlay
           group={group}

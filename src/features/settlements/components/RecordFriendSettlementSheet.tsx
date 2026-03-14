@@ -23,7 +23,9 @@ import type { Expense, Friend, GroupId, Money, Settlement, UserId } from '@domai
 import { ZERO, money } from '@domain/types';
 import { abs, add, isNegative, negate } from '@domain/money';
 import { computeBilateralBalance } from '@domain/balance';
+import { useAuthStore } from '@features/auth/authStore';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { ArrowRight, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -72,6 +74,9 @@ export default function RecordFriendSettlementSheet({
 }: Props) {
   const { t } = useTranslation();
   const createSettlement = useCreateSettlement();
+  const currentUserDisplayName = useAuthStore(
+    s => s.session?.user.user_metadata?.['display_name'] as string | undefined,
+  );
 
   // Compute per-context bilateral balance from already-loaded data
   const contextDebts = useMemo((): ContextDebt[] => {
@@ -152,17 +157,20 @@ export default function RecordFriendSettlementSheet({
     onClose();
   };
 
-  const fromName = fromUserId === currentUserId ? t('common.you') : friend.displayName;
-  const toName   = toUserId   === currentUserId ? t('common.you') : friend.displayName;
+  const youLabel   = currentUserDisplayName ?? t('common.you');
+  const fromName   = fromUserId === currentUserId ? t('common.you') : friend.displayName;
+  const toName     = toUserId   === currentUserId ? t('common.you') : friend.displayName;
+  const fromAvatar = fromUserId === currentUserId ? youLabel : friend.displayName;
+  const toAvatar   = toUserId   === currentUserId ? youLabel : friend.displayName;
 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} onKeyDown={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 z-[55] bg-black/40" onClick={onClose} onKeyDown={onClose} aria-hidden="true" />
 
       {/* Sheet */}
       <div
-        className="fixed left-0 right-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-xl"
+        className="fixed left-0 right-0 z-[60] flex flex-col rounded-t-2xl bg-background shadow-xl"
         style={{ bottom: 0, maxHeight: 'min(90dvh, calc(100vh - env(safe-area-inset-top, 24px)))' }}
       >
         {/* Header */}
@@ -184,15 +192,18 @@ export default function RecordFriendSettlementSheet({
         <div className="flex-1 overflow-y-auto px-4 pb-4">
 
           {/* From → To (fixed, not a picker) */}
-          <div className="mb-5 mt-4 flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">{t('settlements.from')}</p>
-              <p className="mt-0.5 text-sm font-semibold">{fromName}</p>
+          <div className="mb-6 mt-4 flex items-center justify-center gap-4">
+            <div className="flex flex-col items-center gap-1.5">
+              <UserAvatar name={fromAvatar} size="lg" />
+              <p className="text-sm font-medium">{fromName}</p>
             </div>
-            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">{t('settlements.to')}</p>
-              <p className="mt-0.5 text-sm font-semibold">{toName}</p>
+            <div className="flex flex-col items-center pb-5">
+              <div className="h-0.5 w-10 bg-primary" />
+              <ArrowRight className="h-4 w-4 -mt-2 text-primary" />
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <UserAvatar name={toAvatar} size="lg" />
+              <p className="text-sm font-medium">{toName}</p>
             </div>
           </div>
 
@@ -229,14 +240,25 @@ export default function RecordFriendSettlementSheet({
 
         {/* Footer */}
         <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <Button
-            size="lg"
-            className="w-full"
-            disabled={createSettlement.isPending}
-            onClick={handleSubmit}
-          >
-            {createSettlement.isPending ? t('common.loading') : t('settlements.submit')}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              size="lg"
+              variant="outline"
+              className="flex-1"
+              onClick={onClose}
+              disabled={createSettlement.isPending}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1"
+              disabled={createSettlement.isPending}
+              onClick={handleSubmit}
+            >
+              {createSettlement.isPending ? t('common.loading') : t('settlements.submit')}
+            </Button>
+          </div>
           {createSettlement.isError && (
             <p className="mt-2 text-center text-xs text-destructive">{t('common.error_generic')}</p>
           )}

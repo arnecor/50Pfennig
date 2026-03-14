@@ -8,10 +8,15 @@
  */
 
 import LoginForm from '../features/auth/components/LoginForm';
+import { SharliMascot } from '@components/shared/EmptyState';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-dvh flex items-center justify-center p-4 bg-background">
+    <div className="min-h-dvh flex flex-col items-center justify-center p-6 bg-background gap-6">
+      <div className="flex flex-col items-center gap-3">
+        <SharliMascot size="lg" />
+        <h1 className="text-3xl font-bold text-foreground">50Pfennig</h1>
+      </div>
       <LoginForm />
     </div>
   );

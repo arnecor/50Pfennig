@@ -13,8 +13,9 @@ import { Share } from '@capacitor/share';
 import { Button } from '@components/ui/button';
 import { useCreateInvite } from '@features/friends/hooks/useCreateInvite';
 import { useNavigate } from '@tanstack/react-router';
-import { Camera, Check, ChevronRight, Copy, Loader2, Mail, QrCode, Share2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Camera, Check, ChevronRight, Copy, Loader2, Mail, QrCode, Share2, X } from 'lucide-react';
+import QRCode from 'qrcode';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 function getInviteUrl(token: string): string {
@@ -30,6 +31,8 @@ export default function AddFriendMethodList() {
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Create invite on mount so the link is immediately visible
   useEffect(() => {
@@ -38,6 +41,17 @@ export default function AddFriendMethodList() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Render QR code whenever the canvas becomes visible and the URL is ready
+  useEffect(() => {
+    if (showQR && inviteUrl && qrCanvasRef.current) {
+      QRCode.toCanvas(qrCanvasRef.current, inviteUrl, {
+        width: 220,
+        margin: 2,
+        color: { dark: '#0f172a', light: '#ffffff' },
+      });
+    }
+  }, [showQR, inviteUrl]);
 
   async function handleCopyLink() {
     if (!inviteUrl) return;
@@ -120,13 +134,27 @@ export default function AddFriendMethodList() {
         <Button
           variant="outline"
           className="flex h-auto flex-col gap-1.5 py-4"
-          onClick={() => navigate({ to: '/friends/add/qr' })}
+          onClick={() => setShowQR(prev => !prev)}
           disabled={!linkReady}
         >
-          <QrCode className="h-5 w-5" />
-          <span className="text-sm font-medium">{t('friends.method_show_qr')}</span>
+          {showQR ? <X className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
+          <span className="text-sm font-medium">
+            {showQR ? t('common.close') : t('friends.method_show_qr')}
+          </span>
         </Button>
       </div>
+
+      {/* ── Inline QR code ── */}
+      {showQR && (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-xl bg-white p-3 shadow-sm">
+            <canvas ref={qrCanvasRef} />
+          </div>
+          <p className="text-center text-sm text-muted-foreground">
+            {t('friends.qr_scan_hint')}
+          </p>
+        </div>
+      )}
 
       {/* ── Scan QR (native only) ── */}
       {isNative && (

@@ -2,17 +2,11 @@
  * pages/ExpenseDetailPage.tsx
  *
  * Route: /expenses/:expenseId
- *
- * Shows all details of a single expense:
- *   - Description, context (group or direct), total amount
- *   - Paid by, exact date/time
- *   - Per-participant split breakdown with signed amounts
- *   - Split type label
- *   - "Erfasst von" (created by) when createdBy differs from paidBy
  */
 
 import MoneyDisplay from '@components/shared/MoneyDisplay';
-import { Button } from '@components/ui/button';
+import { PageHeader } from '@components/shared/PageHeader';
+import { cn } from '@/lib/utils';
 import { negate } from '@domain/money';
 import { ZERO, type ExpenseId, type Money, type UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
@@ -22,7 +16,8 @@ import { groupDetailQueryOptions } from '@features/groups/groupQueries';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { UserAvatar } from '@components/shared/UserAvatar';
+import { ArrowDownLeft, ArrowUpRight, Users } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -65,9 +60,7 @@ export default function ExpenseDetailPage() {
 
   const contextLabel = useMemo(() => {
     if (!expense) return null;
-    if (expense.groupId) {
-      return group?.name ?? t('groups.title');
-    }
+    if (expense.groupId) return group?.name ?? t('groups.title');
     return t('friends.direct_expense');
   }, [expense, group, t]);
 
@@ -80,130 +73,155 @@ export default function ExpenseDetailPage() {
     }
   }, [expense, t]);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-full">
-        <header className="flex items-center gap-3 border-b px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => window.history.back()} aria-label={t('common.back')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold">{t('payment_detail.expense_title')}</h1>
-        </header>
-        <div className="flex-1 px-4 py-6 space-y-3">
-          <div className="h-6 w-48 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-          <div className="h-20 animate-pulse rounded bg-muted" />
-        </div>
-      </div>
-    );
-  }
+  // My signed share
+  const myShare = useMemo((): Money | null => {
+    if (!expense || !currentUserId) return null;
+    const split = expense.splits.find(s => (s.userId as string) === (currentUserId as string));
+    if (!split) return null;
+    const isPayer = (expense.paidBy as string) === (currentUserId as string);
+    return isPayer
+      ? ((expense.totalAmount - split.amount) as Money)
+      : negate(split.amount);
+  }, [expense, currentUserId]);
 
-  if (!expense) {
-    return (
-      <div className="flex flex-col min-h-full">
-        <header className="flex items-center gap-3 border-b px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => window.history.back()} aria-label={t('common.back')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold">{t('payment_detail.expense_title')}</h1>
-        </header>
-        <div className="flex-1 flex items-center justify-center px-4">
-          <p className="text-muted-foreground">{t('common.error_generic')}</p>
-        </div>
+  const loadingOrErrorHeader = (title: string) => (
+    <div className="min-h-full">
+      <PageHeader title={title} onBack={() => window.history.back()} />
+    </div>
+  );
+
+  if (isLoading) return loadingOrErrorHeader(t('payment_detail.expense_title'));
+  if (!expense)  return (
+    <div className="min-h-full">
+      <PageHeader title={t('payment_detail.expense_title')} onBack={() => window.history.back()} />
+      <div className="flex items-center justify-center px-5 pt-20">
+        <p className="text-muted-foreground">{t('common.error_generic')}</p>
       </div>
-    );
-  }
+    </div>
+  );
 
   const paidByName = resolveName(expense.paidBy as string);
   const createdByName = resolveName(expense.createdBy as string);
   const showCreatedBy = (expense.createdBy as string) !== (expense.paidBy as string);
+  const sharePositive = myShare !== null && myShare >= 0;
 
   return (
-    <div className="flex flex-col min-h-full">
-      {/* Header */}
-      <header className="flex items-center gap-3 border-b px-4 py-4">
-        <Button variant="ghost" size="icon" onClick={() => window.history.back()} aria-label={t('common.back')}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-lg font-semibold">{t('payment_detail.expense_title')}</h1>
-      </header>
+    <div className="min-h-full pb-10">
+      <PageHeader title={t('payment_detail.expense_title')} onBack={() => window.history.back()} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
+      <div className="px-5 pt-4 space-y-5">
         {/* Title + context */}
         <div>
-          <h2 className="text-xl font-bold">{expense.description}</h2>
+          <h2 className="text-2xl font-bold text-foreground">{expense.description}</h2>
           {contextLabel && (
-            <span className="mt-1 inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+              <Users className="w-3 h-3" />
               {contextLabel}
             </span>
           )}
         </div>
 
-        {/* Amount block */}
-        <div className="rounded-lg bg-muted/50 px-4 py-4 space-y-2">
-          <MoneyDisplay
-            amount={expense.totalAmount}
-            className="text-3xl font-bold tabular-nums"
-          />
-          <p className="text-sm text-muted-foreground">
-            {t('payment_detail.paid_by', { name: paidByName })}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {expense.createdAt.toLocaleDateString(dateLocale, {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-            })}
-            {', '}
-            {expense.createdAt.toLocaleTimeString(dateLocale, {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-            {' '}
-            {t('payment_detail.time_suffix')}
-          </p>
+        {/* Hero amount card */}
+        <div className="rounded-2xl bg-card border border-border px-5 py-5 space-y-4">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">{t('payment_detail.total_amount')}</p>
+              <MoneyDisplay
+                amount={expense.totalAmount}
+                className="text-3xl font-bold tabular-nums tracking-tight"
+              />
+            </div>
+            {myShare !== null && (
+              <div className={cn(
+                'flex items-center gap-1.5 rounded-xl px-3 py-2',
+                sharePositive ? 'bg-owed-to-you-muted' : 'bg-you-owe-muted',
+              )}>
+                {sharePositive
+                  ? <ArrowDownLeft className="w-4 h-4 text-owed-to-you shrink-0" />
+                  : <ArrowUpRight className="w-4 h-4 text-you-owe shrink-0" />
+                }
+                <div>
+                  <p className="text-xs text-muted-foreground leading-none mb-0.5">{t('friends.your_share')}</p>
+                  <MoneyDisplay
+                    amount={myShare}
+                    showSign
+                    colored
+                    className="text-base font-bold tabular-nums leading-none"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="h-px bg-border" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">{t('payment_detail.paid_by', { name: '' }).trim()}</p>
+              <p className="text-sm font-semibold text-foreground">{paidByName}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">
+                {expense.createdAt.toLocaleDateString(dateLocale, {
+                  day: '2-digit', month: 'long', year: 'numeric',
+                })}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {expense.createdAt.toLocaleTimeString(dateLocale, {
+                  hour: '2-digit', minute: '2-digit',
+                })}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Split breakdown */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold">{t('payment_detail.split_section')}</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-foreground">{t('payment_detail.split_section')}</h3>
             <span className="text-xs text-muted-foreground">
               {t('payment_detail.participant_count', { count: expense.splits.length })}
             </span>
           </div>
-          <div className="rounded-lg border divide-y">
+          <div className="rounded-xl border border-border overflow-hidden bg-card">
             {expense.splits.map(split => {
               const isPayer = (split.userId as string) === (expense.paidBy as string);
               const signedAmount: Money = isPayer
                 ? ((expense.totalAmount - split.amount) as Money)
                 : negate(split.amount);
               const name = resolveName(split.userId as string);
+              const isPos = signedAmount >= 0;
               return (
-                <div key={split.userId} className="flex items-center justify-between px-4 py-3">
-                  <span className="text-sm">{name}</span>
+                <div key={split.userId} className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0">
+                  <UserAvatar name={name} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium">{name}</span>
+                    {isPayer && (
+                      <span className="ml-1.5 text-xs text-muted-foreground">({t('payment_detail.paid_by', { name: '' }).replace('by', '').trim()})</span>
+                    )}
+                  </div>
                   <MoneyDisplay
                     amount={signedAmount === ZERO ? split.amount : signedAmount}
                     showSign={signedAmount !== ZERO}
                     colored={signedAmount !== ZERO}
-                    className="text-sm font-semibold tabular-nums"
+                    className={cn('text-sm font-semibold tabular-nums', signedAmount === ZERO ? '' : isPos ? 'text-owed-to-you' : 'text-you-owe')}
                   />
                 </div>
               );
             })}
             {splitTypeLabel && (
-              <div className="px-4 py-2 text-center text-xs text-muted-foreground">
+              <div className="px-4 py-2 text-center text-xs text-muted-foreground bg-muted/30">
                 {splitTypeLabel}
               </div>
             )}
           </div>
         </div>
 
-        {/* Erfasst von — only shown when createdBy ≠ paidBy */}
+        {/* Recorded by */}
         {showCreatedBy && (
-          <div className="rounded-lg border px-4 py-3">
+          <div className="rounded-xl border border-border bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground">{t('payment_detail.recorded_by')}</p>
-            <p className="mt-0.5 text-sm">{createdByName}</p>
+            <p className="mt-0.5 text-sm font-medium">{createdByName}</p>
           </div>
         )}
       </div>
