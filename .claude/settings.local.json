@@ -72,7 +72,9 @@
       "Bash(npm uninstall:*)",
       "Bash(echo \"EXIT_CODE=$?\")",
       "Bash(npx vite:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(grep -E \"\\\\.\\(config|json\\)$|tailwind|vite\")",
+      "Bash(ls -1 *.config.* *.config)"
     ]
   },
   "enabledPlugins": {

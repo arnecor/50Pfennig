@@ -3,12 +3,6 @@
  *
  * The single place where Money values are formatted for display.
  * Always use this component — never call formatMoney() directly in JSX.
- *
- * Props:
- *   amount:    Money      — the value to display
- *   showSign?: boolean    — prefix '+' for positive values (default: false)
- *   colored?:  boolean    — green if positive, red if negative (default: false)
- *   className?: string    — additional Tailwind classes
  */
 
 import { formatMoney, isPositive, isNegative } from '@domain/money';
@@ -38,9 +32,9 @@ export default function MoneyDisplay({
 
   const colorClass = colored
     ? isPositive(amount)
-      ? 'text-green-600'
+      ? 'text-owed-to-you'
       : isNegative(amount)
-        ? 'text-red-600'
+        ? 'text-you-owe'
         : 'text-muted-foreground'
     : '';
 
