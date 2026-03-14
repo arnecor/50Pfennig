@@ -26,7 +26,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'sticky top-0 bg-background/95 backdrop-blur-sm z-40 safe-top',
+        'sticky top-0 bg-background/95 backdrop-blur-sm z-40',
         className,
       )}
     >
@@ -91,7 +91,7 @@ export function GreetingHeader({
 }: GreetingHeaderProps) {
   const { t } = useTranslation();
   return (
-    <header className={cn('px-5 pt-6 pb-2 safe-top', className)}>
+    <header className={cn('px-5 pt-6 pb-2', className)}>
       <h1 className="text-2xl font-bold text-foreground">
         {greeting ?? t('home.greeting', { name })}
       </h1>
