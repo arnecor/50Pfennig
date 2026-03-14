@@ -14,7 +14,8 @@
  *   - Nothing else — keep this file thin
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import SplashScreen from './components/SplashScreen';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RouterProvider } from '@tanstack/react-router';
@@ -207,24 +208,32 @@ export default function App() {
     });
   }, [isHydrated, queryClient]);
 
-  // Don't mount the router until we know the auth state.
-  // This prevents a flash to /login when a session is already stored.
-  if (!isHydrated) {
-    return (
-      <div className="min-h-dvh flex items-center justify-center bg-background">
-        <span className="text-sm text-muted-foreground">Laden…</span>
-      </div>
-    );
-  }
+  // Track whether the splash screen has finished its exit animation
+  const [splashDone, setSplashDone] = useState(false);
+  const handleSplashDone = useCallback(() => setSplashDone(true), []);
+
+  // Show splash until both: auth is hydrated AND the splash animation is done
+  const showSplash = !splashDone;
 
   return (
-    <ErrorBoundary>
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
-      >
-        <RouterProvider router={router} context={{ queryClient }} />
-      </PersistQueryClientProvider>
-    </ErrorBoundary>
+    <>
+      {/* Splash sits on top of everything until its exit animation completes */}
+      {showSplash && (
+        <SplashScreen exiting={isHydrated} onDone={handleSplashDone} />
+      )}
+
+      {/* Mount the real app tree immediately so queries/auth can warm up,
+          but it is visually hidden behind the splash screen */}
+      {isHydrated && (
+        <ErrorBoundary>
+          <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
+          >
+            <RouterProvider router={router} context={{ queryClient }} />
+          </PersistQueryClientProvider>
+        </ErrorBoundary>
+      )}
+    </>
   );
 }
