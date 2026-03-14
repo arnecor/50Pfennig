@@ -4,17 +4,14 @@
  * Tappable card for a single group in the groups list.
  * Shows the group name, member count, and the user's net balance
  * in that group (derived from cached expenses + settlements).
- *
- * Balance is derived in the background — the card renders immediately
- * and the figure appears once both queries resolve.
  */
 
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Users } from 'lucide-react';
+import { ChevronRight, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent } from '@components/ui/card';
-import MoneyDisplay from '@components/shared/MoneyDisplay';
+import { cn } from '@/lib/utils';
+import { formatMoney, isNegative, isZero } from '@domain/money';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { useAuthStore } from '@features/auth/authStore';
@@ -39,33 +36,55 @@ export default function GroupCard({ group }: Props) {
     return balances.get(userId);
   }, [expenses, settlements, userId, group.members]);
 
-  return (
-    <Card
-      className="cursor-pointer transition-transform active:scale-[0.98]"
-      onClick={() =>
-        navigate({ to: '/groups/$groupId', params: { groupId: group.id } })
-      }
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-base font-semibold">{group.name}</p>
-            <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
-              <Users className="h-3.5 w-3.5 shrink-0" />
-              {group.members.length} {t('groups.members')}
-            </p>
-          </div>
+  const settled  = balance !== undefined && isZero(balance);
+  const positive = balance !== undefined && !isNegative(balance);
 
-          {balance !== undefined && (
-            <MoneyDisplay
-              amount={balance}
-              showSign
-              colored
-              className="shrink-0 text-sm font-medium"
-            />
+  const memberNames = group.members.map(m => m.displayName);
+  function formatMemberNames(names: string[], max: number) {
+    if (names.length <= max) return names.join(', ');
+    return `${names.slice(0, max).join(', ')} +${names.length - max}`;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => navigate({ to: '/groups/$groupId', params: { groupId: group.id } })}
+      className={cn(
+        'w-full flex items-center gap-4 p-4 rounded-xl border transition-colors text-left',
+        settled
+          ? 'bg-muted/30 border-border/50 hover:bg-muted/40'
+          : 'bg-card border-border hover:bg-muted/50',
+      )}
+    >
+      {/* Icon badge */}
+      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
+        <Users className="w-6 h-6 text-foreground" />
+      </div>
+
+      {/* Name + members */}
+      <div className="flex-1 min-w-0">
+        <p className={cn('font-semibold truncate', settled ? 'text-muted-foreground' : 'text-foreground')}>
+          {group.name}
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+          {formatMemberNames(memberNames, 3)}
+        </p>
+      </div>
+
+      {/* Balance */}
+      {balance !== undefined && (
+        <div className="text-right shrink-0">
+          {settled ? (
+            <p className="text-xs font-medium text-muted-foreground">{t('groups.balanced')}</p>
+          ) : (
+            <p className={cn('font-semibold', positive ? 'text-owed-to-you' : 'text-you-owe')}>
+              {positive ? '+' : ''}{formatMoney(balance)}
+            </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+    </button>
   );
 }

@@ -5,6 +5,9 @@ React + Capacitor hybrid (Android-first, iOS later). German UI (de default, en s
 
 Full architectural rationale lives in [docs/adr/](docs/adr/).
 
+## General coding guidelines
+Always act like a professional Senir Developer. You code will be reviewed by codex.
+
 ## Tech Stack
 
 | Concern | Choice |
