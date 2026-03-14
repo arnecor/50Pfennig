@@ -6,26 +6,77 @@
  * Profile and account settings. Sign out.
  */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Check, X, LogOut, Mail, User, HelpCircle, MessageSquare } from 'lucide-react';
+import { Pencil, Check, X, LogOut, HelpCircle, MessageSquare, ChevronRight, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { UserAvatar } from '@/components/shared/UserAvatar';
+import { PageHeader } from '@/components/shared/PageHeader';
 
 const displayNameSchema = z.object({
   displayName: z.string().min(1, 'Required').max(50),
 });
 type DisplayNameFormValues = z.infer<typeof displayNameSchema>;
 
+/** A single row in a settings list */
+function SettingsRow({
+  label,
+  value,
+  onClick,
+  children,
+}: {
+  label: string;
+  value?: string;
+  onClick?: () => void;
+  children?: React.ReactNode;
+}) {
+  const Tag = onClick ? 'button' : 'div';
+  return (
+    <Tag
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className={[
+        'flex items-center justify-between w-full px-5 py-3.5 text-left',
+        onClick ? 'hover:bg-muted/60 active:bg-muted transition-colors' : '',
+      ].join(' ')}
+    >
+      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        {value && <span className="truncate max-w-[140px]">{value}</span>}
+        {children}
+        {onClick && <ChevronRight className="h-4 w-4 shrink-0 opacity-40" />}
+      </span>
+    </Tag>
+  );
+}
+
+/** A section heading that labels a group of rows */
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <p className="px-5 pt-5 pb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+      {label}
+    </p>
+  );
+}
+
+/** A grouped block of rows with a card-like surface and dividers */
+function SettingsGroup({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mx-4 rounded-xl bg-card border border-border overflow-hidden divide-y divide-border">
+      {children}
+    </div>
+  );
+}
+
 export default function AccountPage() {
   const { t, i18n } = useTranslation();
   const { user, updateDisplayName, signOut } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentDisplayName: string =
     user?.user_metadata?.display_name ||
@@ -62,160 +113,149 @@ export default function AccountPage() {
     reset({ displayName: currentDisplayName });
   };
 
+  const currentLanguageLabel =
+    i18n.language === 'de' ? t('account.language_de') : t('account.language_en');
+
   return (
-    <div className="p-4 space-y-6 pb-8">
-      <h1 className="text-2xl font-semibold">{t('account.title')}</h1>
+    <div className="min-h-full pb-24 font-sans">
+      <PageHeader title={t('account.title')} />
 
-      {/* Profile Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t('account.profile_section_title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Avatar hero */}
+      <div className="flex flex-col items-center gap-2 pt-6 pb-5">
+        <div className="relative">
+          <UserAvatar name={currentDisplayName} size="xl" />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md border-2 border-background"
+            aria-label={t('account.profile_picture_label')}
+          >
+            <Pencil className="h-3 w-3 text-primary-foreground" />
+          </button>
+          {/* Hidden file input — wired up but no-op until backend supports it */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            aria-hidden="true"
+          />
+        </div>
+        <p className="text-base font-semibold text-foreground">{currentDisplayName}</p>
+        <p className="text-sm text-muted-foreground">{user?.email}</p>
+      </div>
 
-          {/* Email — read-only */}
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">{t('account.email_label')}</Label>
+      {/* Profile section */}
+      <SectionLabel label={t('account.profile_section_title')} />
+      <SettingsGroup>
+        {/* Display name */}
+        {!isEditing ? (
+          <SettingsRow
+            label={t('account.display_name_label')}
+            value={currentDisplayName}
+            onClick={() => setIsEditing(true)}
+          />
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-3">
+            <p className="text-xs text-muted-foreground mb-1.5">{t('account.display_name_label')}</p>
             <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="text-sm truncate">{user?.email}</span>
+              <Input
+                autoFocus
+                maxLength={50}
+                placeholder={t('account.display_name_placeholder')}
+                className="h-9 text-sm"
+                {...register('displayName')}
+              />
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                disabled={isSubmitting}
+                aria-label={t('account.save_display_name_aria')}
+                className="shrink-0 h-9 w-9"
+              >
+                {isSubmitting ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled={isSubmitting}
+                aria-label={t('account.cancel_edit_aria')}
+                onClick={handleCancelEdit}
+                className="shrink-0 h-9 w-9"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
+            {(errors.displayName || serverError) && (
+              <p className="text-destructive text-xs mt-1.5">
+                {errors.displayName?.message ?? serverError}
+              </p>
+            )}
+          </form>
+        )}
 
-          {/* Display name — view mode */}
-          {!isEditing && (
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">{t('account.display_name_label')}</Label>
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm truncate">{currentDisplayName}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={t('account.edit_display_name_aria')}
-                  onClick={() => setIsEditing(true)}
-                  className="shrink-0"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+        {/* Email — read-only */}
+        <SettingsRow
+          label={t('account.email_label')}
+          value={user?.email}
+        />
+      </SettingsGroup>
 
-          {/* Display name — edit mode */}
-          {isEditing && (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-              <Label htmlFor="displayName">{t('account.display_name_label')}</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="displayName"
-                  autoFocus
-                  maxLength={50}
-                  placeholder={t('account.display_name_placeholder')}
-                  {...register('displayName')}
-                />
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  size="icon"
-                  disabled={isSubmitting}
-                  aria-label={t('account.save_display_name_aria')}
-                  className="shrink-0"
-                >
-                  {isSubmitting ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <Check className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  disabled={isSubmitting}
-                  aria-label={t('account.cancel_edit_aria')}
-                  onClick={handleCancelEdit}
-                  className="shrink-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              {errors.displayName && (
-                <p className="text-destructive text-sm">{errors.displayName.message}</p>
-              )}
-              {serverError && (
-                <p className="text-destructive text-sm">{serverError}</p>
-              )}
-            </form>
-          )}
-
-        </CardContent>
-      </Card>
-
-      {/* Language Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t('account.language_section_title')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="language-select" className="text-xs text-muted-foreground">{t('account.language_select_label')}</Label>
-            <select
-              id="language-select"
-              value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border bg-background text-foreground text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-            >
-              <option value="de">{t('account.language_de')}</option>
-              <option value="en">{t('account.language_en')}</option>
-            </select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Help Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t('account.help_section_title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-left h-auto px-3 py-2"
-            onClick={() => window.open('https://vercel.com/help', '_blank')}
+      {/* Language section */}
+      <SectionLabel label={t('account.language_section_title')} />
+      <SettingsGroup>
+        <div className="flex items-center justify-between px-5 py-3.5">
+          <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Globe className="h-4 w-4 text-muted-foreground" />
+            {t('account.language_select_label')}
+          </span>
+          <select
+            value={i18n.language}
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+            aria-label={t('account.language_select_label')}
+            className="text-sm text-muted-foreground bg-transparent border-none outline-none cursor-pointer appearance-none pr-1"
           >
-            <HelpCircle className="h-4 w-4 mr-2 shrink-0" />
-            <span className="truncate">{t('account.support_link')}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-left h-auto px-3 py-2"
-            onClick={() => window.open('https://vercel.com/help', '_blank')}
-          >
-            <MessageSquare className="h-4 w-4 mr-2 shrink-0" />
-            <span className="truncate">{t('account.feedback_link')}</span>
-          </Button>
-        </CardContent>
-      </Card>
+            <option value="de">{t('account.language_de')}</option>
+            <option value="en">{t('account.language_en')}</option>
+          </select>
+          <ChevronRight className="h-4 w-4 shrink-0 opacity-40 -ml-0.5" />
+        </div>
+      </SettingsGroup>
 
-      {/* Session Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t('account.session_section_title')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={signOut}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            {t('auth.sign_out')}
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Help section */}
+      <SectionLabel label={t('account.help_section_title')} />
+      <SettingsGroup>
+        <SettingsRow
+          label={t('account.support_link')}
+          onClick={() => window.open('https://vercel.com/help', '_blank')}
+        >
+          <HelpCircle className="h-4 w-4 opacity-40" />
+        </SettingsRow>
+        <SettingsRow
+          label={t('account.feedback_link')}
+          onClick={() => window.open('https://vercel.com/help', '_blank')}
+        >
+          <MessageSquare className="h-4 w-4 opacity-40" />
+        </SettingsRow>
+      </SettingsGroup>
+
+      {/* Sign out */}
+      <div className="mx-4 mt-8">
+        <button
+          type="button"
+          onClick={signOut}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-destructive/10 text-destructive text-sm font-medium hover:bg-destructive/15 active:bg-destructive/20 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          {t('auth.sign_out')}
+        </button>
+      </div>
     </div>
   );
 }
