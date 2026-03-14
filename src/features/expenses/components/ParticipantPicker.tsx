@@ -17,7 +17,7 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import type { Friend, Group, GroupId, UserId } from '@domain/types';
 import { CheckSquare, Search, Square, Users, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // ---------------------------------------------------------------------------
@@ -47,26 +47,6 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
 
   // Local draft state — only committed when user taps "Übernehmen"
   const [draft, setDraft] = useState<ParticipantSelection | null>(value);
-
-  // Shift the sheet up when the software keyboard is visible (Android).
-  // visualViewport shrinks when the keyboard opens; the delta is the keyboard height.
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-
-    function onViewportChange() {
-      const offset = window.innerHeight - vv!.height - vv!.offsetTop;
-      setKeyboardOffset(Math.max(0, Math.round(offset)));
-    }
-
-    vv.addEventListener('resize', onViewportChange);
-    vv.addEventListener('scroll', onViewportChange);
-    return () => {
-      vv.removeEventListener('resize', onViewportChange);
-      vv.removeEventListener('scroll', onViewportChange);
-    };
-  }, []);
 
   const q = search.trim().toLowerCase();
 
@@ -119,15 +99,8 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
         aria-hidden="true"
       />
 
-      {/* Sheet — bottom offset keeps content above the keyboard; maxHeight prevents
-           the top from overflowing into the Android status bar safe area. */}
-      <div
-        className="fixed left-0 right-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-xl"
-        style={{
-          bottom: keyboardOffset,
-          maxHeight: `min(85dvh, calc(100vh - ${keyboardOffset}px - env(safe-area-inset-top, 24px)))`,
-        }}
-      >
+      {/* Sheet — fixed height so the overlay never jumps when the keyboard opens */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-xl h-[70dvh] max-h-[70dvh]">
         {/* Handle + Header */}
         <div className="flex items-center justify-between border-b px-4 py-4">
           <h2 className="text-base font-semibold">{t('expenses.form.picker_title')}</h2>
@@ -228,8 +201,8 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
           )}
         </div>
 
-        {/* Confirm button */}
-        <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        {/* Confirm button — always visible, pinned to the bottom of the sheet */}
+        <div className="shrink-0 border-t border-border bg-background px-4 pt-3 pb-4">
           <Button
             size="lg"
             className="w-full"

@@ -47,7 +47,7 @@ export default function ExpenseFormPage() {
         onBack={handleBack}
       />
 
-      <div className="px-5 py-5 pb-10">
+      <div className="px-5 py-5 pb-6">
         {isLoading && (
           <div className="flex justify-center py-12">
             <span className="text-sm text-muted-foreground">{t('common.loading')}</span>
