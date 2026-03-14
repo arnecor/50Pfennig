@@ -56,9 +56,9 @@ function SettingsRow({
 }
 
 /** A section heading that labels a group of rows */
-function SectionLabel({ label }: { label: string }) {
+function SectionLabel({ label, tight }: { label: string; tight?: boolean }) {
   return (
-    <p className="px-5 pt-5 pb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+    <p className={`px-5 pb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground ${tight ? 'pt-2' : 'pt-5'}`}>
       {label}
     </p>
   );
@@ -113,15 +113,12 @@ export default function AccountPage() {
     reset({ displayName: currentDisplayName });
   };
 
-  const currentLanguageLabel =
-    i18n.language === 'de' ? t('account.language_de') : t('account.language_en');
-
   return (
     <div className="min-h-full pb-24 font-sans">
       <PageHeader title={t('account.title')} />
 
       {/* Avatar hero */}
-      <div className="flex flex-col items-center gap-2 pt-6 pb-5">
+      <div className="flex flex-col items-center gap-2 pt-3 pb-3">
         <div className="relative">
           <UserAvatar name={currentDisplayName} size="xl" />
           <button
@@ -142,11 +139,10 @@ export default function AccountPage() {
           />
         </div>
         <p className="text-base font-semibold text-foreground">{currentDisplayName}</p>
-        <p className="text-sm text-muted-foreground">{user?.email}</p>
       </div>
 
       {/* Profile section */}
-      <SectionLabel label={t('account.profile_section_title')} />
+      <SectionLabel label={t('account.profile_section_title')} tight />
       <SettingsGroup>
         {/* Display name */}
         {!isEditing ? (
@@ -210,22 +206,25 @@ export default function AccountPage() {
       {/* Language section */}
       <SectionLabel label={t('account.language_section_title')} />
       <SettingsGroup>
-        <div className="flex items-center justify-between px-5 py-3.5">
+        <label className="flex items-center justify-between px-5 py-3.5 cursor-pointer">
           <span className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Globe className="h-4 w-4 text-muted-foreground" />
             {t('account.language_select_label')}
           </span>
-          <select
-            value={i18n.language}
-            onChange={(e) => i18n.changeLanguage(e.target.value)}
-            aria-label={t('account.language_select_label')}
-            className="text-sm text-muted-foreground bg-transparent border-none outline-none cursor-pointer appearance-none pr-1"
-          >
-            <option value="de">{t('account.language_de')}</option>
-            <option value="en">{t('account.language_en')}</option>
-          </select>
-          <ChevronRight className="h-4 w-4 shrink-0 opacity-40 -ml-0.5" />
-        </div>
+          <div className="relative flex items-center gap-1 text-sm text-muted-foreground">
+            <span>{i18n.language === 'de' ? t('account.language_de') : t('account.language_en')}</span>
+            <ChevronRight className="h-4 w-4 shrink-0 opacity-40" />
+            <select
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              aria-label={t('account.language_select_label')}
+              className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
+            >
+              <option value="de">{t('account.language_de')}</option>
+              <option value="en">{t('account.language_en')}</option>
+            </select>
+          </div>
+        </label>
       </SettingsGroup>
 
       {/* Help section */}
