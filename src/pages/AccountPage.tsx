@@ -199,7 +199,7 @@ export default function AccountPage() {
         {/* Email — read-only */}
         <SettingsRow
           label={t('account.email_label')}
-          value={user?.email}
+          value={user?.email ?? ''}
         />
       </SettingsGroup>
 
