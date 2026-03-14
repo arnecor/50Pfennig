@@ -15,8 +15,9 @@ export function FloatingActionButton({
   return (
     <button
       onClick={onClick}
+      style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
       className={cn(
-        'fixed bottom-24 right-4 flex items-center gap-2 bg-accent text-accent-foreground px-5 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 font-semibold z-40',
+        'fixed right-4 flex items-center gap-2 bg-accent text-accent-foreground px-5 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 font-semibold z-40',
         className,
       )}
       aria-label={label}
