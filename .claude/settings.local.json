@@ -65,7 +65,14 @@
       "WebFetch(domain:supabase.com)",
       "WebFetch(domain:tomaspozo.com)",
       "Bash(dir \"c:\\\\Privat\\\\50Pfennig\\\\supabase\")",
-      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\supabase\")"
+      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\supabase\")",
+      "Bash(find c:Privat50Pfennig/design-input -type f -name *)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const p=require\\(''./package.json''\\); console.log\\(''tw-animate-css:'', p.devDependencies[''tw-animate-css''] || ''NOT FOUND''\\); console.log\\(''tailwindcss-animate:'', p.dependencies[''tailwindcss-animate''] || p.devDependencies[''tailwindcss-animate''] || ''REMOVED''\\);\")",
+      "Bash(npm uninstall:*)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(npx vite:*)",
+      "Bash(npx vitest:*)"
     ]
   },
   "enabledPlugins": {

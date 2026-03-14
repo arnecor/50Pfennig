@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Design input
+/design-input
+
 # Environment — never commit secrets
 .env.local
 .env.*.local
