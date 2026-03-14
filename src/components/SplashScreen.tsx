@@ -27,25 +27,27 @@ export default function SplashScreen({ exiting = false, onDone }: Props) {
 
   // As soon as the parent signals ready (or after a minimum hold), start exit
   useEffect(() => {
-    if (phase === 'hold' && exiting) {
+    if (!exiting) return;
+    if (phase === 'hold') {
       setPhase('out');
+      return;
     }
     // Minimum display even if exiting comes early
-    if (phase === 'in' && exiting) {
+    if (phase === 'in') {
       const t = setTimeout(() => setPhase('out'), 900);
       return () => clearTimeout(t);
     }
+    return;
   }, [phase, exiting]);
 
   useEffect(() => {
-    if (phase === 'out') {
-      // Fade-out takes 400 ms — notify parent after it completes
-      const t = setTimeout(() => {
-        setPhase('done');
-        onDone?.();
-      }, 400);
-      return () => clearTimeout(t);
-    }
+    if (phase !== 'out') return;
+    // Fade-out takes 400 ms — notify parent after it completes
+    const t = setTimeout(() => {
+      setPhase('done');
+      onDone?.();
+    }, 400);
+    return () => clearTimeout(t);
   }, [phase, onDone]);
 
   if (phase === 'done') return null;
