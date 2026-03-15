@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.pfennig50.app',
-  appName: '50Pfennig',
+  appId: 'com.arco.sharli',
+  appName: 'Sharli',
 
   // Vite build output directory
   webDir: 'dist',
