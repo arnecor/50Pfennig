@@ -202,7 +202,10 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
         </div>
 
         {/* Confirm button — always visible, pinned to the bottom of the sheet */}
-        <div className="shrink-0 border-t border-border bg-background px-4 pt-3 pb-4">
+        <div
+          className="shrink-0 border-t border-border bg-background px-4 pt-3"
+          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+        >
           <Button
             size="lg"
             className="w-full"
