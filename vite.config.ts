@@ -21,6 +21,11 @@ export default defineConfig({
     },
   },
 
+  server: {
+    port: 3000,
+    host: true,
+  },
+
   // Capacitor requires the output to be in `dist/`
   build: {
     outDir: 'dist',
