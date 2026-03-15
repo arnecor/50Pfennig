@@ -28,6 +28,7 @@ import { supabase }                  from './lib/supabase/client';
 import { useAuthStore }              from './features/auth/authStore';
 import ErrorBoundary                 from './components/ErrorBoundary';
 import { initPushNotifications, type NotificationData } from './lib/capacitor/pushNotifications';
+import { initStatusBar } from './lib/capacitor/statusBar';
 import { upsertPushToken, deletePushToken } from './repositories/supabase/pushTokenRepository';
 import { usePendingInviteStore } from './store/pendingInviteStore';
 import { friendRepository } from './repositories';
@@ -63,6 +64,12 @@ export default function App() {
   const { setSession, setHydrated, isHydrated } = useAuthStore();
   // Track the current FCM token so we can delete it on sign-out.
   const currentPushToken = useRef<string | null>(null);
+
+  // Initialise Android status bar style (icon colour + background) on startup.
+  // Runs before auth hydration so it takes effect as early as possible.
+  // Automatically updates when the user switches dark/light mode.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void initStatusBar(); }, []);
 
   // Handle deep links from email confirmation (custom URI scheme: com.pfennig50.app://auth/callback).
   // Supports both PKCE (?code=) and implicit (#access_token=) Supabase auth flows.
