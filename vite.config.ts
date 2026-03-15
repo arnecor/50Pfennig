@@ -23,8 +23,9 @@ export default defineConfig({
 
   server: {
     port: 3000,
-    host: true,
+    host: '0.0.0.0',
     allowedHosts: 'all',
+    strictPort: true,
   },
 
   // Capacitor requires the output to be in `dist/`
