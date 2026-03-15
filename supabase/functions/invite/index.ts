@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>50Pfennig — Einladung</title>
+  <title>Sharli — Einladung</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -157,7 +157,7 @@ Deno.serve(async (req: Request) => {
 <body>
   <div class="card">
     <div class="logo">50</div>
-    <div class="app-name">50Pfennig</div>
+    <div class="app-name">Sharli</div>
     ${
     isValid
       ? `
