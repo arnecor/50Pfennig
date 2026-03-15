@@ -51,7 +51,7 @@ export default function QRCodeDisplay() {
 
     if (Capacitor.isNativePlatform()) {
       await Share.share({
-        title: '50Pfennig',
+        title: 'Sharli',
         text: t('friends.invite_share_text', { url: inviteUrl }),
         url: inviteUrl,
       });
