@@ -21,8 +21,8 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const APP_SCHEME = 'com.pfennig50.app';
-const APP_PACKAGE = 'com.pfennig50.app';
+const APP_SCHEME = 'com.arco.sharli';
+const APP_PACKAGE = 'com.arco.sharli';
 
 Deno.serve(async (req: Request) => {
   if (req.method !== 'GET') {
