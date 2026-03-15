@@ -1,0 +1,43 @@
+<svg viewBox="0 0 2732 2732" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Solid background matching icon color -->
+  <rect width="2732" height="2732" fill="#4a5568"/>
+
+  <!-- Icon centered, ~30% of canvas size -->
+  <g transform="translate(1366,1366) scale(1.6) translate(-256,-256)">
+    <!-- Rounded square background -->
+    <rect width="512" height="512" rx="112" fill="#5a6577"/>
+
+    <!-- Body -->
+    <ellipse cx="256" cy="320" rx="130" ry="118" fill="white" fill-opacity="0.18"/>
+
+    <!-- Head -->
+    <circle cx="256" cy="210" r="118" fill="white" fill-opacity="0.25"/>
+
+    <!-- Eye whites -->
+    <circle cx="216" cy="200" r="40" fill="white" fill-opacity="0.90"/>
+    <circle cx="296" cy="200" r="40" fill="white" fill-opacity="0.90"/>
+
+    <!-- Pupils -->
+    <circle cx="220" cy="200" r="22" fill="#2d3748"/>
+    <circle cx="300" cy="200" r="22" fill="#2d3748"/>
+
+    <!-- Eye shine -->
+    <circle cx="228" cy="192" r="7" fill="white" fill-opacity="0.70"/>
+    <circle cx="308" cy="192" r="7" fill="white" fill-opacity="0.70"/>
+
+    <!-- Beak -->
+    <path d="M256 228 L236 258 L276 258 Z" fill="#d4956a"/>
+
+    <!-- Ear tufts -->
+    <path d="M148 128 L178 168 L158 178 Z" fill="white" fill-opacity="0.30"/>
+    <path d="M364 128 L334 168 L354 178 Z" fill="white" fill-opacity="0.30"/>
+
+    <!-- Wings -->
+    <ellipse cx="132" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.15"/>
+    <ellipse cx="380" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.15"/>
+
+    <!-- Feet -->
+    <ellipse cx="224" cy="432" rx="26" ry="12" fill="#d4956a"/>
+    <ellipse cx="288" cy="432" rx="26" ry="12" fill="#d4956a"/>
+  </g>
+</svg>

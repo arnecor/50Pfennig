@@ -75,7 +75,12 @@
       "Bash(npx vitest:*)",
       "Bash(grep -E \"\\\\.\\(config|json\\)$|tailwind|vite\")",
       "Bash(ls -1 *.config.* *.config)",
-      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\src\\\\features\\\\expenses\\\\components\")"
+      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\src\\\\features\\\\expenses\\\\components\")",
+      "Bash(cmd /c \"dir c:\\\\Privat\\\\50Pfennig\\\\public\")",
+      "Bash(powershell -Command \"Get-ChildItem ''c:\\\\Privat\\\\50Pfennig\\\\public''\")",
+      "Bash(npx @capacitor/assets --version)",
+      "Bash(node -e \"require\\(''''sharp''''\\)\")",
+      "Bash(node -e \"console.log\\(''ok''\\)\")"
     ]
   },
   "enabledPlugins": {

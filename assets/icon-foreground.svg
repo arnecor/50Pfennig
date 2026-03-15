@@ -1,0 +1,38 @@
+<svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Extra padding for adaptive icon safe zone (~18% each side) -->
+  <!-- Owl shifted to center within safe zone, slightly scaled down -->
+  <g transform="translate(256,256) scale(0.72) translate(-256,-256)">
+    <!-- Body -->
+    <ellipse cx="256" cy="320" rx="130" ry="118" fill="white" fill-opacity="0.85"/>
+
+    <!-- Head -->
+    <circle cx="256" cy="210" r="118" fill="white" fill-opacity="0.90"/>
+
+    <!-- Eye whites -->
+    <circle cx="216" cy="200" r="40" fill="white"/>
+    <circle cx="296" cy="200" r="40" fill="white"/>
+
+    <!-- Pupils -->
+    <circle cx="220" cy="200" r="22" fill="#2d3748"/>
+    <circle cx="300" cy="200" r="22" fill="#2d3748"/>
+
+    <!-- Eye shine -->
+    <circle cx="228" cy="192" r="7" fill="white" fill-opacity="0.70"/>
+    <circle cx="308" cy="192" r="7" fill="white" fill-opacity="0.70"/>
+
+    <!-- Beak -->
+    <path d="M256 228 L236 258 L276 258 Z" fill="#d4956a"/>
+
+    <!-- Ear tufts -->
+    <path d="M148 128 L178 168 L158 178 Z" fill="white" fill-opacity="0.60"/>
+    <path d="M364 128 L334 168 L354 178 Z" fill="white" fill-opacity="0.60"/>
+
+    <!-- Wings -->
+    <ellipse cx="132" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.70"/>
+    <ellipse cx="380" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.70"/>
+
+    <!-- Feet -->
+    <ellipse cx="224" cy="432" rx="26" ry="12" fill="#d4956a"/>
+    <ellipse cx="288" cy="432" rx="26" ry="12" fill="#d4956a"/>
+  </g>
+</svg>

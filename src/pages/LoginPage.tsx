@@ -15,7 +15,7 @@ export default function LoginPage() {
     <div className="min-h-dvh flex flex-col items-center justify-center p-6 bg-background gap-6">
       <div className="flex flex-col items-center gap-3">
         <SharliMascot size="lg" />
-        <h1 className="text-3xl font-bold text-foreground">50Pfennig</h1>
+        <h1 className="text-3xl font-bold text-foreground">Sharli</h1>
       </div>
       <LoginForm />
     </div>

@@ -156,7 +156,7 @@
     "invite_shared": "Link shared!",
     "invite_valid_days": "The link is valid for 7 days.",
     "invite_share_again": "Share again",
-    "invite_share_text": "Join 50Pfennig! Tap the link to add me as a friend: {{url}}",
+    "invite_share_text": "Join Sharli! Tap the link to add me as a friend: {{url}}",
     "qr_title": "QR code",
     "qr_scan_hint": "Let your friend scan this code with their camera.",
     "qr_share_instead": "Share link instead",
