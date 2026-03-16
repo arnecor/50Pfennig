@@ -27,11 +27,13 @@ export default function SettlementsPage() {
   const navigate = useNavigate();
   const { groupId } = useParams({ strict: false }) as { groupId: string };
 
-  const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
+  const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
 
-  const { data: group, isLoading: groupLoading }             = useGroup(groupId as GroupId);
-  const { data: expenses = [], isLoading: expensesLoading }  = useExpenses(groupId as GroupId);
-  const { data: settlements = [], isLoading: settlementsLoading } = useSettlements(groupId as GroupId);
+  const { data: group, isLoading: groupLoading } = useGroup(groupId as GroupId);
+  const { data: expenses = [], isLoading: expensesLoading } = useExpenses(groupId as GroupId);
+  const { data: settlements = [], isLoading: settlementsLoading } = useSettlements(
+    groupId as GroupId,
+  );
 
   const deleteSettlement = useDeleteSettlement();
 
@@ -48,18 +50,26 @@ export default function SettlementsPage() {
 
   const memberName = (id: UserId) => {
     if ((id as string) === (currentUserId as string)) return t('common.you');
-    return group?.members.find(m => (m.userId as string) === (id as string))?.displayName ?? String(id);
+    return (
+      group?.members.find((m) => (m.userId as string) === (id as string))?.displayName ?? String(id)
+    );
   };
 
-  const handleOpenSheet = (s?: DebtInstruction) => { setSuggestion(s); setShowSheet(true); };
-  const handleCloseSheet = () => { setShowSheet(false); setSuggestion(undefined); };
+  const handleOpenSheet = (s?: DebtInstruction) => {
+    setSuggestion(s);
+    setShowSheet(true);
+  };
+  const handleCloseSheet = () => {
+    setShowSheet(false);
+    setSuggestion(undefined);
+  };
 
   const handleDelete = (id: string) => {
     if (!window.confirm(t('settlements.delete_confirm'))) return;
-    const record = settlements.find(s => (s.id as string) === id);
+    const record = settlements.find((s) => (s.id as string) === id);
     if (!record) return;
     const records = record.batchId
-      ? settlements.filter(s => s.batchId === record.batchId)
+      ? settlements.filter((s) => s.batchId === record.batchId)
       : [record];
     deleteSettlement.mutate(records);
   };
@@ -77,7 +87,7 @@ export default function SettlementsPage() {
       <div className="px-5">
         {isLoading && (
           <div className="space-y-3">
-            {[1, 2].map(i => (
+            {[1, 2].map((i) => (
               <div key={i} className="rounded-xl border border-border bg-card p-4">
                 <div className="h-4 w-40 animate-pulse rounded bg-muted" />
               </div>
@@ -146,8 +156,11 @@ export default function SettlementsPage() {
                 />
               ) : (
                 <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
-                  {settlements.map(s => (
-                    <div key={String(s.id)} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+                  {settlements.map((s) => (
+                    <div
+                      key={String(s.id)}
+                      className="flex items-center gap-3 py-3 border-b border-border last:border-0"
+                    >
                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
                         <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
                       </div>
@@ -158,7 +171,9 @@ export default function SettlementsPage() {
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           {s.note && <>{s.note} · </>}
                           {s.createdAt.toLocaleDateString(dateLocale, {
-                            day: '2-digit', month: '2-digit', year: 'numeric',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
                           })}
                         </p>
                       </div>

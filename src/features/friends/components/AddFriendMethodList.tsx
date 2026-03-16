@@ -35,11 +35,11 @@ export default function AddFriendMethodList() {
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Create invite on mount so the link is immediately visible
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect — mutation must run exactly once
   useEffect(() => {
     createInvite.mutateAsync().then((invite) => {
       setInviteUrl(getInviteUrl(invite.token));
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Render QR code whenever the canvas becomes visible and the URL is ready
@@ -107,10 +107,7 @@ export default function AddFriendMethodList() {
             className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
             aria-label={t('friends.copy_link')}
           >
-            {copied
-              ? <Check className="h-4 w-4 text-green-500" />
-              : <Copy className="h-4 w-4" />
-            }
+            {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
           </button>
         </div>
         <p className="text-xs text-muted-foreground">{t('friends.invite_valid_days')}</p>
@@ -124,17 +121,14 @@ export default function AddFriendMethodList() {
           onClick={handleShareLink}
           disabled={!linkReady || sharing}
         >
-          {sharing
-            ? <Loader2 className="h-5 w-5 animate-spin" />
-            : <Share2 className="h-5 w-5" />
-          }
+          {sharing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Share2 className="h-5 w-5" />}
           <span className="text-sm font-medium">{t('friends.method_share_link')}</span>
         </Button>
 
         <Button
           variant="outline"
           className="flex h-auto flex-col gap-1.5 py-4"
-          onClick={() => setShowQR(prev => !prev)}
+          onClick={() => setShowQR((prev) => !prev)}
           disabled={!linkReady}
         >
           {showQR ? <X className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
@@ -150,9 +144,7 @@ export default function AddFriendMethodList() {
           <div className="rounded-xl bg-white p-3 shadow-sm">
             <canvas ref={qrCanvasRef} />
           </div>
-          <p className="text-center text-sm text-muted-foreground">
-            {t('friends.qr_scan_hint')}
-          </p>
+          <p className="text-center text-sm text-muted-foreground">{t('friends.qr_scan_hint')}</p>
         </div>
       )}
 

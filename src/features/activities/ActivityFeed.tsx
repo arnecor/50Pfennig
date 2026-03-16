@@ -67,7 +67,13 @@ function ActivityRow({ icon, iconBg, primary, secondary, amount, showSign, color
   );
 }
 
-export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore, onItemClick }: Props) {
+export default function ActivityFeed({
+  items,
+  isLoading,
+  hasMore,
+  onLoadMore,
+  onItemClick,
+}: Props) {
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
@@ -86,17 +92,16 @@ export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore, on
 
   if (items.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        {t('home.no_activity')}
-      </p>
+      <p className="py-8 text-center text-sm text-muted-foreground">{t('home.no_activity')}</p>
     );
   }
 
   return (
     <div className="space-y-0">
       <div className="divide-y rounded-xl border bg-card overflow-hidden">
-        {items.map(item => {
-          const isClickable = onItemClick && (item.type === 'expense' || item.type === 'settlement');
+        {items.map((item) => {
+          const isClickable =
+            onItemClick && (item.type === 'expense' || item.type === 'settlement');
           const wrapperClass = isClickable
             ? 'cursor-pointer hover:bg-muted/50 transition-colors'
             : '';
@@ -107,14 +112,25 @@ export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore, on
               ? subtract(item.totalAmount, item.myShare)
               : negate(item.myShare);
 
-            const contextLabel = item.groupName
-              ? item.groupName
-              : t('friends.direct_expense');
+            const contextLabel = item.groupName ? item.groupName : t('friends.direct_expense');
 
             const secondary = `${item.paidByName} · ${contextLabel} · ${formatDate(item.date)}`;
 
             return (
-              <div key={item.id} className={wrapperClass} onClick={isClickable ? () => onItemClick(item) : undefined} role={isClickable ? 'button' : undefined}>
+              <div
+                key={item.id}
+                className={wrapperClass}
+                onClick={isClickable ? () => onItemClick(item) : undefined}
+                onKeyDown={
+                  isClickable
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') onItemClick(item);
+                      }
+                    : undefined
+                }
+                role={isClickable ? 'button' : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+              >
                 <ActivityRow
                   icon={<Receipt className="h-4 w-4 text-primary" />}
                   iconBg="bg-primary/10"
@@ -139,12 +155,27 @@ export default function ActivityFeed({ items, isLoading, hasMore, onLoadMore, on
             const displayAmount: Money = item.isMePaying ? negate(item.amount) : item.amount;
 
             return (
-              <div key={item.id} className={wrapperClass} onClick={isClickable ? () => onItemClick(item) : undefined} role={isClickable ? 'button' : undefined}>
+              <div
+                key={item.id}
+                className={wrapperClass}
+                onClick={isClickable ? () => onItemClick(item) : undefined}
+                onKeyDown={
+                  isClickable
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') onItemClick(item);
+                      }
+                    : undefined
+                }
+                role={isClickable ? 'button' : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+              >
                 <ActivityRow
                   icon={
-                    item.isMePaying
-                      ? <ArrowUpRight className="h-4 w-4 text-red-600" />
-                      : <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                    item.isMePaying ? (
+                      <ArrowUpRight className="h-4 w-4 text-red-600" />
+                    ) : (
+                      <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                    )
                   }
                   iconBg={item.isMePaying ? 'bg-red-50' : 'bg-green-50'}
                   primary={primary}

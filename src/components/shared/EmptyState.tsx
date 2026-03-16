@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@components/ui/button';
+import type { ReactNode } from 'react';
 
 type Props = {
   title: string;
@@ -11,19 +11,10 @@ type Props = {
   className?: string;
 };
 
-export default function EmptyState({
-  title,
-  description,
-  icon,
-  action,
-  className,
-}: Props) {
+export default function EmptyState({ title, description, icon, action, className }: Props) {
   return (
     <div
-      className={cn(
-        'flex flex-col items-center justify-center text-center px-8 py-12',
-        className,
-      )}
+      className={cn('flex flex-col items-center justify-center text-center px-8 py-12', className)}
     >
       {icon ? (
         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -36,19 +27,16 @@ export default function EmptyState({
       )}
 
       <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground mb-6 max-w-xs text-pretty">
-        {description}
-      </p>
+      <p className="text-sm text-muted-foreground mb-6 max-w-xs text-pretty">{description}</p>
 
-      {action && (
-        typeof action === 'object' && action !== null && 'onClick' in action ? (
+      {action &&
+        (typeof action === 'object' && action !== null && 'onClick' in action ? (
           <Button onClick={action.onClick} className="font-semibold">
             {action.label}
           </Button>
         ) : (
           <div className="mt-0">{action}</div>
-        )
-      )}
+        ))}
     </div>
   );
 }
@@ -71,6 +59,8 @@ export function SharliMascot({ size = 'md', className }: SharliMascotProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn(mascotSizes[size], className)}
+      role="img"
+      aria-label="Sharli"
     >
       {/* Body */}
       <ellipse cx="40" cy="48" rx="24" ry="22" className="fill-primary/20" />

@@ -8,9 +8,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css';   // Tailwind base styles + shadcn CSS variables
-import './lib/i18n';    // initialise i18next (side effect)
+import './index.css'; // Tailwind base styles + shadcn CSS variables
+import './lib/i18n'; // initialise i18next (side effect)
 
+// biome-ignore lint/style/noNonNullAssertion: root element is guaranteed present in index.html
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

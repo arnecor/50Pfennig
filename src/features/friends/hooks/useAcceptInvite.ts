@@ -5,8 +5,8 @@
  * an accepted friendship. Invalidates ['friends'] on success.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { friendRepository } from '@repositories';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useAcceptInvite() {
   const queryClient = useQueryClient();

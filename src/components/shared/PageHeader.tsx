@@ -1,6 +1,6 @@
+import { cn } from '@/lib/utils';
 import { ArrowLeft, MoreVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 
 type PageHeaderProps = {
   title: string;
@@ -24,18 +24,8 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header
-      className={cn(
-        'sticky top-0 bg-background/95 backdrop-blur-sm z-40',
-        className,
-      )}
-    >
-      <div
-        className={cn(
-          'flex items-center gap-3 px-4',
-          variant === 'large' ? 'py-4' : 'py-3',
-        )}
-      >
+    <header className={cn('sticky top-0 bg-background/95 backdrop-blur-sm z-40', className)}>
+      <div className={cn('flex items-center gap-3 px-4', variant === 'large' ? 'py-4' : 'py-3')}>
         {onBack && (
           <button
             onClick={onBack}
@@ -56,9 +46,7 @@ export function PageHeader({
           >
             {title}
           </h1>
-          {subtitle && (
-            <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-sm text-muted-foreground truncate">{subtitle}</p>}
         </div>
 
         {onAction && (
@@ -68,9 +56,7 @@ export function PageHeader({
             aria-label={actionLabel}
             type="button"
           >
-            {actionIcon || (
-              <MoreVertical className="w-5 h-5 text-foreground" />
-            )}
+            {actionIcon || <MoreVertical className="w-5 h-5 text-foreground" />}
           </button>
         )}
       </div>
@@ -84,11 +70,7 @@ type GreetingHeaderProps = {
   className?: string;
 };
 
-export function GreetingHeader({
-  name,
-  greeting,
-  className,
-}: GreetingHeaderProps) {
+export function GreetingHeader({ name, greeting, className }: GreetingHeaderProps) {
   const { t } = useTranslation();
   return (
     <header className={cn('px-5 pt-6 pb-2', className)}>
@@ -110,12 +92,7 @@ type SectionHeaderProps = {
 
 export function SectionHeader({ title, action, className }: SectionHeaderProps) {
   return (
-    <div
-      className={cn(
-        'flex items-center justify-between px-5 py-3',
-        className,
-      )}
-    >
+    <div className={cn('flex items-center justify-between px-5 py-3', className)}>
       <h2 className="text-lg font-bold text-foreground">{title}</h2>
       {action && (
         <button

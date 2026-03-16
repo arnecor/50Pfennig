@@ -7,8 +7,8 @@
  * Guarded by GuestGuard: redirects to /groups if already authenticated.
  */
 
-import LoginForm from '../features/auth/components/LoginForm';
 import { SharliMascot } from '@components/shared/EmptyState';
+import LoginForm from '../features/auth/components/LoginForm';
 
 export default function LoginPage() {
   return (

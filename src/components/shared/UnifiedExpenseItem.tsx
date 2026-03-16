@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { formatMoney, isNegative, isZero } from '@domain/money';
 import type { Money } from '@domain/types';
-import { UserAvatar } from '@components/shared/UserAvatar';
 import { format } from 'date-fns';
 
 type UnifiedExpenseItemProps = {
@@ -55,18 +55,12 @@ export function UnifiedExpenseItem({
         <p
           className={cn(
             'font-semibold',
-            zero
-              ? 'text-muted-foreground'
-              : positive
-                ? 'text-owed-to-you'
-                : 'text-you-owe',
+            zero ? 'text-muted-foreground' : positive ? 'text-owed-to-you' : 'text-you-owe',
           )}
         >
           {zero ? formatMoney(netAmount) : `${positive ? '+' : ''}${formatMoney(netAmount)}`}
         </p>
-        <p className="text-xs text-muted-foreground">
-          {formatMoney(totalAmount)}
-        </p>
+        <p className="text-xs text-muted-foreground">{formatMoney(totalAmount)}</p>
       </div>
     </button>
   );

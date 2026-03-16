@@ -7,14 +7,15 @@
  * user and a specific friend, ordered newest first.
  */
 
-import EmptyState from '@components/shared/EmptyState';
-import { PageHeader } from '@components/shared/PageHeader';
-import MoneyDisplay from '@components/shared/MoneyDisplay';
-import { Button } from '@components/ui/button';
 import { cn } from '@/lib/utils';
+import EmptyState from '@components/shared/EmptyState';
+import MoneyDisplay from '@components/shared/MoneyDisplay';
+import { PageHeader } from '@components/shared/PageHeader';
+import { Button } from '@components/ui/button';
 import { computeBilateralBalance } from '@domain/balance';
 import { abs, add, formatMoney, isNegative, isPositive, negate, subtract } from '@domain/money';
-import { ZERO, type GroupId, type Money, type Settlement, type UserId } from '@domain/types';
+import { type GroupId, type Money, type Settlement, type UserId, ZERO } from '@domain/types';
+import type { Expense } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { sharedExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
@@ -28,7 +29,6 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeftRight, Bell, Receipt, Trash2, UserMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Expense } from '@domain/types';
 
 type SettlementBatch = {
   records: Settlement[];
@@ -38,9 +38,7 @@ type SettlementBatch = {
   date: Date;
 };
 
-type FeedItem =
-  | { kind: 'expense'; data: Expense }
-  | { kind: 'settlement'; batch: SettlementBatch };
+type FeedItem = { kind: 'expense'; data: Expense } | { kind: 'settlement'; batch: SettlementBatch };
 
 function ItemSkeleton() {
   return (
@@ -60,10 +58,10 @@ export default function FriendDetailPage() {
   const navigate = useNavigate();
   const { friendId } = useParams({ strict: false }) as { friendId: string };
 
-  const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
+  const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
 
   const { data: friends = [] } = useFriends();
-  const friend = friends.find(f => (f.userId as string) === friendId);
+  const friend = friends.find((f) => (f.userId as string) === friendId);
 
   const { data: groups = [] } = useGroups();
   const { data: sharedExpenses = [], isLoading } = useQuery(
@@ -78,7 +76,7 @@ export default function FriendDetailPage() {
   const [showSettleSheet, setShowSettleSheet] = useState(false);
 
   const groupNameMap = useMemo(
-    () => new Map<GroupId, string>(groups.map(g => [g.id, g.name])),
+    () => new Map<GroupId, string>(groups.map((g) => [g.id, g.name])),
     [groups],
   );
 
@@ -90,12 +88,12 @@ export default function FriendDetailPage() {
   const feedItems = useMemo((): FeedItem[] => {
     const bilateralExpenses = friend
       ? sharedExpenses.filter(
-          e =>
+          (e) =>
             (e.paidBy as string) === (currentUserId as string) ||
             (e.paidBy as string) === (friend.userId as string),
         )
       : sharedExpenses;
-    const items: FeedItem[] = bilateralExpenses.map(e => ({ kind: 'expense' as const, data: e }));
+    const items: FeedItem[] = bilateralExpenses.map((e) => ({ kind: 'expense' as const, data: e }));
 
     const batchMap = new Map<string, Settlement[]>();
     for (const s of sharedSettlements) {
@@ -116,12 +114,15 @@ export default function FriendDetailPage() {
       }
       const iMePaying = !isNegative(netFromMe);
       const total = abs(netFromMe) as Money;
-      const note  = records.find(r => r.note)?.note;
-      const date  = records.reduce(
+      const note = records.find((r) => r.note)?.note;
+      const date = records.reduce(
         (latest, r) => (r.createdAt > latest ? r.createdAt : latest),
         (records[0] ?? { createdAt: new Date(0) }).createdAt,
       );
-      items.push({ kind: 'settlement', batch: { records, total, iMePaying, ...(note !== undefined && { note }), date } });
+      items.push({
+        kind: 'settlement',
+        batch: { records, total, iMePaying, ...(note !== undefined && { note }), date },
+      });
     }
 
     items.sort((a, b) => {
@@ -193,11 +194,14 @@ export default function FriendDetailPage() {
                       ? t('friends.friend_owes_you', { name: friend?.displayName ?? '…' })
                       : t('friends.you_owe_friend', { name: friend?.displayName ?? '…' })}
                   </p>
-                  <p className={cn(
-                    'text-4xl font-bold mb-4',
-                    balancePositive ? 'text-owed-to-you' : 'text-you-owe',
-                  )}>
-                    {balancePositive ? '+' : ''}{formatMoney(netBalance)}
+                  <p
+                    className={cn(
+                      'text-4xl font-bold mb-4',
+                      balancePositive ? 'text-owed-to-you' : 'text-you-owe',
+                    )}
+                  >
+                    {balancePositive ? '+' : ''}
+                    {formatMoney(netBalance)}
                   </p>
                   <Button
                     onClick={() => setShowSettleSheet(true)}
@@ -215,13 +219,18 @@ export default function FriendDetailPage() {
               {feedItems.map((item, idx) => {
                 if (item.kind === 'expense') {
                   const expense = item.data;
-                  const paidByCurrentUser = (expense.paidBy as string) === (currentUserId as string);
-                  const paidByName = paidByCurrentUser ? t('common.you') : (friend?.displayName ?? '…');
+                  const paidByCurrentUser =
+                    (expense.paidBy as string) === (currentUserId as string);
+                  const paidByName = paidByCurrentUser
+                    ? t('common.you')
+                    : (friend?.displayName ?? '…');
                   const signedShare = paidByCurrentUser
-                    ? (expense.splits.find(s => (s.userId as string) === (friend?.userId as string))?.amount ?? ZERO)
+                    ? (expense.splits.find(
+                        (s) => (s.userId as string) === (friend?.userId as string),
+                      )?.amount ?? ZERO)
                     : negate(
                         currentUserId
-                          ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
+                          ? (expense.splits.find((s) => s.userId === currentUserId)?.amount ?? ZERO)
                           : ZERO,
                       );
                   const signedPositive = !isNegative(signedShare);
@@ -230,11 +239,18 @@ export default function FriendDetailPage() {
                     <button
                       key={`expense-${String(expense.id)}`}
                       type="button"
-                      onClick={() => navigate({ to: '/expenses/$expenseId', params: { expenseId: String(expense.id) } })}
+                      onClick={() =>
+                        navigate({
+                          to: '/expenses/$expenseId',
+                          params: { expenseId: String(expense.id) },
+                        })
+                      }
                       className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{expense.description}</p>
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {expense.description}
+                        </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {paidByName}
                           {' · '}
@@ -243,13 +259,21 @@ export default function FriendDetailPage() {
                             : t('friends.direct_expense')}
                           {' · '}
                           {expense.createdAt.toLocaleDateString(dateLocale, {
-                            day: '2-digit', month: '2-digit', year: 'numeric',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
                           })}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className={cn('text-sm font-semibold tabular-nums', signedPositive ? 'text-owed-to-you' : 'text-you-owe')}>
-                          {signedPositive ? '+' : ''}{formatMoney(signedShare)}
+                        <p
+                          className={cn(
+                            'text-sm font-semibold tabular-nums',
+                            signedPositive ? 'text-owed-to-you' : 'text-you-owe',
+                          )}
+                        >
+                          {signedPositive ? '+' : ''}
+                          {formatMoney(signedShare)}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {t('friends.total')} {formatMoney(expense.totalAmount)}
@@ -274,7 +298,11 @@ export default function FriendDetailPage() {
                       type="button"
                       onClick={() => {
                         const id = batch.records[0]?.id;
-                        if (id) navigate({ to: '/settlements/$settlementId', params: { settlementId: String(id) } });
+                        if (id)
+                          navigate({
+                            to: '/settlements/$settlementId',
+                            params: { settlementId: String(id) },
+                          });
                       }}
                       className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
                     >
@@ -286,7 +314,9 @@ export default function FriendDetailPage() {
                         <p className="text-xs text-muted-foreground">
                           {batch.note && <>{batch.note} · </>}
                           {batch.date.toLocaleDateString(dateLocale, {
-                            day: '2-digit', month: '2-digit', year: 'numeric',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
                           })}
                         </p>
                       </div>
@@ -324,19 +354,22 @@ export default function FriendDetailPage() {
           </>
         )}
 
-        {!isLoading && feedItems.length === 0 && sharedExpenses.length === 0 && sharedSettlements.length === 0 && (
-          <div className="mt-5">
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={handleRemoveFriend}
-              disabled={removeFriend.isPending || !friend}
-            >
-              <UserMinus className="mr-2 h-4 w-4" />
-              {t('friends.remove_friend')}
-            </Button>
-          </div>
-        )}
+        {!isLoading &&
+          feedItems.length === 0 &&
+          sharedExpenses.length === 0 &&
+          sharedSettlements.length === 0 && (
+            <div className="mt-5">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={handleRemoveFriend}
+                disabled={removeFriend.isPending || !friend}
+              >
+                <UserMinus className="mr-2 h-4 w-4" />
+                {t('friends.remove_friend')}
+              </Button>
+            </div>
+          )}
       </div>
 
       {showSettleSheet && friend && currentUserId && (

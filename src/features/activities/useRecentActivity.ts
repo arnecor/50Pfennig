@@ -13,14 +13,20 @@
  * ActivityFeed component is a pure renderer.
  */
 
-import { useMemo, useState } from 'react';
-import { useQuery, useQueries } from '@tanstack/react-query';
-import { useGroups } from '@features/groups/hooks/useGroups';
-import { useFriends } from '@features/friends/hooks/useFriends';
-import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
-import { settlementsQueryOptions, friendSettlementsQueryOptions } from '@features/settlements/settlementQueries';
-import { abs, money, ZERO } from '@domain/money';
+import { ZERO, abs, money } from '@domain/money';
 import type { Friend, Group, Settlement, UserId } from '@domain/types';
+import {
+  expensesQueryOptions,
+  friendExpensesQueryOptions,
+} from '@features/expenses/expenseQueries';
+import { useFriends } from '@features/friends/hooks/useFriends';
+import { useGroups } from '@features/groups/hooks/useGroups';
+import {
+  friendSettlementsQueryOptions,
+  settlementsQueryOptions,
+} from '@features/settlements/settlementQueries';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import type { ActivityItem } from './types';
 
 const PAGE_SIZE = 10;
@@ -34,10 +40,10 @@ function resolveName(
 ): string {
   if (userId === currentIdStr) return youLabel;
   for (const group of groups) {
-    const member = group.members.find(m => (m.userId as string) === userId);
+    const member = group.members.find((m) => (m.userId as string) === userId);
     if (member?.displayName) return member.displayName;
   }
-  const friend = friends.find(f => (f.userId as string) === userId);
+  const friend = friends.find((f) => (f.userId as string) === userId);
   if (friend) return friend.displayName;
   return userId;
 }
@@ -48,19 +54,25 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
   const { data: friends = [], isLoading: friendsLoading } = useFriends();
 
-  const expensesResults    = useQueries({ queries: groups.map(g => expensesQueryOptions(g.id)) });
-  const settlementsResults = useQueries({ queries: groups.map(g => settlementsQueryOptions(g.id)) });
+  const expensesResults = useQueries({ queries: groups.map((g) => expensesQueryOptions(g.id)) });
+  const settlementsResults = useQueries({
+    queries: groups.map((g) => settlementsQueryOptions(g.id)),
+  });
 
-  const { data: friendExpenses = [],    isLoading: friendExpensesLoading }    = useQuery(friendExpensesQueryOptions());
-  const { data: friendSettlements = [], isLoading: friendSettlementsLoading } = useQuery(friendSettlementsQueryOptions());
+  const { data: friendExpenses = [], isLoading: friendExpensesLoading } = useQuery(
+    friendExpensesQueryOptions(),
+  );
+  const { data: friendSettlements = [], isLoading: friendSettlementsLoading } = useQuery(
+    friendSettlementsQueryOptions(),
+  );
 
   const isLoading =
     groupsLoading ||
     friendsLoading ||
     friendExpensesLoading ||
     friendSettlementsLoading ||
-    expensesResults.some(r => r.isLoading) ||
-    settlementsResults.some(r => r.isLoading);
+    expensesResults.some((r) => r.isLoading) ||
+    settlementsResults.some((r) => r.isLoading);
 
   const allItems = useMemo((): ActivityItem[] => {
     if (!currentUserId) return [];
@@ -71,17 +83,19 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
 
     // ── Group expenses ────────────────────────────────────────────────────────
     for (let i = 0; i < groups.length; i++) {
-      const group    = groups[i]!;
+      // biome-ignore lint/style/noNonNullAssertion: loop bound guarantees i is in range
+      const group = groups[i]!;
       const expenses = expensesResults[i]?.data ?? [];
 
       for (const expense of expenses) {
         const isInvolved =
           (expense.paidBy as string) === currentIdStr ||
-          expense.splits.some(s => (s.userId as string) === currentIdStr);
+          expense.splits.some((s) => (s.userId as string) === currentIdStr);
         if (!isInvolved) continue;
 
         const paidByCurrentUser = (expense.paidBy as string) === currentIdStr;
-        const myShare = expense.splits.find(s => (s.userId as string) === currentIdStr)?.amount ?? ZERO;
+        const myShare =
+          expense.splits.find((s) => (s.userId as string) === currentIdStr)?.amount ?? ZERO;
 
         items.push({
           id: expense.id,
@@ -102,7 +116,8 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
     // ── Friend expenses ───────────────────────────────────────────────────────
     for (const expense of friendExpenses) {
       const paidByCurrentUser = (expense.paidBy as string) === currentIdStr;
-      const myShare = expense.splits.find(s => (s.userId as string) === currentIdStr)?.amount ?? ZERO;
+      const myShare =
+        expense.splits.find((s) => (s.userId as string) === currentIdStr)?.amount ?? ZERO;
 
       items.push({
         id: expense.id,
@@ -125,8 +140,7 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
     for (let i = 0; i < groups.length; i++) {
       for (const s of settlementsResults[i]?.data ?? []) {
         const isInvolved =
-          (s.fromUserId as string) === currentIdStr ||
-          (s.toUserId as string) === currentIdStr;
+          (s.fromUserId as string) === currentIdStr || (s.toUserId as string) === currentIdStr;
         if (isInvolved) allSettlementRecords.set(String(s.id), s);
       }
     }
@@ -150,7 +164,7 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
       let latestDate = new Date(0);
       for (const r of records) {
         const from = r.fromUserId as string;
-        const to   = r.toUserId as string;
+        const to = r.toUserId as string;
         if (from === currentIdStr) {
           netFromMe += r.amount;
           otherPartyId = to;
@@ -164,6 +178,7 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
 
       const isMePaying = netFromMe >= 0;
       items.push({
+        // biome-ignore lint/style/noNonNullAssertion: records is non-empty (grouped by batch, guaranteed ≥1 record)
         id: records[0]!.id,
         date: latestDate,
         type: 'settlement',
@@ -176,7 +191,7 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
 
     // ── Group membership events ───────────────────────────────────────────────
     for (const group of groups) {
-      const myMembership = group.members.find(m => (m.userId as string) === currentIdStr);
+      const myMembership = group.members.find((m) => (m.userId as string) === currentIdStr);
       if (myMembership) {
         items.push({
           id: `membership-${group.id}`,
@@ -190,11 +205,20 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
 
     items.sort((a, b) => b.date.getTime() - a.date.getTime());
     return items;
-  }, [currentUserId, youLabel, groups, friends, expensesResults, settlementsResults, friendExpenses, friendSettlements]);
+  }, [
+    currentUserId,
+    youLabel,
+    groups,
+    friends,
+    expensesResults,
+    settlementsResults,
+    friendExpenses,
+    friendSettlements,
+  ]);
 
   const visibleItems = allItems.slice(0, page * PAGE_SIZE);
   const hasMore = visibleItems.length < allItems.length;
-  const loadMore = () => setPage(p => p + 1);
+  const loadMore = () => setPage((p) => p + 1);
 
   return { items: visibleItems, isLoading, hasMore, loadMore };
 }

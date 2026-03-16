@@ -7,12 +7,12 @@
  * each with a net balance summary.
  */
 
+import { FloatingActionButton } from '@components/shared/FloatingActionButton';
+import { PageHeader } from '@components/shared/PageHeader';
+import GroupList from '@features/groups/components/GroupList';
+import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
-import { PageHeader } from '@components/shared/PageHeader';
-import { FloatingActionButton } from '@components/shared/FloatingActionButton';
-import GroupList from '@features/groups/components/GroupList';
 
 export default function GroupsPage() {
   const { t } = useTranslation();

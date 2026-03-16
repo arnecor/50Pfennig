@@ -41,7 +41,9 @@ export async function initStatusBar(): Promise<void> {
   await apply(isDark());
 
   // Re-apply whenever the theme class changes (e.g. user toggles dark mode)
-  const observer = new MutationObserver(() => { void apply(isDark()); });
+  const observer = new MutationObserver(() => {
+    void apply(isDark());
+  });
   observer.observe(document.documentElement, {
     attributes: true,
     attributeFilter: ['class'],

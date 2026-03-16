@@ -7,13 +7,13 @@
  * Only available on native platforms (guarded by Capacitor.isNativePlatform()).
  */
 
+import { BarcodeFormat, BarcodeScanner, LensFacing } from '@capacitor-mlkit/barcode-scanning';
 import { Button } from '@components/ui/button';
 import { useAcceptInvite } from '@features/friends/hooks/useAcceptInvite';
-import { BarcodeScanner, BarcodeFormat, LensFacing } from '@capacitor-mlkit/barcode-scanning';
+import { useNavigate } from '@tanstack/react-router';
 import { Check, Loader2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
 
 type ScanState = 'scanning' | 'processing' | 'success' | 'error';
 
@@ -102,7 +102,9 @@ export default function QRCodeScanner() {
 
   useEffect(() => {
     startScanning();
-    return () => { stopScanning(); };
+    return () => {
+      stopScanning();
+    };
   }, [startScanning, stopScanning]);
 
   // Success state
@@ -117,9 +119,7 @@ export default function QRCodeScanner() {
             ? t('friends.friend_added', { name: friendName })
             : t('friends.friend_added_generic')}
         </p>
-        <Button onClick={() => navigate({ to: '/friends' })}>
-          {t('friends.go_to_friends')}
-        </Button>
+        <Button onClick={() => navigate({ to: '/friends' })}>{t('friends.go_to_friends')}</Button>
       </div>
     );
   }
@@ -159,9 +159,7 @@ export default function QRCodeScanner() {
   return (
     <div className="flex flex-1 flex-col items-center justify-end pb-20">
       <div className="rounded-xl bg-black/60 px-6 py-3">
-        <p className="text-center text-sm text-white">
-          {t('friends.scan_hint')}
-        </p>
+        <p className="text-center text-sm text-white">{t('friends.scan_hint')}</p>
       </div>
     </div>
   );

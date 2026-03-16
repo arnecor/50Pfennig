@@ -22,7 +22,7 @@ import { ZERO, money } from '../types';
  */
 export type ContextDebt = {
   readonly groupId: GroupId | null; // null = direct/friend context
-  readonly amount: Money;           // signed: positive = they owe me
+  readonly amount: Money; // signed: positive = they owe me
 };
 
 /**
@@ -136,7 +136,7 @@ export const allocateSettlement = (
 
   // If there's a remainder (overpayment or no matching debts), put it in direct context
   if (remaining > ZERO) {
-    const directAlloc = allocations.find(a => a.groupId === null);
+    const directAlloc = allocations.find((a) => a.groupId === null);
     if (directAlloc) {
       // Add to existing direct allocation
       const idx = allocations.indexOf(directAlloc);

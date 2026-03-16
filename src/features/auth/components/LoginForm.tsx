@@ -8,19 +8,25 @@
  * Also renders OAuth buttons (Google) via OAuthButtons component.
  */
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { Button } from '../../../components/ui/button';
-import { Input }  from '../../../components/ui/input';
-import { Label }  from '../../../components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Label } from '../../../components/ui/label';
 import { useAuth } from '../hooks/useAuth';
 
 const schema = z.object({
-  email:    z.string().email(),
+  email: z.string().email(),
   password: z.string().min(6),
 });
 type FormValues = z.infer<typeof schema>;
@@ -28,11 +34,14 @@ type FormValues = z.infer<typeof schema>;
 export default function LoginForm() {
   const { t } = useTranslation();
   const { signIn, signUp } = useAuth();
-  const [mode, setMode]               = useState<'sign_in' | 'sign_up'>('sign_in');
+  const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in');
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } =
-    useForm<FormValues>({ resolver: zodResolver(schema) });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const onSubmit = async ({ email, password }: FormValues) => {
     setServerError(null);
@@ -81,9 +90,7 @@ export default function LoginForm() {
               placeholder={t('auth.email_placeholder')}
               {...register('email')}
             />
-            {errors.email && (
-              <p className="text-destructive text-sm">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -100,9 +107,7 @@ export default function LoginForm() {
             )}
           </div>
 
-          {serverError && (
-            <p className="text-destructive text-sm">{serverError}</p>
-          )}
+          {serverError && <p className="text-destructive text-sm">{serverError}</p>}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? t('common.loading') : t(isSignIn ? 'auth.sign_in' : 'auth.sign_up')}
@@ -111,7 +116,10 @@ export default function LoginForm() {
 
         <button
           type="button"
-          onClick={() => { setMode(isSignIn ? 'sign_up' : 'sign_in'); setServerError(null); }}
+          onClick={() => {
+            setMode(isSignIn ? 'sign_up' : 'sign_in');
+            setServerError(null);
+          }}
           className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           {t(isSignIn ? 'auth.switch_to_sign_up' : 'auth.switch_to_sign_in')}

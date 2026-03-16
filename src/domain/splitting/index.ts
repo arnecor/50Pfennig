@@ -10,7 +10,7 @@
  */
 
 import { allocate } from '../money';
-import { type Money, type UserId, type ExpenseSplit } from '../types';
+import type { ExpenseSplit, Money, UserId } from '../types';
 
 /**
  * Computes how much each participant owes for an expense.
@@ -36,27 +36,26 @@ export const splitExpense = (
 
   switch (split.type) {
     case 'equal': {
-      const shares = allocate(totalAmount, participants.map(() => 1));
-      return Object.fromEntries(
-        participants.map((userId, i) => [userId, shares[i]]),
-      ) as Record<UserId, Money>;
+      const shares = allocate(
+        totalAmount,
+        participants.map(() => 1),
+      );
+      return Object.fromEntries(participants.map((userId, i) => [userId, shares[i]])) as Record<
+        UserId,
+        Money
+      >;
     }
 
     case 'exact': {
       // Every participant must have an explicit amount
       for (const userId of participants) {
         if (!(userId in split.amounts)) {
-          throw new Error(
-            `Exact split is missing an amount for participant "${userId}"`,
-          );
+          throw new Error(`Exact split is missing an amount for participant "${userId}"`);
         }
       }
 
       // The amounts must sum exactly to the total
-      const sum = participants.reduce(
-        (acc, userId) => acc + (split.amounts[userId] ?? 0),
-        0,
-      );
+      const sum = participants.reduce((acc, userId) => acc + (split.amounts[userId] ?? 0), 0);
       if (sum !== totalAmount) {
         throw new Error(
           `Exact split amounts sum to ${sum} cents but total is ${totalAmount} cents`,
@@ -70,21 +69,17 @@ export const splitExpense = (
 
     case 'percentage': {
       // Basis points for all participants must sum to exactly 10000 (= 100.00%)
-      const bpSum = participants.reduce(
-        (acc, userId) => acc + (split.basisPoints[userId] ?? 0),
-        0,
-      );
+      const bpSum = participants.reduce((acc, userId) => acc + (split.basisPoints[userId] ?? 0), 0);
       if (bpSum !== 10000) {
-        throw new Error(
-          `Percentage split basis points sum to ${bpSum} but must equal 10000`,
-        );
+        throw new Error(`Percentage split basis points sum to ${bpSum} but must equal 10000`);
       }
 
       const ratios = participants.map((userId) => split.basisPoints[userId] ?? 0);
       const shares = allocate(totalAmount, ratios);
-      return Object.fromEntries(
-        participants.map((userId, i) => [userId, shares[i]]),
-      ) as Record<UserId, Money>;
+      return Object.fromEntries(participants.map((userId, i) => [userId, shares[i]])) as Record<
+        UserId,
+        Money
+      >;
     }
   }
 };

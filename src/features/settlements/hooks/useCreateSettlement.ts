@@ -12,16 +12,15 @@
  *   ['settlements', 'shared', userId] — for the other user (both directions)
  */
 
-import type { CreateSettlementBatchInput } from '@repositories/types';
 import { settlementRepository } from '@repositories';
+import type { CreateSettlementBatchInput } from '@repositories/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export const useCreateSettlement = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: CreateSettlementBatchInput) =>
-      settlementRepository.createBatch(input),
+    mutationFn: (input: CreateSettlementBatchInput) => settlementRepository.createBatch(input),
 
     onSuccess: (_data, input) => {
       const invalidated = new Set<string>();

@@ -4,11 +4,12 @@
  * Route: /expenses/:expenseId
  */
 
+import { cn } from '@/lib/utils';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
-import { cn } from '@/lib/utils';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { negate } from '@domain/money';
-import { ZERO, type ExpenseId, type Money, type UserId } from '@domain/types';
+import { type ExpenseId, type Money, type UserId, ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { expenseByIdQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
@@ -16,7 +17,6 @@ import { groupDetailQueryOptions } from '@features/groups/groupQueries';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { UserAvatar } from '@components/shared/UserAvatar';
 import { ArrowDownLeft, ArrowUpRight, Users } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,11 +25,9 @@ export default function ExpenseDetailPage() {
   const { t, i18n } = useTranslation();
   const { expenseId } = useParams({ strict: false }) as { expenseId: string };
 
-  const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
+  const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
 
-  const { data: expense, isLoading } = useQuery(
-    expenseByIdQueryOptions(expenseId as ExpenseId),
-  );
+  const { data: expense, isLoading } = useQuery(expenseByIdQueryOptions(expenseId as ExpenseId));
 
   const groupId = expense?.groupId ?? null;
   const { data: group } = useQuery({
@@ -45,14 +43,14 @@ export default function ExpenseDetailPage() {
     return (userId: string): string => {
       if (currentUserId && userId === (currentUserId as string)) return t('common.you');
       if (group) {
-        const member = group.members.find(m => (m.userId as string) === userId);
+        const member = group.members.find((m) => (m.userId as string) === userId);
         if (member) return member.displayName;
       }
       for (const g of groups) {
-        const member = g.members.find(m => (m.userId as string) === userId);
+        const member = g.members.find((m) => (m.userId as string) === userId);
         if (member) return member.displayName;
       }
-      const friend = friends.find(f => (f.userId as string) === userId);
+      const friend = friends.find((f) => (f.userId as string) === userId);
       if (friend) return friend.displayName;
       return userId;
     };
@@ -67,21 +65,22 @@ export default function ExpenseDetailPage() {
   const splitTypeLabel = useMemo(() => {
     if (!expense) return null;
     switch (expense.split.type) {
-      case 'equal':      return t('expenses.form.split_equal');
-      case 'exact':      return t('expenses.form.split_exact');
-      case 'percentage': return t('expenses.form.split_percentage');
+      case 'equal':
+        return t('expenses.form.split_equal');
+      case 'exact':
+        return t('expenses.form.split_exact');
+      case 'percentage':
+        return t('expenses.form.split_percentage');
     }
   }, [expense, t]);
 
   // My signed share
   const myShare = useMemo((): Money | null => {
     if (!expense || !currentUserId) return null;
-    const split = expense.splits.find(s => (s.userId as string) === (currentUserId as string));
+    const split = expense.splits.find((s) => (s.userId as string) === (currentUserId as string));
     if (!split) return null;
     const isPayer = (expense.paidBy as string) === (currentUserId as string);
-    return isPayer
-      ? ((expense.totalAmount - split.amount) as Money)
-      : negate(split.amount);
+    return isPayer ? ((expense.totalAmount - split.amount) as Money) : negate(split.amount);
   }, [expense, currentUserId]);
 
   const loadingOrErrorHeader = (title: string) => (
@@ -91,14 +90,18 @@ export default function ExpenseDetailPage() {
   );
 
   if (isLoading) return loadingOrErrorHeader(t('payment_detail.expense_title'));
-  if (!expense)  return (
-    <div className="min-h-full">
-      <PageHeader title={t('payment_detail.expense_title')} onBack={() => window.history.back()} />
-      <div className="flex items-center justify-center px-5 pt-20">
-        <p className="text-muted-foreground">{t('common.error_generic')}</p>
+  if (!expense)
+    return (
+      <div className="min-h-full">
+        <PageHeader
+          title={t('payment_detail.expense_title')}
+          onBack={() => window.history.back()}
+        />
+        <div className="flex items-center justify-center px-5 pt-20">
+          <p className="text-muted-foreground">{t('common.error_generic')}</p>
+        </div>
       </div>
-    </div>
-  );
+    );
 
   const paidByName = resolveName(expense.paidBy as string);
   const createdByName = resolveName(expense.createdBy as string);
@@ -125,23 +128,30 @@ export default function ExpenseDetailPage() {
         <div className="rounded-2xl bg-card border border-border px-5 py-5 space-y-4">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">{t('payment_detail.total_amount')}</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                {t('payment_detail.total_amount')}
+              </p>
               <MoneyDisplay
                 amount={expense.totalAmount}
                 className="text-3xl font-bold tabular-nums tracking-tight"
               />
             </div>
             {myShare !== null && (
-              <div className={cn(
-                'flex items-center gap-1.5 rounded-xl px-3 py-2',
-                sharePositive ? 'bg-owed-to-you-muted' : 'bg-you-owe-muted',
-              )}>
-                {sharePositive
-                  ? <ArrowDownLeft className="w-4 h-4 text-owed-to-you shrink-0" />
-                  : <ArrowUpRight className="w-4 h-4 text-you-owe shrink-0" />
-                }
+              <div
+                className={cn(
+                  'flex items-center gap-1.5 rounded-xl px-3 py-2',
+                  sharePositive ? 'bg-owed-to-you-muted' : 'bg-you-owe-muted',
+                )}
+              >
+                {sharePositive ? (
+                  <ArrowDownLeft className="w-4 h-4 text-owed-to-you shrink-0" />
+                ) : (
+                  <ArrowUpRight className="w-4 h-4 text-you-owe shrink-0" />
+                )}
                 <div>
-                  <p className="text-xs text-muted-foreground leading-none mb-0.5">{t('friends.your_share')}</p>
+                  <p className="text-xs text-muted-foreground leading-none mb-0.5">
+                    {t('friends.your_share')}
+                  </p>
                   <MoneyDisplay
                     amount={myShare}
                     showSign
@@ -157,18 +167,23 @@ export default function ExpenseDetailPage() {
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">{t('payment_detail.paid_by', { name: '' }).trim()}</p>
+              <p className="text-xs text-muted-foreground">
+                {t('payment_detail.paid_by', { name: '' }).trim()}
+              </p>
               <p className="text-sm font-semibold text-foreground">{paidByName}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">
                 {expense.createdAt.toLocaleDateString(dateLocale, {
-                  day: '2-digit', month: 'long', year: 'numeric',
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
                 })}
               </p>
               <p className="text-xs text-muted-foreground">
                 {expense.createdAt.toLocaleTimeString(dateLocale, {
-                  hour: '2-digit', minute: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
                 })}
               </p>
             </div>
@@ -178,13 +193,15 @@ export default function ExpenseDetailPage() {
         {/* Split breakdown */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-foreground">{t('payment_detail.split_section')}</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              {t('payment_detail.split_section')}
+            </h3>
             <span className="text-xs text-muted-foreground">
               {t('payment_detail.participant_count', { count: expense.splits.length })}
             </span>
           </div>
           <div className="rounded-xl border border-border overflow-hidden bg-card">
-            {expense.splits.map(split => {
+            {expense.splits.map((split) => {
               const isPayer = (split.userId as string) === (expense.paidBy as string);
               const signedAmount: Money = isPayer
                 ? ((expense.totalAmount - split.amount) as Money)
@@ -192,19 +209,27 @@ export default function ExpenseDetailPage() {
               const name = resolveName(split.userId as string);
               const isPos = signedAmount >= 0;
               return (
-                <div key={split.userId} className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0">
+                <div
+                  key={split.userId}
+                  className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0"
+                >
                   <UserAvatar name={name} size="sm" />
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-medium">{name}</span>
                     {isPayer && (
-                      <span className="ml-1.5 text-xs text-muted-foreground">({t('payment_detail.paid_by', { name: '' }).replace('by', '').trim()})</span>
+                      <span className="ml-1.5 text-xs text-muted-foreground">
+                        ({t('payment_detail.paid_by', { name: '' }).replace('by', '').trim()})
+                      </span>
                     )}
                   </div>
                   <MoneyDisplay
                     amount={signedAmount === ZERO ? split.amount : signedAmount}
                     showSign={signedAmount !== ZERO}
                     colored={signedAmount !== ZERO}
-                    className={cn('text-sm font-semibold tabular-nums', signedAmount === ZERO ? '' : isPos ? 'text-owed-to-you' : 'text-you-owe')}
+                    className={cn(
+                      'text-sm font-semibold tabular-nums',
+                      signedAmount === ZERO ? '' : isPos ? 'text-owed-to-you' : 'text-you-owe',
+                    )}
                   />
                 </div>
               );

@@ -107,9 +107,7 @@ export default function EmailSearch() {
                   {searchByEmail.data.displayName[0]?.toUpperCase() ?? '?'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">
-                    {searchByEmail.data.displayName}
-                  </p>
+                  <p className="truncate font-medium">{searchByEmail.data.displayName}</p>
                   <p className="truncate text-sm text-muted-foreground">
                     {searchByEmail.data.email}
                   </p>
@@ -130,9 +128,7 @@ export default function EmailSearch() {
                   )}
                 </Button>
               </div>
-              {addError && (
-                <p className="mt-2 text-sm text-destructive">{addError}</p>
-              )}
+              {addError && <p className="mt-2 text-sm text-destructive">{addError}</p>}
             </div>
           )}
 

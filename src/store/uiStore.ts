@@ -23,18 +23,18 @@ import type { GroupId } from '../domain/types';
 type ActiveSheet = 'add-expense' | 'record-settlement' | 'add-member' | null;
 
 type UIStore = {
-  selectedGroupId:    GroupId | null;
+  selectedGroupId: GroupId | null;
   setSelectedGroupId: (id: GroupId | null) => void;
 
   activeSheet: ActiveSheet;
-  openSheet:   (sheet: NonNullable<ActiveSheet>) => void;
-  closeSheet:  () => void;
+  openSheet: (sheet: NonNullable<ActiveSheet>) => void;
+  closeSheet: () => void;
 };
 
 export const useUIStore = create<UIStore>()((set) => ({
-  selectedGroupId:    null,
+  selectedGroupId: null,
   setSelectedGroupId: (id) => set({ selectedGroupId: id }),
-  activeSheet:        null,
-  openSheet:          (sheet) => set({ activeSheet: sheet }),
-  closeSheet:         () => set({ activeSheet: null }),
+  activeSheet: null,
+  openSheet: (sheet) => set({ activeSheet: sheet }),
+  closeSheet: () => set({ activeSheet: null }),
 }));

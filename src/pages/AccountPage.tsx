@@ -6,17 +6,26 @@
  * Profile and account settings. Sign out.
  */
 
-import { useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useTranslation } from 'react-i18next';
-import { Pencil, Check, X, LogOut, HelpCircle, MessageSquare, ChevronRight, Globe } from 'lucide-react';
+import { PageHeader } from '@/components/shared/PageHeader';
+import { UserAvatar } from '@/components/shared/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { UserAvatar } from '@/components/shared/UserAvatar';
-import { PageHeader } from '@/components/shared/PageHeader';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Check,
+  ChevronRight,
+  Globe,
+  HelpCircle,
+  LogOut,
+  MessageSquare,
+  Pencil,
+  X,
+} from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 
 const displayNameSchema = z.object({
   displayName: z.string().min(1, 'Required').max(50),
@@ -58,7 +67,9 @@ function SettingsRow({
 /** A section heading that labels a group of rows */
 function SectionLabel({ label, tight }: { label: string; tight?: boolean }) {
   return (
-    <p className={`px-5 pb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground ${tight ? 'pt-2' : 'pt-5'}`}>
+    <p
+      className={`px-5 pb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground ${tight ? 'pt-2' : 'pt-5'}`}
+    >
       {label}
     </p>
   );
@@ -79,9 +90,7 @@ export default function AccountPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentDisplayName: string =
-    user?.user_metadata?.display_name ||
-    user?.email?.split('@')[0] ||
-    '';
+    user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
 
   const [isEditing, setIsEditing] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -135,7 +144,7 @@ export default function AccountPage() {
             type="file"
             accept="image/*"
             className="sr-only"
-            aria-hidden="true"
+            tabIndex={-1}
           />
         </div>
         <p className="text-base font-semibold text-foreground">{currentDisplayName}</p>
@@ -153,7 +162,9 @@ export default function AccountPage() {
           />
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-3">
-            <p className="text-xs text-muted-foreground mb-1.5">{t('account.display_name_label')}</p>
+            <p className="text-xs text-muted-foreground mb-1.5">
+              {t('account.display_name_label')}
+            </p>
             <div className="flex items-center gap-2">
               <Input
                 autoFocus
@@ -197,10 +208,7 @@ export default function AccountPage() {
         )}
 
         {/* Email — read-only */}
-        <SettingsRow
-          label={t('account.email_label')}
-          value={user?.email ?? ''}
-        />
+        <SettingsRow label={t('account.email_label')} value={user?.email ?? ''} />
       </SettingsGroup>
 
       {/* Language section */}
@@ -212,7 +220,9 @@ export default function AccountPage() {
             {t('account.language_select_label')}
           </span>
           <div className="relative flex items-center gap-1 text-sm text-muted-foreground">
-            <span>{i18n.language === 'de' ? t('account.language_de') : t('account.language_en')}</span>
+            <span>
+              {i18n.language === 'de' ? t('account.language_de') : t('account.language_en')}
+            </span>
             <ChevronRight className="h-4 w-4 shrink-0 opacity-40" />
             <select
               value={i18n.language}

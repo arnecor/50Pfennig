@@ -8,14 +8,21 @@
  *   - Managing members / sharing the group (secondary button in header)
  */
 
+import { cn } from '@/lib/utils';
 import EmptyState from '@components/shared/EmptyState';
-import { PageHeader } from '@components/shared/PageHeader';
 import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
-import { cn } from '@/lib/utils';
+import { PageHeader } from '@components/shared/PageHeader';
 import { calculateGroupBalances } from '@domain/balance';
 import { add, formatMoney, isNegative, isPositive, isZero, negate } from '@domain/money';
-import { ZERO, type Expense, type GroupId, type Money, type Settlement, type UserId } from '@domain/types';
+import {
+  type Expense,
+  type GroupId,
+  type Money,
+  type Settlement,
+  type UserId,
+  ZERO,
+} from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import { useFriends } from '@features/friends/hooks/useFriends';
@@ -50,11 +57,13 @@ export default function GroupDetailPage() {
   const navigate = useNavigate();
   const { groupId } = useParams({ strict: false }) as { groupId: string };
 
-  const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
+  const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
 
   const { data: group, isLoading: groupLoading } = useGroup(groupId as GroupId);
   const { data: expenses, isLoading: expensesLoading } = useExpenses(groupId as GroupId);
-  const { data: settlements = [], isLoading: settlementsLoading } = useSettlements(groupId as GroupId);
+  const { data: settlements = [], isLoading: settlementsLoading } = useSettlements(
+    groupId as GroupId,
+  );
   const { data: friends = [] } = useFriends();
 
   const addMembers = useAddGroupMembers();
@@ -81,8 +90,14 @@ export default function GroupDetailPage() {
   }, [expenses]);
 
   const allItems = useMemo((): GroupActivityItem[] => {
-    const expenseItems: ActivityExpense[] = (expenses ?? []).map(e => ({ kind: 'expense', data: e }));
-    const settlementItems: ActivitySettlement[] = settlements.map(s => ({ kind: 'settlement', data: s }));
+    const expenseItems: ActivityExpense[] = (expenses ?? []).map((e) => ({
+      kind: 'expense',
+      data: e,
+    }));
+    const settlementItems: ActivitySettlement[] = settlements.map((s) => ({
+      kind: 'settlement',
+      data: s,
+    }));
     return [...expenseItems, ...settlementItems].sort(
       (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
     );
@@ -162,22 +177,28 @@ export default function GroupDetailPage() {
                         ? t('groups.group_owes_you')
                         : t('groups.you_owe_group')}
                   </p>
-                  <p className={cn(
-                    'text-xl font-bold',
-                    balanceSettled
-                      ? 'text-muted-foreground'
-                      : balancePositive
-                        ? 'text-owed-to-you'
-                        : 'text-you-owe',
-                  )}>
-                    {balanceSettled ? '—' : `${balancePositive ? '+' : ''}${formatMoney(netBalance)}`}
+                  <p
+                    className={cn(
+                      'text-xl font-bold',
+                      balanceSettled
+                        ? 'text-muted-foreground'
+                        : balancePositive
+                          ? 'text-owed-to-you'
+                          : 'text-you-owe',
+                    )}
+                  >
+                    {balanceSettled
+                      ? '—'
+                      : `${balancePositive ? '+' : ''}${formatMoney(netBalance)}`}
                   </p>
                 </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => navigate({ to: '/groups/$groupId/settlements', params: { groupId } })}
+                onClick={() =>
+                  navigate({ to: '/groups/$groupId/settlements', params: { groupId } })
+                }
                 className="mt-3 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
               >
                 {t('settlements.view_settlements')} →
@@ -189,9 +210,10 @@ export default function GroupDetailPage() {
               {allItems.map((item) => {
                 if (item.kind === 'expense') {
                   const expense = item.data;
-                  const paidByCurrentUser = (expense.paidBy as string) === (currentUserId as string);
+                  const paidByCurrentUser =
+                    (expense.paidBy as string) === (currentUserId as string);
                   const myShare = currentUserId
-                    ? expense.splits.find(s => s.userId === currentUserId)?.amount ?? ZERO
+                    ? (expense.splits.find((s) => s.userId === currentUserId)?.amount ?? ZERO)
                     : ZERO;
                   const signedShare = paidByCurrentUser
                     ? ((expense.totalAmount - myShare) as Money)
@@ -202,22 +224,37 @@ export default function GroupDetailPage() {
                     <button
                       key={expense.id}
                       type="button"
-                      onClick={() => navigate({ to: '/expenses/$expenseId', params: { expenseId: String(expense.id) } })}
+                      onClick={() =>
+                        navigate({
+                          to: '/expenses/$expenseId',
+                          params: { expenseId: String(expense.id) },
+                        })
+                      }
                       className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{expense.description}</p>
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {expense.description}
+                        </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {paidByName(expense.paidBy)}
                           {' · '}
                           {expense.createdAt.toLocaleDateString(dateLocale, {
-                            day: '2-digit', month: '2-digit', year: 'numeric',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
                           })}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className={cn('text-sm font-semibold tabular-nums', signedPositive ? 'text-owed-to-you' : 'text-you-owe')}>
-                          {signedPositive ? '+' : ''}{formatMoney(signedShare)}
+                        <p
+                          className={cn(
+                            'text-sm font-semibold tabular-nums',
+                            signedPositive ? 'text-owed-to-you' : 'text-you-owe',
+                          )}
+                        >
+                          {signedPositive ? '+' : ''}
+                          {formatMoney(signedShare)}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {t('groups.total')} {formatMoney(expense.totalAmount)}
@@ -235,7 +272,12 @@ export default function GroupDetailPage() {
                   <button
                     key={s.id}
                     type="button"
-                    onClick={() => navigate({ to: '/settlements/$settlementId', params: { settlementId: String(s.id) } })}
+                    onClick={() =>
+                      navigate({
+                        to: '/settlements/$settlementId',
+                        params: { settlementId: String(s.id) },
+                      })
+                    }
                     className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
                   >
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
@@ -247,7 +289,9 @@ export default function GroupDetailPage() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {s.createdAt.toLocaleDateString(dateLocale, {
-                          day: '2-digit', month: '2-digit', year: 'numeric',
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
                         })}
                       </p>
                     </div>

@@ -1,17 +1,8 @@
-import {
-  ChevronRight,
-  Home,
-  Plane,
-  Trophy,
-  Flame,
-  Sparkles,
-  BookOpen,
-  Users,
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { formatMoney, isNegative, isZero } from '@domain/money';
 import type { Money } from '@domain/types';
+import { BookOpen, ChevronRight, Flame, Home, Plane, Sparkles, Trophy, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   home: Home,
   plane: Plane,
@@ -52,6 +43,7 @@ export function GroupCard({
   className,
 }: GroupCardProps) {
   const { t } = useTranslation();
+  // biome-ignore lint/style/noNonNullAssertion: iconMap always has 'default' key
   const Icon = iconMap[icon ?? 'default'] ?? iconMap.default!;
   const positive = !isNegative(balance);
   const settled = isZero(balance);
@@ -89,16 +81,9 @@ export function GroupCard({
 
       <div className="text-right shrink-0">
         {settled ? (
-          <p className="text-xs font-medium text-muted-foreground">
-            {resolvedSettledLabel}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{resolvedSettledLabel}</p>
         ) : (
-          <p
-            className={cn(
-              'font-semibold',
-              positive ? 'text-owed-to-you' : 'text-you-owe',
-            )}
-          >
+          <p className={cn('font-semibold', positive ? 'text-owed-to-you' : 'text-you-owe')}>
             {positive ? '+' : ''}
             {formatMoney(balance)}
           </p>
@@ -130,6 +115,7 @@ export function GroupListItem({
   className,
 }: GroupListItemProps) {
   const { t } = useTranslation();
+  // biome-ignore lint/style/noNonNullAssertion: iconMap always has 'default' key
   const Icon = iconMap[icon ?? 'default'] ?? iconMap.default!;
   const positive = !isNegative(balance);
   const settled = isZero(balance);
@@ -140,9 +126,7 @@ export function GroupListItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center gap-3 py-3 border-b transition-colors text-left px-1',
-        settled
-          ? 'border-border/40 hover:bg-muted/20'
-          : 'border-border hover:bg-muted/30',
+        settled ? 'border-border/40 hover:bg-muted/20' : 'border-border hover:bg-muted/30',
         className,
       )}
       type="button"
@@ -168,12 +152,7 @@ export function GroupListItem({
       {settled ? (
         <p className="text-xs font-medium text-muted-foreground">{resolvedSettledLabel}</p>
       ) : (
-        <p
-          className={cn(
-            'font-semibold shrink-0',
-            positive ? 'text-owed-to-you' : 'text-you-owe',
-          )}
-        >
+        <p className={cn('font-semibold shrink-0', positive ? 'text-owed-to-you' : 'text-you-owe')}>
           {positive ? '+' : ''}
           {formatMoney(balance)}
         </p>

@@ -1,8 +1,8 @@
-import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { formatMoney, isNegative, isZero } from '@domain/money';
 import type { Money } from '@domain/types';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type BalanceCardProps = {
   youAreOwed: Money;
@@ -36,9 +36,7 @@ export function BalanceCard({ youAreOwed, youOwe, className }: BalanceCardProps)
             <ArrowDownLeft className="w-3 h-3 text-owed-to-you" />
           </div>
           <span className="text-muted-foreground">{t('home.you_are_owed')}</span>
-          <span className="font-semibold text-owed-to-you">
-            {formatMoney(youAreOwed)}
-          </span>
+          <span className="font-semibold text-owed-to-you">{formatMoney(youAreOwed)}</span>
         </div>
 
         <div className="w-px h-4 bg-border" />
@@ -48,9 +46,7 @@ export function BalanceCard({ youAreOwed, youOwe, className }: BalanceCardProps)
             <ArrowUpRight className="w-3 h-3 text-you-owe" />
           </div>
           <span className="text-muted-foreground">{t('home.you_owe')}</span>
-          <span className="font-semibold text-you-owe">
-            {formatMoney(youOwe)}
-          </span>
+          <span className="font-semibold text-you-owe">{formatMoney(youOwe)}</span>
         </div>
       </div>
     </div>
@@ -73,11 +69,7 @@ export function MiniBalance({ amount, label, className }: MiniBalanceProps) {
       <p
         className={cn(
           'font-semibold',
-          zero
-            ? 'text-muted-foreground'
-            : positive
-              ? 'text-owed-to-you'
-              : 'text-you-owe',
+          zero ? 'text-muted-foreground' : positive ? 'text-owed-to-you' : 'text-you-owe',
         )}
       >
         {zero ? formatMoney(amount) : `${positive ? '+' : ''}${formatMoney(amount)}`}

@@ -11,9 +11,9 @@
  *   ['groups', groupId]   → single group with full member list
  */
 
-import { queryOptions } from '@tanstack/react-query';
-import { groupRepository } from '@repositories';
 import type { GroupId } from '@domain/types';
+import { groupRepository } from '@repositories';
+import { queryOptions } from '@tanstack/react-query';
 
 export const groupsQueryOptions = () =>
   queryOptions({

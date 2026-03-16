@@ -6,8 +6,8 @@
 
 import { PageHeader } from '@components/shared/PageHeader';
 import type { GroupId } from '@domain/types';
-import CreateGroupForm from '@features/groups/components/CreateGroupForm';
 import { useFriends } from '@features/friends/hooks/useFriends';
+import CreateGroupForm from '@features/groups/components/CreateGroupForm';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 

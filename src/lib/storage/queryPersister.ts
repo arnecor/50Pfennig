@@ -15,13 +15,13 @@
  * Imported by: src/App.tsx (provider setup)
  */
 
-import { get, set, del } from 'idb-keyval';
 import type { PersistedClient, Persister } from '@tanstack/react-query-persist-client';
+import { del, get, set } from 'idb-keyval';
 
 export const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
 export const idbPersister: Persister = {
   persistClient: (client: PersistedClient) => set('50pfennig-tq-cache', client),
   restoreClient: () => get<PersistedClient>('50pfennig-tq-cache'),
-  removeClient:  () => del('50pfennig-tq-cache'),
+  removeClient: () => del('50pfennig-tq-cache'),
 };

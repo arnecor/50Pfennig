@@ -48,13 +48,13 @@ type FormValues = z.infer<typeof expenseSchema>;
 // ---------------------------------------------------------------------------
 
 type Props = {
-  groups:                  Group[];
-  friends:                 Friend[];
-  currentUserId:           UserId;
-  currentUserDisplayName:  string;
-  preselectedGroupId?:     GroupId;
+  groups: Group[];
+  friends: Friend[];
+  currentUserId: UserId;
+  currentUserDisplayName: string;
+  preselectedGroupId?: GroupId;
   /** Called after successful creation. Receives the groupId if a group was selected, or null for friend expenses. */
-  onSuccess:               (groupId: GroupId | null) => void;
+  onSuccess: (groupId: GroupId | null) => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -71,11 +71,11 @@ export default function ExpenseForm({
 }: Props) {
   const { t } = useTranslation();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [pickerOpen, setPickerOpen]   = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Initialise with pre-selected group if navigated from group context.
   const preselectedGroup = preselectedGroupId
-    ? groups.find(g => g.id === preselectedGroupId) ?? null
+    ? (groups.find((g) => g.id === preselectedGroupId) ?? null)
     : null;
 
   const [selection, setSelection] = useState<ParticipantSelection | null>(
@@ -108,22 +108,22 @@ export default function ExpenseForm({
     if (!selection) return [];
     if (selection.type === 'group') return [...selection.group.members];
     // Friend expense: selected friends + the current user
-    const friendMembers: GroupMember[] = selection.userIds.map(uid => {
-      const friend = friends.find(f => f.userId === uid);
+    const friendMembers: GroupMember[] = selection.userIds.map((uid) => {
+      const friend = friends.find((f) => f.userId === uid);
       return {
-        userId:      uid,
-        groupId:     null as never, // no group context
+        userId: uid,
+        groupId: null as never, // no group context
         displayName: friend?.displayName ?? uid,
-        joinedAt:    new Date(),
+        joinedAt: new Date(),
       };
     });
-    const alreadyIncluded = friendMembers.some(m => m.userId === currentUserId);
+    const alreadyIncluded = friendMembers.some((m) => m.userId === currentUserId);
     if (!alreadyIncluded) {
       friendMembers.unshift({
-        userId:      currentUserId,
-        groupId:     null as never,
+        userId: currentUserId,
+        groupId: null as never,
         displayName: currentUserDisplayName,
-        joinedAt:    new Date(),
+        joinedAt: new Date(),
       });
     }
     return friendMembers;
@@ -147,7 +147,7 @@ export default function ExpenseForm({
         Math.round(Number.parseFloat(values.amountInput.replace(',', '.')) * 100),
       );
 
-      const participants = participantsForPreview.map(m => m.userId);
+      const participants = participantsForPreview.map((m) => m.userId);
 
       const groupId = selection.type === 'group' ? selection.group.id : null;
 
@@ -155,8 +155,8 @@ export default function ExpenseForm({
         groupId,
         description,
         totalAmount,
-        paidBy:      currentUserId,
-        split:       { type: 'equal' },
+        paidBy: currentUserId,
+        split: { type: 'equal' },
         participants,
       });
 
@@ -172,7 +172,7 @@ export default function ExpenseForm({
     if (!selection) return null;
     if (selection.type === 'group') return selection.group.name;
     return selection.userIds
-      .map(uid => friends.find(f => f.userId === uid)?.displayName ?? uid)
+      .map((uid) => friends.find((f) => f.userId === uid)?.displayName ?? uid)
       .join(', ');
   })();
 
@@ -229,9 +229,7 @@ export default function ExpenseForm({
 
           {selectionLabel ? (
             <div className="flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/5 px-3 py-2.5">
-              {selection?.type === 'group' && (
-                <Users className="h-4 w-4 shrink-0 text-primary" />
-              )}
+              {selection?.type === 'group' && <Users className="h-4 w-4 shrink-0 text-primary" />}
               <button
                 type="button"
                 className="flex-1 text-left text-sm font-medium text-foreground"
@@ -290,7 +288,9 @@ export default function ExpenseForm({
           className="w-full"
           disabled={isSubmitting || createExpense.isPending}
         >
-          {isSubmitting || createExpense.isPending ? t('common.loading') : t('expenses.form.submit')}
+          {isSubmitting || createExpense.isPending
+            ? t('common.loading')
+            : t('expenses.form.submit')}
         </Button>
       </form>
 

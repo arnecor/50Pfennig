@@ -1,9 +1,9 @@
-import { ChevronRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { formatMoney, isNegative, isZero } from '@domain/money';
 import type { Money } from '@domain/types';
-import { UserAvatar } from '@components/shared/UserAvatar';
+import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type FriendCardProps = {
   name: string;
@@ -62,16 +62,9 @@ export function FriendCard({
 
       <div className="text-right shrink-0">
         {settled ? (
-          <p className="text-xs font-medium text-muted-foreground">
-            {resolvedSettledLabel}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{resolvedSettledLabel}</p>
         ) : (
-          <p
-            className={cn(
-              'font-bold text-base',
-              positive ? 'text-owed-to-you' : 'text-you-owe',
-            )}
-          >
+          <p className={cn('font-bold text-base', positive ? 'text-owed-to-you' : 'text-you-owe')}>
             {positive ? '+' : ''}
             {formatMoney(balance)}
           </p>
@@ -120,9 +113,7 @@ export function FriendListItem({
         <div
           className={cn(
             'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
-            isSelected
-              ? 'bg-primary border-primary'
-              : 'border-muted-foreground',
+            isSelected ? 'bg-primary border-primary' : 'border-muted-foreground',
           )}
         >
           {isSelected && (
@@ -130,6 +121,7 @@ export function FriendListItem({
               className="w-3 h-3 text-primary-foreground"
               fill="currentColor"
               viewBox="0 0 20 20"
+              aria-hidden="true"
             >
               <path
                 fillRule="evenodd"
@@ -152,16 +144,10 @@ export function FriendListItem({
           <p
             className={cn(
               'font-semibold shrink-0',
-              settled
-                ? 'text-muted-foreground'
-                : positive
-                  ? 'text-owed-to-you'
-                  : 'text-you-owe',
+              settled ? 'text-muted-foreground' : positive ? 'text-owed-to-you' : 'text-you-owe',
             )}
           >
-            {settled
-              ? resolvedSettledLabel
-              : `${positive ? '+' : ''}${formatMoney(balance)}`}
+            {settled ? resolvedSettledLabel : `${positive ? '+' : ''}${formatMoney(balance)}`}
           </p>
           <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
         </>

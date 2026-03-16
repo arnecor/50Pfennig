@@ -23,32 +23,32 @@
  * See ADR-0011 for rationale.
  */
 
+import type { QueryClient } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
   createRoute,
   createRouter,
   redirect,
 } from '@tanstack/react-router';
-import type { QueryClient } from '@tanstack/react-query';
 
-import AppShell          from '../components/layout/AppShell';
-import HomePage          from '../pages/HomePage';
-import LoginPage         from '../pages/LoginPage';
-import CheckEmailPage    from '../pages/CheckEmailPage';
-import GroupsPage        from '../pages/GroupsPage';
-import GroupDetailPage   from '../pages/GroupDetailPage';
-import CreateGroupPage   from '../pages/CreateGroupPage';
-import ExpenseFormPage   from '../pages/ExpenseFormPage';
-import SettlementsPage   from '../pages/SettlementsPage';
-import FriendsPage          from '../pages/FriendsPage';
-import AddFriendPage        from '../pages/AddFriendPage';
-import AddFriendQRPage      from '../pages/AddFriendQRPage';
-import AddFriendScanPage    from '../pages/AddFriendScanPage';
-import AddFriendEmailPage   from '../pages/AddFriendEmailPage';
-import FriendDetailPage     from '../pages/FriendDetailPage';
-import AccountPage          from '../pages/AccountPage';
-import ExpenseDetailPage    from '../pages/ExpenseDetailPage';
+import AppShell from '../components/layout/AppShell';
+import AccountPage from '../pages/AccountPage';
+import AddFriendEmailPage from '../pages/AddFriendEmailPage';
+import AddFriendPage from '../pages/AddFriendPage';
+import AddFriendQRPage from '../pages/AddFriendQRPage';
+import AddFriendScanPage from '../pages/AddFriendScanPage';
+import CheckEmailPage from '../pages/CheckEmailPage';
+import CreateGroupPage from '../pages/CreateGroupPage';
+import ExpenseDetailPage from '../pages/ExpenseDetailPage';
+import ExpenseFormPage from '../pages/ExpenseFormPage';
+import FriendDetailPage from '../pages/FriendDetailPage';
+import FriendsPage from '../pages/FriendsPage';
+import GroupDetailPage from '../pages/GroupDetailPage';
+import GroupsPage from '../pages/GroupsPage';
+import HomePage from '../pages/HomePage';
+import LoginPage from '../pages/LoginPage';
 import SettlementDetailPage from '../pages/SettlementDetailPage';
+import SettlementsPage from '../pages/SettlementsPage';
 import { requireAuth, requireGuest } from './guards';
 
 // ---------------------------------------------------------------------------
@@ -70,16 +70,16 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/login',
-  beforeLoad:     requireGuest,
-  component:      LoginPage,
+  path: '/login',
+  beforeLoad: requireGuest,
+  component: LoginPage,
 });
 
 // Post-registration confirmation screen — no auth guard, shown before email is verified
 const checkEmailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/auth/check-email',
-  component:      CheckEmailPage,
+  path: '/auth/check-email',
+  component: CheckEmailPage,
   validateSearch: (search: Record<string, unknown>) => ({
     email: typeof search.email === 'string' ? search.email : undefined,
   }),
@@ -91,55 +91,55 @@ const checkEmailRoute = createRoute({
 
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/home',
-  beforeLoad:     requireAuth,
-  component:      HomePage,
+  path: '/home',
+  beforeLoad: requireAuth,
+  component: HomePage,
 });
 
 const groupsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/groups',
-  beforeLoad:     requireAuth,
-  component:      GroupsPage,
+  path: '/groups',
+  beforeLoad: requireAuth,
+  component: GroupsPage,
 });
 
 // /groups/new must be declared before /groups/$groupId so the static segment
 // wins over the dynamic param when the URL is exactly "/groups/new".
 const groupCreateRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/groups/new',
-  beforeLoad:     requireAuth,
-  component:      CreateGroupPage,
+  path: '/groups/new',
+  beforeLoad: requireAuth,
+  component: CreateGroupPage,
 });
 
 const groupDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/groups/$groupId',
-  beforeLoad:     requireAuth,
-  component:      GroupDetailPage,
+  path: '/groups/$groupId',
+  beforeLoad: requireAuth,
+  component: GroupDetailPage,
 });
 
 // Edit route stays group-scoped (existing expenses already have a groupId).
 const expenseEditRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/groups/$groupId/expenses/$expenseId/edit',
-  beforeLoad:     requireAuth,
-  component:      ExpenseFormPage,
+  path: '/groups/$groupId/expenses/$expenseId/edit',
+  beforeLoad: requireAuth,
+  component: ExpenseFormPage,
 });
 
 const settlementsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/groups/$groupId/settlements',
-  beforeLoad:     requireAuth,
-  component:      SettlementsPage,
+  path: '/groups/$groupId/settlements',
+  beforeLoad: requireAuth,
+  component: SettlementsPage,
 });
 
 // New expense creation — no group required in the URL; group chosen inside form.
 const expenseNewRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/expenses/new',
-  beforeLoad:     requireAuth,
-  component:      ExpenseFormPage,
+  path: '/expenses/new',
+  beforeLoad: requireAuth,
+  component: ExpenseFormPage,
   validateSearch: (search: Record<string, unknown>) => ({
     groupId: typeof search.groupId === 'string' ? search.groupId : undefined,
   }),
@@ -147,67 +147,67 @@ const expenseNewRoute = createRoute({
 
 const expenseDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/expenses/$expenseId',
-  beforeLoad:     requireAuth,
-  component:      ExpenseDetailPage,
+  path: '/expenses/$expenseId',
+  beforeLoad: requireAuth,
+  component: ExpenseDetailPage,
 });
 
 const settlementDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/settlements/$settlementId',
-  beforeLoad:     requireAuth,
-  component:      SettlementDetailPage,
+  path: '/settlements/$settlementId',
+  beforeLoad: requireAuth,
+  component: SettlementDetailPage,
 });
 
 const friendsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/friends',
-  beforeLoad:     requireAuth,
-  component:      FriendsPage,
+  path: '/friends',
+  beforeLoad: requireAuth,
+  component: FriendsPage,
 });
 
 // /friends/add/* routes must be declared before /friends/$friendId so the
 // static segments win over the dynamic param.
 const addFriendRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/friends/add',
-  beforeLoad:     requireAuth,
-  component:      AddFriendPage,
+  path: '/friends/add',
+  beforeLoad: requireAuth,
+  component: AddFriendPage,
 });
 
 const addFriendQRRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/friends/add/qr',
-  beforeLoad:     requireAuth,
-  component:      AddFriendQRPage,
+  path: '/friends/add/qr',
+  beforeLoad: requireAuth,
+  component: AddFriendQRPage,
 });
 
 const addFriendScanRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/friends/add/scan',
-  beforeLoad:     requireAuth,
-  component:      AddFriendScanPage,
+  path: '/friends/add/scan',
+  beforeLoad: requireAuth,
+  component: AddFriendScanPage,
 });
 
 const addFriendEmailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/friends/add/email',
-  beforeLoad:     requireAuth,
-  component:      AddFriendEmailPage,
+  path: '/friends/add/email',
+  beforeLoad: requireAuth,
+  component: AddFriendEmailPage,
 });
 
 const friendDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/friends/$friendId',
-  beforeLoad:     requireAuth,
-  component:      FriendDetailPage,
+  path: '/friends/$friendId',
+  beforeLoad: requireAuth,
+  component: FriendDetailPage,
 });
 
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path:           '/account',
-  beforeLoad:     requireAuth,
-  component:      AccountPage,
+  path: '/account',
+  beforeLoad: requireAuth,
+  component: AccountPage,
 });
 
 // ---------------------------------------------------------------------------
@@ -237,7 +237,8 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  context:        { queryClient: undefined! },
+  // biome-ignore lint/style/noNonNullAssertion: TanStack Router context placeholder — overridden in App before use
+  context: { queryClient: undefined! },
   defaultPreload: 'intent',
 });
 

@@ -26,7 +26,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
     'Missing Supabase environment variables. ' +
-    'Copy .env.local.example to .env.local and fill in your values.',
+      'Copy .env.local.example to .env.local and fill in your values.',
   );
 }
 

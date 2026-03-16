@@ -5,8 +5,8 @@
  * Returns an EmailSearchResult or null if not found.
  */
 
-import { useMutation } from '@tanstack/react-query';
 import { friendRepository } from '@repositories';
+import { useMutation } from '@tanstack/react-query';
 
 export function useSearchByEmail() {
   return useMutation({
