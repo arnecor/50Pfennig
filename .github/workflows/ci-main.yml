@@ -1,0 +1,63 @@
+name: CI — main (production)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint & format check
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production   # triggers the manual approval gate you configured
+    env:
+      VITE_APP_ENV: production
+      VITE_SUPABASE_URL: ${{ secrets.SUPABASE_PROD_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_PROD_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Vite build
+        run: npm run build:prod
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Push migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # APK build & Play Store upload can be added here once signing is set up

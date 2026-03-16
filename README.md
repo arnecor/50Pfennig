@@ -43,60 +43,149 @@ German UI by default, English secondary. Android-first (iOS later) via Capacitor
 npm install
 ```
 
-### 2. Start local Supabase
+### 2. Configure environment
+
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local` and fill in your local Supabase credentials (see step 3).
+
+### 3. Start local Supabase
 
 ```bash
 npm run db:start
 ```
 
-This starts a local Supabase instance via Docker. On first run it pulls the Docker images — this takes a few minutes.
+This starts a local Supabase instance via Docker. On first run it pulls the Docker images — this takes a few minutes. Run `npm run db:status` to get the API URL and keys to put in `.env.local`.
 
-### 3. Run database migrations
+### 4. Run database migrations
 
 ```bash
 npm run db:migrate
 ```
 
-### 4. Generate TypeScript types from the schema
+### 5. Generate TypeScript types from the schema
 
 ```bash
 npm run db:types
 ```
 
-### 5. Start the dev server
+### 6. Start the dev server
 
 ```bash
 npm run dev
 ```
 
-App is available at `http://localhost:5173`.
+App is available at `http://localhost:3000`.
 
 ---
 
 ## Common Commands
 
 ```bash
-npm run dev           # Start Vite dev server
-npm run build         # Production build (output: dist/)
-npm test              # Run domain unit tests
-npm run test:watch    # Run tests in watch mode
-npm run test:coverage # Run tests with coverage report
-npm run lint          # Biome lint
-npm run lint:fix      # Biome lint with auto-fix
-npm run format        # Biome format
-npm run check         # Biome lint + format combined
+npm run dev            # Start Vite dev server (local)
+npm run build          # Build (no mode — defaults to Vite's "development" mode)
+npm run build:dev      # Build targeting cloud dev/staging Supabase (.env.development)
+npm run build:prod     # Build targeting production Supabase — for CI only
+npm test               # Run domain unit tests
+npm run test:watch     # Run tests in watch mode
+npm run test:coverage  # Run tests with coverage report
+npm run lint           # Biome lint
+npm run lint:fix       # Biome lint with auto-fix
+npm run format         # Biome format
+npm run check          # Biome lint + format combined
 
-npm run db:start      # Start local Supabase (Docker required)
-npm run db:stop       # Stop local Supabase
-npm run db:status     # Show local Supabase status + API URL + keys
-npm run db:types      # Regenerate src/lib/supabase/types.gen.ts from schema
-npm run db:migrate    # Push migrations to local Supabase
-npm run db:reset      # Reset local DB and re-run all migrations
+npm run db:start       # Start local Supabase (Docker required)
+npm run db:stop        # Stop local Supabase
+npm run db:status      # Show local Supabase status + API URL + keys
+npm run db:types       # Regenerate src/lib/supabase/types.gen.ts from schema
+npm run db:migrate     # Push migrations to local Supabase
+npm run db:reset       # Reset local DB and re-run all migrations + seed
+npm run db:seed        # Seed local DB with test data (local only)
+npm run db:seed:dev    # Seed cloud dev DB with test data (.env.development)
 
-npx cap sync android  # Sync web build to Android project (run after npm run build)
-npx cap open android  # Open Android Studio
-npm run build && npx cap sync android # # Build and run in adnroid
+npx cap sync android   # Sync web build to Android project (run after npm run build)
+npx cap open android   # Open Android Studio
+npm run build && npx cap sync android  # Build and sync to Android
 ```
+
+---
+
+## Environments
+
+The project uses three environments. **Production credentials never exist on a developer machine** — they live exclusively in CI secrets.
+
+### Environment overview
+
+| Environment | Supabase | Firebase | How to build | Who triggers |
+|-------------|----------|----------|--------------|--------------|
+| `local` | Local Docker | — | `npm run dev` | Developer |
+| `development` | Cloud dev project | Dev Firebase project | `npm run build:dev` | Developer / CI on `develop` |
+| `production` | Cloud prod project | Prod Firebase project | `npm run build:prod` | CI on `main` only |
+
+### Git branches
+
+| Branch | Maps to | Who pushes |
+|--------|---------|-----------|
+| `main` | Production | CI only (via PR merge) |
+| `develop` | Cloud dev/staging | Developers |
+| feature branches | Local only | Developers |
+
+### Environment files
+
+| File | Purpose | Committed? |
+|------|---------|-----------|
+| `.env.local` | Local Docker Supabase | No — gitignored |
+| `.env.development` | Cloud dev Supabase | No — gitignored |
+| `.env.production` | Production Supabase | **Never** — CI secrets only |
+| `.env.local.example` | Template for `.env.local` | Yes |
+| `.env.development.example` | Template for `.env.development` | Yes |
+
+**Setting up `.env.local` (first time):**
+```bash
+cp .env.local.example .env.local
+npm run db:start        # Start local Docker
+npm run db:status       # Copy the API URL and keys into .env.local
+```
+
+**Setting up `.env.development` (cloud dev Supabase):**
+```bash
+cp .env.development.example .env.development
+# Fill in credentials from your cloud dev Supabase project dashboard
+```
+
+### Required variables
+
+```bash
+VITE_APP_ENV=local|development|production   # Controls script guards
+VITE_SUPABASE_URL=                          # Supabase project URL
+VITE_SUPABASE_ANON_KEY=                     # Supabase public anon key
+SUPABASE_SERVICE_KEY=                       # Service role key — scripts only, never baked into build
+```
+
+### Script guards
+
+Every script in `scripts/` will **exit immediately** if `VITE_APP_ENV=production`. This prevents accidental seeding or data mutations on the production database, even if prod credentials were ever mistakenly placed in a local env file.
+
+### Database migrations
+
+```
+Local dev  →  supabase db diff  →  new migration file  →  PR to develop
+→  CI pushes migration to cloud dev project  →  validated
+→  PR to main  →  CI pushes migration to prod (manual approval required)
+```
+
+Never run `supabase db push` locally against production. The prod Supabase project URL and service key exist only as CI environment secrets.
+
+### Android build variants
+
+When the production Firebase project is set up, Android `productFlavors` will separate dev and prod:
+
+- `devDebug` → `com.arco.sharli.dev` — connects to dev Supabase, dev Firebase
+- `prodRelease` → `com.arco.sharli` — connects to prod Supabase, prod Firebase
+
+Each flavor has its own `google-services.json` placed under `android/app/src/dev/` and `android/app/src/prod/` respectively. Neither file is committed — they are injected by CI.
 
 ---
 
