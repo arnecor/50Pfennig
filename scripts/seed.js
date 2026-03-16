@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+if (process.env.VITE_APP_ENV === 'production') {
+  console.error('ERROR: Seed scripts cannot run against production. Use a dev or local environment.');
+  process.exit(1);
+}
 /**
  * scripts/seed.js
  *

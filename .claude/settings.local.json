@@ -81,7 +81,11 @@
       "Bash(npx @capacitor/assets --version)",
       "Bash(node -e \"require\\(''''sharp''''\\)\")",
       "Bash(node -e \"console.log\\(''ok''\\)\")",
-      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(JSON.stringify\\(Object.keys\\({...p.dependencies,...p.devDependencies}\\).filter\\(k=>k.includes\\(''capacitor''\\)\\)\\)\\)\")"
+      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(JSON.stringify\\(Object.keys\\({...p.dependencies,...p.devDependencies}\\).filter\\(k=>k.includes\\(''capacitor''\\)\\)\\)\\)\")",
+      "Bash(find /c/Privat/50Pfennig -maxdepth 1 -type f \\\\\\(-name *.json -o -name *.yaml -o -name *.yml -o -name *.config.* -o -name docker* -o -name .env* \\\\\\))",
+      "Bash(grep -E \"\\\\.\\(ts|js|json|yml|yaml\\)$\")",
+      "Bash(find /c/Privat/50Pfennig -maxdepth 3 -type f \\\\\\(-name *workflow* -o -name *github* -o -name *gitlab* -o -name *jenkins* -o -name *github-actions* \\\\\\))",
+      "Bash(grep -r \"VITE_\\\\|SUPABASE_\\\\|FIREBASE_\\\\|GOOGLE_\" /c/Privat/50Pfennig/src --include=*.ts --include=*.tsx)"
     ]
   },
   "enabledPlugins": {

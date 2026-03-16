@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:dev": "tsc -b && vite build --mode development",
+    "build:prod": "tsc -b && vite build --mode production",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -21,6 +23,7 @@
     "db:migrate": "supabase db push",
     "db:reset": "supabase db reset",
     "db:seed": "node --env-file=.env.local scripts/seed.js",
+    "db:seed:dev": "node --env-file=.env.development scripts/seed.js",
     "db:seed-val-users": "node --env-file=.env.local scripts/seed-val-users.js",
     "db:remove-val-users": "node --env-file=.env.local scripts/remove-val-users.js",
     "generate-icons": "capacitor-assets generate --android"
