@@ -139,8 +139,7 @@ A `status_code = 200` confirms the webhook reached the edge function successfull
 
 | File | Role |
 |---|---|
-| `supabase/migrations/0006_push_tokens.sql` | push_tokens table + pg_net extension |
-| `supabase/migrations/0007_remove_pg_net_triggers.sql` | Removes old manual triggers |
+| `supabase/migrations/0001_schema.sql` | Canonical schema — includes push_tokens table |
 | `supabase/functions/send-push/index.ts` | Edge function — handles webhook envelope, queries DB, dispatches FCM |
 | `src/lib/capacitor/pushNotifications.ts` | Client-side token registration |
 | `android/app/google-services.json` | Firebase Android config (project: pfennig-50) ✅ exists |
