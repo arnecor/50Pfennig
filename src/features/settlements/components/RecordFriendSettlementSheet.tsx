@@ -17,21 +17,21 @@
  *   ±settlement adjustments
  */
 
+import { UserAvatar } from '@components/shared/UserAvatar';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
+import { Label } from '@components/ui/label';
+import { computeBilateralBalance } from '@domain/balance';
+import { abs, add, isNegative, negate } from '@domain/money';
 import type { ContextDebt } from '@domain/settlement';
 import { allocateSettlement } from '@domain/settlement';
 import type { Expense, Friend, GroupId, Money, Settlement, UserId } from '@domain/types';
 import { ZERO, money } from '@domain/types';
-import { abs, add, isNegative, negate } from '@domain/money';
-import { computeBilateralBalance } from '@domain/balance';
 import { useAuthStore } from '@features/auth/authStore';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
-import { UserAvatar } from '@components/shared/UserAvatar';
 import { ArrowRight, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@components/ui/button';
-import { Input } from '@components/ui/input';
-import { Label } from '@components/ui/label';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,7 +52,10 @@ type Props = {
 // ---------------------------------------------------------------------------
 
 function parseAmountCents(input: string): number {
-  const normalized = input.trim().replace(',', '.').replace(/[^0-9.]/g, '');
+  const normalized = input
+    .trim()
+    .replace(',', '.')
+    .replace(/[^0-9.]/g, '');
   const val = Number.parseFloat(normalized);
   return Number.isNaN(val) ? 0 : Math.round(val * 100);
 }
@@ -75,23 +78,26 @@ export default function RecordFriendSettlementSheet({
   const { t } = useTranslation();
   const createSettlement = useCreateSettlement();
   const currentUserDisplayName = useAuthStore(
-    s => s.session?.user.user_metadata?.['display_name'] as string | undefined,
+    (s) => s.session?.user.user_metadata?.display_name as string | undefined,
   );
 
   // Compute per-context bilateral balance from already-loaded data
   const contextDebts = useMemo((): ContextDebt[] => {
     const uniqueContexts = new Set<string>([
-      ...sharedExpenses.map(e => String(e.groupId)),
-      ...sharedSettlements.map(s => String(s.groupId)),
+      ...sharedExpenses.map((e) => String(e.groupId)),
+      ...sharedSettlements.map((s) => String(s.groupId)),
     ]);
 
     const debts: ContextDebt[] = [];
     for (const ctxKey of uniqueContexts) {
       const groupId = ctxKey === 'null' ? null : (ctxKey as GroupId);
-      const ctxExpenses    = sharedExpenses.filter(e => String(e.groupId) === ctxKey);
-      const ctxSettlements = sharedSettlements.filter(s => String(s.groupId) === ctxKey);
+      const ctxExpenses = sharedExpenses.filter((e) => String(e.groupId) === ctxKey);
+      const ctxSettlements = sharedSettlements.filter((s) => String(s.groupId) === ctxKey);
       const balance = computeBilateralBalance(
-        ctxExpenses, ctxSettlements, currentUserId, friend.userId,
+        ctxExpenses,
+        ctxSettlements,
+        currentUserId,
+        friend.userId,
       );
       if (balance !== ZERO) {
         debts.push({ groupId, amount: balance });
@@ -109,10 +115,10 @@ export default function RecordFriendSettlementSheet({
   // Payment direction
   // fromUserId = who is paying, toUserId = who is receiving
   const fromUserId = isNegative(netBilateral) ? currentUserId : friend.userId;
-  const toUserId   = isNegative(netBilateral) ? friend.userId  : currentUserId;
+  const toUserId = isNegative(netBilateral) ? friend.userId : currentUserId;
 
-  const [amountStr, setAmountStr]   = useState(centsToInputString(abs(netBilateral)));
-  const [note, setNote]             = useState('');
+  const [amountStr, setAmountStr] = useState(centsToInputString(abs(netBilateral)));
+  const [note, setNote] = useState('');
   const [amountError, setAmountError] = useState('');
 
   const handleSubmit = async () => {
@@ -138,14 +144,9 @@ export default function RecordFriendSettlementSheet({
     const debtsForAllocation: ContextDebt[] =
       fromUserId === friend.userId
         ? contextDebts
-        : contextDebts.map(d => ({ ...d, amount: negate(d.amount) }));
+        : contextDebts.map((d) => ({ ...d, amount: negate(d.amount) }));
 
-    const allocations = allocateSettlement(
-      paymentAmount,
-      fromUserId,
-      toUserId,
-      debtsForAllocation,
-    );
+    const allocations = allocateSettlement(paymentAmount, fromUserId, toUserId, debtsForAllocation);
 
     const trimmedNote = note.trim();
     await createSettlement.mutateAsync({
@@ -157,16 +158,21 @@ export default function RecordFriendSettlementSheet({
     onClose();
   };
 
-  const youLabel   = currentUserDisplayName ?? t('common.you');
-  const fromName   = fromUserId === currentUserId ? t('common.you') : friend.displayName;
-  const toName     = toUserId   === currentUserId ? t('common.you') : friend.displayName;
+  const youLabel = currentUserDisplayName ?? t('common.you');
+  const fromName = fromUserId === currentUserId ? t('common.you') : friend.displayName;
+  const toName = toUserId === currentUserId ? t('common.you') : friend.displayName;
   const fromAvatar = fromUserId === currentUserId ? youLabel : friend.displayName;
-  const toAvatar   = toUserId   === currentUserId ? youLabel : friend.displayName;
+  const toAvatar = toUserId === currentUserId ? youLabel : friend.displayName;
 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[55] bg-black/40" onClick={onClose} onKeyDown={onClose} aria-hidden="true" />
+      <div
+        className="fixed inset-0 z-[55] bg-black/40"
+        onClick={onClose}
+        onKeyDown={onClose}
+        aria-hidden="true"
+      />
 
       {/* Sheet */}
       <div
@@ -190,7 +196,6 @@ export default function RecordFriendSettlementSheet({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-
           {/* From → To (fixed, not a picker) */}
           <div className="mb-6 mt-4 flex items-center justify-center gap-4">
             <div className="flex flex-col items-center gap-1.5">
@@ -219,7 +224,10 @@ export default function RecordFriendSettlementSheet({
                 inputMode="decimal"
                 placeholder="0,00"
                 value={amountStr}
-                onChange={e => { setAmountStr(e.target.value); setAmountError(''); }}
+                onChange={(e) => {
+                  setAmountStr(e.target.value);
+                  setAmountError('');
+                }}
                 className="pl-7"
               />
             </div>
@@ -233,7 +241,7 @@ export default function RecordFriendSettlementSheet({
               id="friend-settlement-note"
               placeholder={t('settlements.note_placeholder')}
               value={note}
-              onChange={e => setNote(e.target.value)}
+              onChange={(e) => setNote(e.target.value)}
             />
           </div>
         </div>

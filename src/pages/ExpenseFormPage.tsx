@@ -42,10 +42,7 @@ export default function ExpenseFormPage() {
 
   return (
     <div className="min-h-full">
-      <PageHeader
-        title={t('expenses.form.page_title')}
-        onBack={handleBack}
-      />
+      <PageHeader title={t('expenses.form.page_title')} onBack={handleBack} />
 
       <div className="px-5 py-5 pb-6">
         {isLoading && (

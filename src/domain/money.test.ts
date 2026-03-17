@@ -1,6 +1,16 @@
-import { describe, it, expect } from 'vitest';
-import { allocate, add, subtract, negate, abs, isPositive, isNegative, isZero, formatMoney } from './money';
-import { money, ZERO } from './types';
+import { describe, expect, it } from 'vitest';
+import {
+  abs,
+  add,
+  allocate,
+  formatMoney,
+  isNegative,
+  isPositive,
+  isZero,
+  negate,
+  subtract,
+} from './money';
+import { ZERO, money } from './types';
 
 // ---------------------------------------------------------------------------
 // money() constructor

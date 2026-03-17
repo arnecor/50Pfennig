@@ -14,18 +14,18 @@
  * See ADR-0003 for rationale on integer cents + basis points.
  */
 
-import { Money, money, ZERO } from './types';
+import { type Money, ZERO, money } from './types';
 
 export { money, ZERO } from './types';
 
-export const add      = (a: Money, b: Money): Money => money(a + b);
+export const add = (a: Money, b: Money): Money => money(a + b);
 export const subtract = (a: Money, b: Money): Money => money(a - b);
-export const negate   = (a: Money): Money => a === 0 ? ZERO : money(-a);
-export const abs      = (a: Money): Money => money(Math.abs(a));
+export const negate = (a: Money): Money => (a === 0 ? ZERO : money(-a));
+export const abs = (a: Money): Money => money(Math.abs(a));
 
 export const isPositive = (a: Money): boolean => a > 0;
 export const isNegative = (a: Money): boolean => a < 0;
-export const isZero     = (a: Money): boolean => a === ZERO;
+export const isZero = (a: Money): boolean => a === ZERO;
 
 /**
  * Allocates `total` across N parts proportional to `ratios`.
@@ -49,10 +49,10 @@ export const allocate = (total: Money, ratios: readonly number[]): Money[] => {
   if (sumOfRatios === 0) throw new Error('Ratios must not all be zero');
 
   // Step 1: compute exact (fractional) share for each part
-  const exactShares = ratios.map(r => (r / sumOfRatios) * total);
+  const exactShares = ratios.map((r) => (r / sumOfRatios) * total);
 
   // Step 2: floor each share to get the base integer allocation
-  const floored = exactShares.map(s => Math.floor(s));
+  const floored = exactShares.map((s) => Math.floor(s));
 
   // Step 3: the remainder (in cents) that hasn't been distributed yet
   const remainder = total - floored.reduce((a, b) => a + b, 0);
@@ -62,6 +62,7 @@ export const allocate = (total: Money, ratios: readonly number[]): Money[] => {
   const indexed = exactShares.map((s, i) => ({ i, frac: s - Math.floor(s) }));
   indexed.sort((a, b) => b.frac - a.frac);
   for (let k = 0; k < remainder; k++) {
+    // biome-ignore lint/style/noNonNullAssertion: k < remainder <= indexed.length, so both accesses are in bounds
     floored[indexed[k]!.i]! += 1;
   }
 
@@ -76,9 +77,5 @@ export const allocate = (total: Money, ratios: readonly number[]): Money[] => {
  * @param locale   - BCP 47 locale tag (default: 'de-DE')
  * @param currency - ISO 4217 currency code (default: 'EUR')
  */
-export const formatMoney = (
-  m: Money,
-  locale  = 'de-DE',
-  currency = 'EUR',
-): string =>
+export const formatMoney = (m: Money, locale = 'de-DE', currency = 'EUR'): string =>
   new Intl.NumberFormat(locale, { style: 'currency', currency }).format(m / 100);

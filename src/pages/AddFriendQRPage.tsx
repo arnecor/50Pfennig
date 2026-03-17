@@ -15,10 +15,7 @@ export default function AddFriendQRPage() {
 
   return (
     <div className="min-h-full">
-      <PageHeader
-        title={t('friends.qr_title')}
-        onBack={() => navigate({ to: '/friends/add' })}
-      />
+      <PageHeader title={t('friends.qr_title')} onBack={() => navigate({ to: '/friends/add' })} />
       <QRCodeDisplay />
     </div>
   );

@@ -19,11 +19,11 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { cn } from '@/lib/utils';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
-import { UserAvatar } from '@components/shared/UserAvatar';
-import { cn } from '@/lib/utils';
 import type { Friend, GroupId, UserId } from '@domain/types';
 import { useCreateGroup } from '../hooks/useCreateGroup';
 
@@ -164,6 +164,7 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
                         className="w-3 h-3 text-primary-foreground"
                         fill="currentColor"
                         viewBox="0 0 20 20"
+                        aria-hidden="true"
                       >
                         <path
                           fillRule="evenodd"

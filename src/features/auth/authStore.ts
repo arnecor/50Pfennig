@@ -12,19 +12,19 @@
  * repository layers, and the sync service — not just UI components.
  */
 
-import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
+import { create } from 'zustand';
 
 type AuthStore = {
-  session:     Session | null;
-  isHydrated:  boolean;
-  setSession:  (session: Session | null) => void;
+  session: Session | null;
+  isHydrated: boolean;
+  setSession: (session: Session | null) => void;
   setHydrated: () => void;
 };
 
 export const useAuthStore = create<AuthStore>()((set) => ({
-  session:     null,
-  isHydrated:  false,
-  setSession:  (session) => set({ session }),
+  session: null,
+  isHydrated: false,
+  setSession: (session) => set({ session }),
   setHydrated: () => set({ isHydrated: true }),
 }));

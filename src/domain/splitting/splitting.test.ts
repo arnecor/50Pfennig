@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { splitExpense } from './index';
+import { describe, expect, it } from 'vitest';
 import { money } from '../money';
-import type { UserId, ExactSplit, PercentageSplit } from '../types';
+import type { ExactSplit, PercentageSplit, UserId } from '../types';
+import { splitExpense } from './index';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -10,7 +10,7 @@ import type { UserId, ExactSplit, PercentageSplit } from '../types';
 const uid = (s: string) => s as UserId;
 
 const alice = uid('alice');
-const bob   = uid('bob');
+const bob = uid('bob');
 const carol = uid('carol');
 
 /** Asserts that the sum of all split values equals totalAmount exactly. */
@@ -65,14 +65,12 @@ describe('splitExpense — equal', () => {
     const result = splitExpense(money(300), [alice, bob, carol], { type: 'equal' });
     expect(Object.keys(result)).toHaveLength(3);
     expect(alice in result).toBe(true);
-    expect(bob   in result).toBe(true);
+    expect(bob in result).toBe(true);
     expect(carol in result).toBe(true);
   });
 
   it('throws on empty participants list', () => {
-    expect(() =>
-      splitExpense(money(100), [], { type: 'equal' }),
-    ).toThrow('zero participants');
+    expect(() => splitExpense(money(100), [], { type: 'equal' })).toThrow('zero participants');
   });
 });
 
@@ -96,9 +94,7 @@ describe('splitExpense — exact', () => {
       type: 'exact',
       amounts: { [alice]: money(600), [bob]: money(300) },
     };
-    expect(() =>
-      splitExpense(money(1000), [alice, bob], split),
-    ).toThrow('900');
+    expect(() => splitExpense(money(1000), [alice, bob], split)).toThrow('900');
   });
 
   it('throws when amounts sum to more than total', () => {
@@ -106,9 +102,7 @@ describe('splitExpense — exact', () => {
       type: 'exact',
       amounts: { [alice]: money(600), [bob]: money(500) },
     };
-    expect(() =>
-      splitExpense(money(1000), [alice, bob], split),
-    ).toThrow('1100');
+    expect(() => splitExpense(money(1000), [alice, bob], split)).toThrow('1100');
   });
 
   it('throws when a participant is missing from amounts', () => {
@@ -116,9 +110,7 @@ describe('splitExpense — exact', () => {
       type: 'exact',
       amounts: { [alice]: money(1000) }, // bob missing
     };
-    expect(() =>
-      splitExpense(money(1000), [alice, bob], split),
-    ).toThrow('missing');
+    expect(() => splitExpense(money(1000), [alice, bob], split)).toThrow('missing');
   });
 
   it('single participant exact split', () => {
@@ -135,7 +127,7 @@ describe('splitExpense — exact', () => {
       type: 'exact',
       amounts: {
         [alice]: money(333),
-        [bob]:   money(333),
+        [bob]: money(333),
         [carol]: money(334),
       },
     };
@@ -174,9 +166,7 @@ describe('splitExpense — percentage', () => {
       type: 'percentage',
       basisPoints: { [alice]: 5000, [bob]: 4999 },
     };
-    expect(() =>
-      splitExpense(money(1000), [alice, bob], split),
-    ).toThrow('9999');
+    expect(() => splitExpense(money(1000), [alice, bob], split)).toThrow('9999');
   });
 
   it('throws when basis points sum to more than 10000', () => {
@@ -184,9 +174,7 @@ describe('splitExpense — percentage', () => {
       type: 'percentage',
       basisPoints: { [alice]: 6000, [bob]: 5000 },
     };
-    expect(() =>
-      splitExpense(money(1000), [alice, bob], split),
-    ).toThrow('11000');
+    expect(() => splitExpense(money(1000), [alice, bob], split)).toThrow('11000');
   });
 
   it('handles the thirds problem without rounding drift', () => {
@@ -224,13 +212,13 @@ describe('splitExpense — percentage', () => {
 
 describe('splitExpense — sum invariant', () => {
   const cases: Array<[string, number, number]> = [
-    ['1 cent among 3',   1,     3],
-    ['7 cents among 3',  7,     3],
-    ['100 among 7',      100,   7],
-    ['1001 among 4',     1001,  4],
-    ['9999 among 9',     9999,  9],
-    ['10000 among 3',    10000, 3],
-    ['1 cent among 10',  1,     10],
+    ['1 cent among 3', 1, 3],
+    ['7 cents among 3', 7, 3],
+    ['100 among 7', 100, 7],
+    ['1001 among 4', 1001, 4],
+    ['9999 among 9', 9999, 9],
+    ['10000 among 3', 10000, 3],
+    ['1 cent among 10', 1, 10],
   ];
 
   for (const [label, total, count] of cases) {

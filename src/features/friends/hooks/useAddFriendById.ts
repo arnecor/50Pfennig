@@ -5,9 +5,9 @@
  * by user ID (for the email search flow). Invalidates ['friends'] on success.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { friendRepository } from '@repositories';
 import type { UserId } from '@domain/types';
+import { friendRepository } from '@repositories';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useAddFriendById() {
   const queryClient = useQueryClient();

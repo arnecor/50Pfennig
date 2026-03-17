@@ -29,11 +29,11 @@ export type ParticipantSelection =
   | { type: 'friends'; userIds: UserId[] };
 
 type Props = {
-  groups:    Group[];
-  friends:   Friend[];
-  value:     ParticipantSelection | null;
-  onChange:  (value: ParticipantSelection | null) => void;
-  onClose:   () => void;
+  groups: Group[];
+  friends: Friend[];
+  value: ParticipantSelection | null;
+  onChange: (value: ParticipantSelection | null) => void;
+  onClose: () => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -50,21 +50,17 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
 
   const q = search.trim().toLowerCase();
 
-  const filteredGroups  = q
-    ? groups.filter(g => g.name.toLowerCase().includes(q))
-    : groups;
+  const filteredGroups = q ? groups.filter((g) => g.name.toLowerCase().includes(q)) : groups;
 
   const filteredFriends = q
-    ? friends.filter(f => f.displayName.toLowerCase().includes(q))
+    ? friends.filter((f) => f.displayName.toLowerCase().includes(q))
     : friends;
 
-  const selectedGroupId: GroupId | null =
-    draft?.type === 'group' ? draft.group.id : null;
+  const selectedGroupId: GroupId | null = draft?.type === 'group' ? draft.group.id : null;
 
-  const selectedFriendIds: UserId[] =
-    draft?.type === 'friends' ? draft.userIds : [];
+  const selectedFriendIds: UserId[] = draft?.type === 'friends' ? draft.userIds : [];
 
-  const groupsDisabled  = draft?.type === 'friends' && draft.userIds.length > 0;
+  const groupsDisabled = draft?.type === 'friends' && draft.userIds.length > 0;
   const friendsDisabled = draft?.type === 'group';
 
   function handleGroupTap(group: Group) {
@@ -78,8 +74,8 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
 
   function handleFriendToggle(userId: UserId) {
     const current = selectedFriendIds;
-    const next    = current.includes(userId)
-      ? current.filter(id => id !== userId)
+    const next = current.includes(userId)
+      ? current.filter((id) => id !== userId)
       : [...current, userId];
 
     setDraft(next.length === 0 ? null : { type: 'friends', userIds: next });
@@ -93,11 +89,8 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
   return (
     <>
       {/* Backdrop — above the nav bar (z-50) */}
-      <div
-        className="fixed inset-0 z-[55] bg-black/40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop is aria-hidden, keyboard users interact via the sheet's close button */}
+      <div className="fixed inset-0 z-[55] bg-black/40" onClick={onClose} aria-hidden="true" />
 
       {/* Sheet — sits above backdrop and nav bar */}
       <div className="fixed bottom-0 left-0 right-0 z-[60] flex flex-col rounded-t-2xl bg-background shadow-xl h-[70dvh] max-h-[70dvh]">
@@ -120,7 +113,7 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
           <Input
             ref={searchRef}
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder={t('expenses.form.picker_search')}
             className="pl-9"
           />
@@ -128,7 +121,6 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
 
         {/* Scrollable list */}
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-
           {/* Groups section */}
           {filteredGroups.length > 0 && (
             <section className="mb-4">
@@ -136,7 +128,7 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
                 {t('expenses.form.picker_groups_section')}
               </p>
               <div className="flex flex-col gap-1">
-                {filteredGroups.map(group => {
+                {filteredGroups.map((group) => {
                   const isSelected = selectedGroupId === group.id;
                   return (
                     <button
@@ -151,9 +143,7 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
                     >
                       <Users className="h-4 w-4 shrink-0" />
                       <span className="flex-1 text-left">{group.name}</span>
-                      {isSelected && (
-                        <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
-                      )}
+                      {isSelected && <CheckSquare className="h-4 w-4 shrink-0 text-primary" />}
                     </button>
                   );
                 })}
@@ -168,7 +158,7 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
                 {t('expenses.form.picker_friends_section')}
               </p>
               <div className="flex flex-col gap-1">
-                {filteredFriends.map(friend => {
+                {filteredFriends.map((friend) => {
                   const isChecked = selectedFriendIds.includes(friend.userId);
                   return (
                     <button
@@ -181,10 +171,11 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
                         ${isChecked ? 'text-primary font-medium' : 'text-foreground'}
                       `}
                     >
-                      {isChecked
-                        ? <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
-                        : <Square     className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      }
+                      {isChecked ? (
+                        <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
+                      ) : (
+                        <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      )}
                       <span className="flex-1 text-left">{friend.displayName}</span>
                     </button>
                   );
@@ -206,11 +197,7 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
           className="shrink-0 border-t border-border bg-background px-4 pt-3"
           style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
         >
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={handleConfirm}
-          >
+          <Button size="lg" className="w-full" onClick={handleConfirm}>
             {t('expenses.form.picker_confirm')}
           </Button>
         </div>

@@ -1,5 +1,5 @@
-import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Plus } from 'lucide-react';
 
 type FloatingActionButtonProps = {
   onClick?: () => void;
@@ -7,11 +7,7 @@ type FloatingActionButtonProps = {
   className?: string;
 };
 
-export function FloatingActionButton({
-  onClick,
-  label,
-  className,
-}: FloatingActionButtonProps) {
+export function FloatingActionButton({ onClick, label, className }: FloatingActionButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -36,12 +32,7 @@ type SmallFabProps = {
   className?: string;
 };
 
-export function SmallFab({
-  onClick,
-  icon,
-  label = 'Add',
-  className,
-}: SmallFabProps) {
+export function SmallFab({ onClick, icon, label = 'Add', className }: SmallFabProps) {
   return (
     <button
       onClick={onClick}

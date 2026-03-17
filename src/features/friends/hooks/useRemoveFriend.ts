@@ -6,9 +6,9 @@
  * Invalidates ['friends'] on success so the friends list refreshes.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { friendRepository } from '@repositories';
 import type { FriendshipId } from '@domain/types';
+import { friendRepository } from '@repositories';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useRemoveFriend() {
   const queryClient = useQueryClient();

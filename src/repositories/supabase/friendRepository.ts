@@ -12,15 +12,17 @@
  * Imported by: repositories/index.ts (factory binding)
  */
 
-import { supabase } from '../../lib/supabase/client';
-import { type FriendshipWithProfiles, mapFriend } from '../../lib/supabase/mappers';
 import type { FriendshipId, UserId } from '../../domain/types';
 import type { Friend } from '../../domain/types';
+import { supabase } from '../../lib/supabase/client';
+import { type FriendshipWithProfiles, mapFriend } from '../../lib/supabase/mappers';
 import type { EmailSearchResult, FriendInvite, IFriendRepository } from '../types';
 
 export class SupabaseFriendRepository implements IFriendRepository {
   async getAll(): Promise<Friend[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return [];
 
     const currentUserId = user.id as UserId;
@@ -57,7 +59,7 @@ export class SupabaseFriendRepository implements IFriendRepository {
   // removed because the generated types will include these function signatures.
 
   async createInvite(): Promise<FriendInvite> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
     const { data, error } = await (supabase.rpc as any)('create_friend_invite');
 
     if (error) throw error;
@@ -72,7 +74,7 @@ export class SupabaseFriendRepository implements IFriendRepository {
   }
 
   async acceptInvite(token: string): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
     const { error } = await (supabase.rpc as any)('accept_friend_invite', {
       p_token: token,
     });
@@ -81,7 +83,7 @@ export class SupabaseFriendRepository implements IFriendRepository {
   }
 
   async searchByEmail(email: string): Promise<EmailSearchResult | null> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
     const { data, error } = await (supabase.rpc as any)('search_user_by_email', {
       p_email: email,
     });
@@ -98,7 +100,7 @@ export class SupabaseFriendRepository implements IFriendRepository {
   }
 
   async addById(userId: UserId): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
     const { error } = await (supabase.rpc as any)('add_friend_by_id', {
       p_friend_id: userId as string,
     });

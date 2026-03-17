@@ -1,11 +1,11 @@
-import { Outlet, Link, useRouterState } from '@tanstack/react-router';
-import { Home, Users, UserPlus, Settings } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { Link, Outlet, useRouterState } from '@tanstack/react-router';
+import { Home, Settings, UserPlus, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const navItems = [
-  { to: '/home',    labelKey: 'nav.home',    Icon: Home,     prefix: '/home'    },
-  { to: '/groups',  labelKey: 'nav.groups',  Icon: Users,    prefix: '/groups'  },
+  { to: '/home', labelKey: 'nav.home', Icon: Home, prefix: '/home' },
+  { to: '/groups', labelKey: 'nav.groups', Icon: Users, prefix: '/groups' },
   { to: '/friends', labelKey: 'nav.friends', Icon: UserPlus, prefix: '/friends' },
   { to: '/account', labelKey: 'nav.account', Icon: Settings, prefix: '/account' },
 ] as const;

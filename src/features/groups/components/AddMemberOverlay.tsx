@@ -70,11 +70,8 @@ export default function AddMemberOverlay({
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop is aria-hidden, keyboard users interact via the sheet's close button */}
+      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} aria-hidden="true" />
 
       {/* Sheet */}
       <div
@@ -99,7 +96,6 @@ export default function AddMemberOverlay({
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-
           {/* Section 1 — Add friends */}
           <section className="mb-6">
             <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

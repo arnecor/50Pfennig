@@ -5,9 +5,9 @@
  * Always use this component — never call formatMoney() directly in JSX.
  */
 
-import { formatMoney, isPositive, isNegative } from '@domain/money';
-import type { Money } from '@domain/types';
 import { cn } from '@/lib/utils';
+import { formatMoney, isNegative, isPositive } from '@domain/money';
+import type { Money } from '@domain/types';
 
 type Props = {
   amount: Money;

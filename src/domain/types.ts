@@ -19,10 +19,10 @@
 declare const __brand: unique symbol;
 type Brand<T, B> = T & { readonly [__brand]: B };
 
-export type Money        = Brand<number, 'Money'>;       // always integer cents
-export type UserId       = Brand<string, 'UserId'>;
-export type GroupId      = Brand<string, 'GroupId'>;
-export type ExpenseId    = Brand<string, 'ExpenseId'>;
+export type Money = Brand<number, 'Money'>; // always integer cents
+export type UserId = Brand<string, 'UserId'>;
+export type GroupId = Brand<string, 'GroupId'>;
+export type ExpenseId = Brand<string, 'ExpenseId'>;
 export type SettlementId = Brand<string, 'SettlementId'>;
 export type FriendshipId = Brand<string, 'FriendshipId'>;
 
@@ -37,8 +37,8 @@ export type FriendshipStatus = 'pending' | 'accepted';
  * Used for the participant picker and friends tab.
  */
 export type Friend = {
-  readonly userId:       UserId;
-  readonly displayName:  string;
+  readonly userId: UserId;
+  readonly displayName: string;
   readonly friendshipId: FriendshipId;
 };
 
@@ -116,8 +116,8 @@ export type Expense = {
   readonly groupId: GroupId | null; // null = friend expense (not associated with a group)
   readonly description: string;
   readonly totalAmount: Money;
-  readonly paidBy: UserId;          // who paid the full amount upfront
-  readonly split: ExpenseSplit;     // the configuration (what rule was agreed)
+  readonly paidBy: UserId; // who paid the full amount upfront
+  readonly split: ExpenseSplit; // the configuration (what rule was agreed)
   readonly splits: readonly ExpenseSplitRecord[]; // the computed snapshot (immutable)
   readonly createdBy: UserId;
   readonly createdAt: Date;
@@ -129,7 +129,7 @@ export type Settlement = {
   readonly batchId: string | null; // links records from one real-world payment (ADR-0012)
   readonly groupId: GroupId | null; // null = friend/direct settlement
   readonly fromUserId: UserId; // who paid (sent money)
-  readonly toUserId: UserId;   // who received money
+  readonly toUserId: UserId; // who received money
   readonly amount: Money;
   readonly note?: string;
   readonly createdAt: Date;

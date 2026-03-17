@@ -14,25 +14,25 @@
  *   - Nothing else — keep this file thin
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import SplashScreen from './components/SplashScreen';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RouterProvider } from '@tanstack/react-router';
-import { App as CapacitorApp } from '@capacitor/app';
-import { Capacitor } from '@capacitor/core';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import SplashScreen from './components/SplashScreen';
 
-import { router }                    from './router';
-import { idbPersister, CACHE_MAX_AGE } from './lib/storage/queryPersister';
-import { supabase }                  from './lib/supabase/client';
-import { useAuthStore }              from './features/auth/authStore';
-import ErrorBoundary                 from './components/ErrorBoundary';
-import { initPushNotifications, type NotificationData } from './lib/capacitor/pushNotifications';
+import ErrorBoundary from './components/ErrorBoundary';
+import { useAuthStore } from './features/auth/authStore';
+import { type NotificationData, initPushNotifications } from './lib/capacitor/pushNotifications';
 import { initStatusBar } from './lib/capacitor/statusBar';
-import { upsertPushToken, deletePushToken } from './repositories/supabase/pushTokenRepository';
-import { usePendingInviteStore } from './store/pendingInviteStore';
-import { friendRepository } from './repositories';
 import { checkInstallReferrer } from './lib/installReferrer';
+import { CACHE_MAX_AGE, idbPersister } from './lib/storage/queryPersister';
+import { supabase } from './lib/supabase/client';
+import { friendRepository } from './repositories';
+import { deletePushToken, upsertPushToken } from './repositories/supabase/pushTokenRepository';
+import { router } from './router';
+import { usePendingInviteStore } from './store/pendingInviteStore';
 
 /**
  * Accepts an invite token, invalidates the friends query, and navigates to /friends.
@@ -51,14 +51,15 @@ async function processInviteToken(token: string, queryClient: QueryClient) {
 
 export default function App() {
   const [queryClient] = useState(
-    () => new QueryClient({
-      defaultOptions: {
-        queries: {
-          staleTime: 1000 * 60 * 5, // 5 min — fresh data, background refetch after
-          gcTime:    CACHE_MAX_AGE,
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60 * 5, // 5 min — fresh data, background refetch after
+            gcTime: CACHE_MAX_AGE,
+          },
         },
-      },
-    }),
+      }),
   );
 
   const { setSession, setHydrated, isHydrated } = useAuthStore();
@@ -68,11 +69,13 @@ export default function App() {
   // Initialise Android status bar style (icon colour + background) on startup.
   // Runs before auth hydration so it takes effect as early as possible.
   // Automatically updates when the user switches dark/light mode.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { void initStatusBar(); }, []);
+  useEffect(() => {
+    void initStatusBar();
+  }, []);
 
   // Handle deep links from email confirmation (custom URI scheme: com.pfennig50.app://auth/callback).
   // Supports both PKCE (?code=) and implicit (#access_token=) Supabase auth flows.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect — captures stable module-level refs
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
@@ -130,37 +133,38 @@ export default function App() {
     return () => {
       CapacitorApp.removeAllListeners();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Subscribe to Supabase auth changes. The first callback fires on mount
   // (even when offline) and tells us whether a session exists — that's when
   // we set isHydrated so the router can start running its guards.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect — queryClient, setSession, setHydrated are stable refs
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && currentPushToken.current) {
-          // Token arrived before login (e.g. fresh install) — save it now.
-          void upsertPushToken(currentPushToken.current);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && currentPushToken.current) {
+        // Token arrived before login (e.g. fresh install) — save it now.
+        void upsertPushToken(currentPushToken.current);
+      }
 
-        if (event === 'SIGNED_OUT') {
-          // Remove this device's push token so the user stops receiving
-          // notifications after signing out.
-          if (currentPushToken.current) {
-            void deletePushToken(currentPushToken.current);
-            currentPushToken.current = null;
-          }
-          // Wipe the in-memory cache and the IndexedDB snapshot so the next
-          // user never sees stale data from the previous session.
-          queryClient.clear();
-          idbPersister.removeClient();
+      if (event === 'SIGNED_OUT') {
+        // Remove this device's push token so the user stops receiving
+        // notifications after signing out.
+        if (currentPushToken.current) {
+          void deletePushToken(currentPushToken.current);
+          currentPushToken.current = null;
         }
-        setSession(session);
-        setHydrated();
-      },
-    );
+        // Wipe the in-memory cache and the IndexedDB snapshot so the next
+        // user never sees stale data from the previous session.
+        queryClient.clear();
+        idbPersister.removeClient();
+      }
+      setSession(session);
+      setHydrated();
+    });
     return () => subscription.unsubscribe();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Initialise push notifications on Android.
   // Must run after auth is hydrated so that upsertPushToken can resolve the user.
@@ -225,9 +229,7 @@ export default function App() {
   return (
     <>
       {/* Splash sits on top of everything until its exit animation completes */}
-      {showSplash && (
-        <SplashScreen exiting={isHydrated} onDone={handleSplashDone} />
-      )}
+      {showSplash && <SplashScreen exiting={isHydrated} onDone={handleSplashDone} />}
 
       {/* Mount the real app tree immediately so queries/auth can warm up,
           but it is visually hidden behind the splash screen */}

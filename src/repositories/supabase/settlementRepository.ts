@@ -13,15 +13,15 @@ import type { GroupId, Settlement, SettlementId, UserId } from '../../domain/typ
 import { supabase } from '../../lib/supabase/client';
 import { mapSettlement } from '../../lib/supabase/mappers';
 import type { Json } from '../../lib/supabase/types.gen';
-import type { CreateSettlementBatchInput, CreateSettlementInput, ISettlementRepository } from '../types';
+import type {
+  CreateSettlementBatchInput,
+  CreateSettlementInput,
+  ISettlementRepository,
+} from '../types';
 
 export class SupabaseSettlementRepository implements ISettlementRepository {
   async getById(id: SettlementId): Promise<Settlement> {
-    const { data, error } = await supabase
-      .from('settlements')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('settlements').select('*').eq('id', id).single();
 
     if (error) throw error;
     return mapSettlement(data);
@@ -66,11 +66,11 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
     const { data, error } = await supabase
       .from('settlements')
       .insert({
-        group_id:     input.groupId,
+        group_id: input.groupId,
         from_user_id: input.fromUserId,
-        to_user_id:   input.toUserId,
-        amount:       input.amount,
-        note:         input.note ?? null,
+        to_user_id: input.toUserId,
+        amount: input.amount,
+        note: input.note ?? null,
       })
       .select()
       .single();
@@ -80,18 +80,18 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
   }
 
   async createBatch(input: CreateSettlementBatchInput): Promise<Settlement[]> {
-    const allocations = input.allocations.map(a => ({
-      group_id:     a.groupId,
+    const allocations = input.allocations.map((a) => ({
+      group_id: a.groupId,
       from_user_id: a.fromUserId,
-      to_user_id:   a.toUserId,
-      amount:       a.amount,
+      to_user_id: a.toUserId,
+      amount: a.amount,
     }));
 
     const { data: batchId, error } = await supabase.rpc('create_settlement_batch', {
       p_from_user_id: input.fromUserId,
-      p_to_user_id:   input.toUserId,
-      p_note:         input.note ?? null,
-      p_allocations:  allocations as unknown as Json,
+      p_to_user_id: input.toUserId,
+      p_note: input.note ?? null,
+      p_allocations: allocations as unknown as Json,
     });
 
     if (error) throw error;
@@ -108,10 +108,7 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
   }
 
   async delete(id: SettlementId): Promise<void> {
-    const { error } = await supabase
-      .from('settlements')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('settlements').delete().eq('id', id);
 
     if (error) throw error;
   }

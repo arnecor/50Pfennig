@@ -52,23 +52,19 @@ export default function SplashScreen({ exiting = false, onDone }: Props) {
 
   if (phase === 'done') return null;
 
-  const animClass =
-    phase === 'in' ? 'splash-enter'
-    : phase === 'out' ? 'splash-exit'
-    : '';
+  const animClass = phase === 'in' ? 'splash-enter' : phase === 'out' ? 'splash-exit' : '';
 
   return (
-    <div
+    <output
       className={`fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background ${animClass}`}
       aria-label="Sharli lädt"
-      role="status"
     >
       {/* Logo mark */}
       <div className="flex flex-col items-center gap-5">
         <SharliLogo />
         <Wordmark />
       </div>
-    </div>
+    </output>
   );
 }
 
@@ -87,21 +83,10 @@ function SharliLogo() {
       aria-hidden="true"
     >
       {/* Body */}
-      <ellipse
-        cx="44"
-        cy="56"
-        rx="18"
-        ry="20"
-        className="fill-foreground"
-      />
+      <ellipse cx="44" cy="56" rx="18" ry="20" className="fill-foreground" />
 
       {/* Head */}
-      <circle
-        cx="44"
-        cy="34"
-        r="14"
-        className="fill-foreground"
-      />
+      <circle cx="44" cy="34" r="14" className="fill-foreground" />
 
       {/* Big fluffy tail — sweeping arc behind the body */}
       <path
@@ -123,26 +108,14 @@ function SharliLogo() {
       />
 
       {/* Left ear */}
-      <path
-        d="M 34 24 L 30 12 L 40 20 Z"
-        className="fill-foreground"
-      />
+      <path d="M 34 24 L 30 12 L 40 20 Z" className="fill-foreground" />
       {/* Left ear inner */}
-      <path
-        d="M 34 23 L 31.5 15 L 38 21 Z"
-        className="fill-accent"
-      />
+      <path d="M 34 23 L 31.5 15 L 38 21 Z" className="fill-accent" />
 
       {/* Right ear */}
-      <path
-        d="M 54 24 L 58 12 L 48 20 Z"
-        className="fill-foreground"
-      />
+      <path d="M 54 24 L 58 12 L 48 20 Z" className="fill-foreground" />
       {/* Right ear inner */}
-      <path
-        d="M 54 23 L 56.5 15 L 50 21 Z"
-        className="fill-accent"
-      />
+      <path d="M 54 23 L 56.5 15 L 50 21 Z" className="fill-accent" />
 
       {/* Eyes */}
       <circle cx="39" cy="32" r="2.5" className="fill-background" />
@@ -168,8 +141,22 @@ function SharliLogo() {
       />
 
       {/* Tiny paws / arms */}
-      <ellipse cx="30" cy="58" rx="5" ry="3.5" className="fill-foreground" transform="rotate(-20 30 58)" />
-      <ellipse cx="58" cy="58" rx="5" ry="3.5" className="fill-foreground" transform="rotate(20 58 58)" />
+      <ellipse
+        cx="30"
+        cy="58"
+        rx="5"
+        ry="3.5"
+        className="fill-foreground"
+        transform="rotate(-20 30 58)"
+      />
+      <ellipse
+        cx="58"
+        cy="58"
+        rx="5"
+        ry="3.5"
+        className="fill-foreground"
+        transform="rotate(20 58 58)"
+      />
 
       {/* Coin in paw — the "sharing" motif */}
       <circle cx="30" cy="57" r="4" className="fill-accent" transform="rotate(-20 30 57)" />

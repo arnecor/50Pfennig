@@ -13,12 +13,12 @@
  *   const expenses = await expenseRepository.getByGroupId(groupId);
  */
 
-import { SupabaseGroupRepository }      from './supabase/groupRepository';
-import { SupabaseExpenseRepository }    from './supabase/expenseRepository';
+import { SupabaseExpenseRepository } from './supabase/expenseRepository';
+import { SupabaseFriendRepository } from './supabase/friendRepository';
+import { SupabaseGroupRepository } from './supabase/groupRepository';
 import { SupabaseSettlementRepository } from './supabase/settlementRepository';
-import { SupabaseFriendRepository }     from './supabase/friendRepository';
 
-export const groupRepository      = new SupabaseGroupRepository();
-export const expenseRepository    = new SupabaseExpenseRepository();
+export const groupRepository = new SupabaseGroupRepository();
+export const expenseRepository = new SupabaseExpenseRepository();
 export const settlementRepository = new SupabaseSettlementRepository();
-export const friendRepository     = new SupabaseFriendRepository();
+export const friendRepository = new SupabaseFriendRepository();

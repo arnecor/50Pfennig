@@ -36,8 +36,18 @@
  * Tested in: balance.test.ts
  */
 
-import { type Money, type UserId, type Expense, type Settlement, type GroupMember, type BalanceMap, type DebtInstruction, ZERO, money } from '../types';
-import { add, negate, isPositive, isNegative, abs, subtract } from '../money';
+import { abs, add, isNegative, isPositive, negate, subtract } from '../money';
+import {
+  type BalanceMap,
+  type DebtInstruction,
+  type Expense,
+  type GroupMember,
+  type Money,
+  type Settlement,
+  type UserId,
+  ZERO,
+  money,
+} from '../types';
 
 /**
  * Computes the net balance for every member of a group from the full
@@ -76,15 +86,15 @@ export const calculateGroupBalances = (
   };
 
   for (const expense of expenses) {
-    adjust(expense.paidBy, expense.totalAmount);  // payer credited
+    adjust(expense.paidBy, expense.totalAmount); // payer credited
     for (const split of expense.splits) {
       adjust(split.userId, negate(split.amount)); // each participant debited
     }
   }
 
   for (const settlement of settlements) {
-    adjust(settlement.fromUserId, settlement.amount);          // sender credited
-    adjust(settlement.toUserId,   negate(settlement.amount));  // receiver debited
+    adjust(settlement.fromUserId, settlement.amount); // sender credited
+    adjust(settlement.toUserId, negate(settlement.amount)); // receiver debited
   }
 
   return balances;
@@ -117,7 +127,7 @@ export const calculateParticipantBalances = (
 
   for (const settlement of settlements) {
     adjust(settlement.fromUserId, settlement.amount);
-    adjust(settlement.toUserId,   negate(settlement.amount));
+    adjust(settlement.toUserId, negate(settlement.amount));
   }
 
   return balances;
@@ -146,12 +156,12 @@ export const computeBilateralBalance = (
     if ((e.paidBy as string) === (meId as string)) {
       // I paid — friend's split is their debt to me
       const friendSplit =
-        e.splits.find(s => (s.userId as string) === (friendId as string))?.amount ?? ZERO;
+        e.splits.find((s) => (s.userId as string) === (friendId as string))?.amount ?? ZERO;
       balance = add(balance, friendSplit);
     } else if ((e.paidBy as string) === (friendId as string)) {
       // Friend paid — my split is my debt to friend
       const mySplit =
-        e.splits.find(s => (s.userId as string) === (meId as string))?.amount ?? ZERO;
+        e.splits.find((s) => (s.userId as string) === (meId as string))?.amount ?? ZERO;
       balance = subtract(balance, mySplit);
     }
     // Third party paid — no bilateral effect between me and friend
@@ -187,7 +197,7 @@ export const computeBilateralBalance = (
  */
 export const simplifyDebts = (balances: BalanceMap): DebtInstruction[] => {
   const creditors: Array<{ userId: UserId; amount: Money }> = [];
-  const debtors:   Array<{ userId: UserId; amount: Money }> = [];
+  const debtors: Array<{ userId: UserId; amount: Money }> = [];
 
   for (const [userId, balance] of balances) {
     if (isPositive(balance)) creditors.push({ userId, amount: balance });
@@ -202,17 +212,19 @@ export const simplifyDebts = (balances: BalanceMap): DebtInstruction[] => {
   let di = 0;
 
   while (ci < creditors.length && di < debtors.length) {
+    // biome-ignore lint/style/noNonNullAssertion: while condition proves ci/di are in bounds
     const creditor = creditors[ci]!;
-    const debtor   = debtors[di]!;
-    const amount   = money(Math.min(creditor.amount, debtor.amount));
+    // biome-ignore lint/style/noNonNullAssertion: while condition proves ci/di are in bounds
+    const debtor = debtors[di]!;
+    const amount = money(Math.min(creditor.amount, debtor.amount));
 
     instructions.push({ fromUserId: debtor.userId, toUserId: creditor.userId, amount });
 
     creditor.amount = subtract(creditor.amount, amount);
-    debtor.amount   = subtract(debtor.amount,   amount);
+    debtor.amount = subtract(debtor.amount, amount);
 
     if (creditor.amount === ZERO) ci++;
-    if (debtor.amount   === ZERO) di++;
+    if (debtor.amount === ZERO) di++;
   }
 
   return instructions;

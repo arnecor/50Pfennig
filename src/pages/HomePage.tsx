@@ -10,15 +10,15 @@
  *   4. Floating action button (FAB) to add a new expense
  */
 
-import { GreetingHeader, SectionHeader } from '@components/shared/PageHeader';
-import { BalanceCard } from '@components/shared/BalanceCard';
-import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import type { UserId } from '@/domain/types';
+import ActivityFeed from '@/features/activities/ActivityFeed';
+import type { ActivityItem } from '@/features/activities/types';
+import { useRecentActivity } from '@/features/activities/useRecentActivity';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTotalBalance } from '@/features/balances/hooks/useTotalBalance';
-import ActivityFeed from '@/features/activities/ActivityFeed';
-import { useRecentActivity } from '@/features/activities/useRecentActivity';
-import type { ActivityItem } from '@/features/activities/types';
+import { BalanceCard } from '@components/shared/BalanceCard';
+import { FloatingActionButton } from '@components/shared/FloatingActionButton';
+import { GreetingHeader, SectionHeader } from '@components/shared/PageHeader';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -31,10 +31,12 @@ export default function HomePage() {
   const currentUserId = user?.id as UserId | undefined;
   const { youAreOwed, youOwe } = useTotalBalance(currentUserId);
 
-  const { items, isLoading: activityLoading, hasMore, loadMore } = useRecentActivity(
-    currentUserId,
-    t('common.you'),
-  );
+  const {
+    items,
+    isLoading: activityLoading,
+    hasMore,
+    loadMore,
+  } = useRecentActivity(currentUserId, t('common.you'));
 
   const handleActivityClick = (item: ActivityItem) => {
     if (item.type === 'expense') {

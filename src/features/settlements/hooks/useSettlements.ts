@@ -7,9 +7,8 @@
  *   useSettlements(groupId)  → all settlements for a group
  */
 
+import type { GroupId } from '@domain/types';
 import { useQuery } from '@tanstack/react-query';
 import { settlementsQueryOptions } from '../settlementQueries';
-import type { GroupId } from '@domain/types';
 
-export const useSettlements = (groupId: GroupId) =>
-  useQuery(settlementsQueryOptions(groupId));
+export const useSettlements = (groupId: GroupId) => useQuery(settlementsQueryOptions(groupId));

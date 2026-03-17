@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
   server: {
     // During development, you can point Capacitor at the Vite dev server
     // so you get hot-reload on device. Comment this out for production builds.
-    // url: 'http://YOUR_LOCAL_IP:5173',
+    // url: 'http://YOUR_LOCAL_IP:3000',
     // cleartext: true,
   },
 };

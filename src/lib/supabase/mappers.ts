@@ -37,12 +37,12 @@ import type { Database, Json } from './types.gen';
 // Row type aliases (shorthand for use within this file)
 // ---------------------------------------------------------------------------
 
-type GroupRow         = Database['public']['Tables']['groups']['Row'];
-type GroupMemberRow   = Database['public']['Tables']['group_members']['Row'];
-type ExpenseRow       = Database['public']['Tables']['expenses']['Row'];
-type ExpenseSplitRow  = Database['public']['Tables']['expense_splits']['Row'];
-type SettlementRow    = Database['public']['Tables']['settlements']['Row'];
-type FriendshipRow    = Database['public']['Tables']['friendships']['Row'];
+type GroupRow = Database['public']['Tables']['groups']['Row'];
+type GroupMemberRow = Database['public']['Tables']['group_members']['Row'];
+type ExpenseRow = Database['public']['Tables']['expenses']['Row'];
+type ExpenseSplitRow = Database['public']['Tables']['expense_splits']['Row'];
+type SettlementRow = Database['public']['Tables']['settlements']['Row'];
+type FriendshipRow = Database['public']['Tables']['friendships']['Row'];
 
 /** Shape returned by group_members queries that embed profiles via FK join */
 export type GroupMemberWithProfile = GroupMemberRow & {
@@ -104,8 +104,8 @@ export type FriendshipWithProfiles = FriendshipRow & {
 export const mapFriend = (row: FriendshipWithProfiles, currentUserId: UserId): Friend => {
   const iAmRequester = row.requester_id === currentUserId;
   return {
-    userId:       (iAmRequester ? row.addressee_id : row.requester_id) as UserId,
-    displayName:  iAmRequester
+    userId: (iAmRequester ? row.addressee_id : row.requester_id) as UserId,
+    displayName: iAmRequester
       ? (row.addressee?.display_name ?? '')
       : (row.requester?.display_name ?? ''),
     friendshipId: row.id as FriendshipId,

@@ -1,22 +1,28 @@
-import { describe, it, expect } from 'vitest';
-import { calculateGroupBalances, simplifyDebts } from './index';
-import { money, ZERO } from '../money';
+import { describe, expect, it } from 'vitest';
+import { ZERO, money } from '../money';
 import type {
-  UserId, GroupId, ExpenseId, SettlementId,
-  Expense, Settlement, GroupMember, BalanceMap,
+  BalanceMap,
+  Expense,
+  ExpenseId,
+  GroupId,
+  GroupMember,
+  Settlement,
+  SettlementId,
+  UserId,
 } from '../types';
+import { calculateGroupBalances, simplifyDebts } from './index';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const uid  = (s: string) => s as UserId;
-const gid  = 'group-1' as GroupId;
-const eid  = (s: string) => s as ExpenseId;
-const sid  = (s: string) => s as SettlementId;
+const uid = (s: string) => s as UserId;
+const gid = 'group-1' as GroupId;
+const eid = (s: string) => s as ExpenseId;
+const sid = (s: string) => s as SettlementId;
 
 const alice = uid('alice');
-const bob   = uid('bob');
+const bob = uid('bob');
 const carol = uid('carol');
 
 const member = (userId: UserId): GroupMember => ({
@@ -35,37 +41,31 @@ const makeExpense = (
   totalAmount: number,
   splits: Array<{ userId: UserId; amount: number }>,
 ): Expense => ({
-  id:          eid(id),
-  groupId:     gid,
+  id: eid(id),
+  groupId: gid,
   description: 'test expense',
   totalAmount: money(totalAmount),
   paidBy,
-  split:       { type: 'equal' },
-  splits:      splits.map((s) => ({ userId: s.userId, amount: money(s.amount) })),
-  createdBy:   paidBy,
-  createdAt:   new Date('2024-01-01'),
-  updatedAt:   new Date('2024-01-01'),
+  split: { type: 'equal' },
+  splits: splits.map((s) => ({ userId: s.userId, amount: money(s.amount) })),
+  createdBy: paidBy,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
 });
 
 /** Build a minimal Settlement. */
-const makeSettlement = (
-  id: string,
-  from: UserId,
-  to: UserId,
-  amount: number,
-): Settlement => ({
-  id:          sid(id),
-  batchId:     null,
-  groupId:     gid,
-  fromUserId:  from,
-  toUserId:    to,
-  amount:      money(amount),
-  createdAt:   new Date('2024-01-01'),
+const makeSettlement = (id: string, from: UserId, to: UserId, amount: number): Settlement => ({
+  id: sid(id),
+  batchId: null,
+  groupId: gid,
+  fromUserId: from,
+  toUserId: to,
+  amount: money(amount),
+  createdAt: new Date('2024-01-01'),
 });
 
 /** Returns the sum of all values in a BalanceMap. */
-const balanceSum = (map: BalanceMap): number =>
-  Array.from(map.values()).reduce((a, b) => a + b, 0);
+const balanceSum = (map: BalanceMap): number => Array.from(map.values()).reduce((a, b) => a + b, 0);
 
 // ---------------------------------------------------------------------------
 // calculateGroupBalances
@@ -86,7 +86,7 @@ describe('calculateGroupBalances', () => {
     // Carol: -10
     const expense = makeExpense('e1', alice, 3000, [
       { userId: alice, amount: 1000 },
-      { userId: bob,   amount: 1000 },
+      { userId: bob, amount: 1000 },
       { userId: carol, amount: 1000 },
     ]);
     const result = calculateGroupBalances([expense], [], members);
@@ -101,7 +101,7 @@ describe('calculateGroupBalances', () => {
     // Bob:   -50
     // Carol: -50
     const expense = makeExpense('e1', alice, 10000, [
-      { userId: bob,   amount: 5000 },
+      { userId: bob, amount: 5000 },
       { userId: carol, amount: 5000 },
     ]);
     const result = calculateGroupBalances([expense], [], members);
@@ -113,12 +113,12 @@ describe('calculateGroupBalances', () => {
   it('multiple expenses accumulate correctly', () => {
     const exp1 = makeExpense('e1', alice, 3000, [
       { userId: alice, amount: 1000 },
-      { userId: bob,   amount: 1000 },
+      { userId: bob, amount: 1000 },
       { userId: carol, amount: 1000 },
     ]);
     const exp2 = makeExpense('e2', bob, 3000, [
       { userId: alice, amount: 1000 },
-      { userId: bob,   amount: 1000 },
+      { userId: bob, amount: 1000 },
       { userId: carol, amount: 1000 },
     ]);
     // After two equal expenses (Alice pays one, Bob pays one):
@@ -134,7 +134,7 @@ describe('calculateGroupBalances', () => {
   it('settlement reduces the outstanding debt', () => {
     const expense = makeExpense('e1', alice, 3000, [
       { userId: alice, amount: 1000 },
-      { userId: bob,   amount: 1000 },
+      { userId: bob, amount: 1000 },
       { userId: carol, amount: 1000 },
     ]);
     // Bob pays Alice back €10
@@ -151,7 +151,7 @@ describe('calculateGroupBalances', () => {
   it('full settlement zeroes out all balances', () => {
     const expense = makeExpense('e1', alice, 2000, [
       { userId: alice, amount: 1000 },
-      { userId: bob,   amount: 1000 },
+      { userId: bob, amount: 1000 },
     ]);
     const settlement = makeSettlement('s1', bob, alice, 1000);
     const twoMembers = [member(alice), member(bob)];
@@ -164,7 +164,7 @@ describe('calculateGroupBalances', () => {
     // Carol has no expenses or settlements
     const expense = makeExpense('e1', alice, 2000, [
       { userId: alice, amount: 1000 },
-      { userId: bob,   amount: 1000 },
+      { userId: bob, amount: 1000 },
     ]);
     const result = calculateGroupBalances([expense], [], members);
     expect(result.get(carol)).toBe(ZERO);
@@ -181,12 +181,12 @@ describe('calculateGroupBalances', () => {
   it('zero-sum invariant: all balances always sum to zero', () => {
     const exp1 = makeExpense('e1', alice, 3700, [
       { userId: alice, amount: 1234 },
-      { userId: bob,   amount: 1233 },
+      { userId: bob, amount: 1233 },
       { userId: carol, amount: 1233 },
     ]);
     const exp2 = makeExpense('e2', carol, 5000, [
       { userId: alice, amount: 1667 },
-      { userId: bob,   amount: 1667 },
+      { userId: bob, amount: 1667 },
       { userId: carol, amount: 1666 },
     ]);
     const settlement = makeSettlement('s1', bob, alice, 500);
@@ -203,7 +203,7 @@ describe('simplifyDebts', () => {
   it('returns no instructions when all balances are zero', () => {
     const balances: BalanceMap = new Map([
       [alice, ZERO],
-      [bob,   ZERO],
+      [bob, ZERO],
       [carol, ZERO],
     ]);
     expect(simplifyDebts(balances)).toHaveLength(0);
@@ -211,8 +211,8 @@ describe('simplifyDebts', () => {
 
   it('single creditor and single debtor produces one instruction', () => {
     const balances: BalanceMap = new Map([
-      [alice, money(1000)],   // owed €10
-      [bob,   money(-1000)],  // owes €10
+      [alice, money(1000)], // owed €10
+      [bob, money(-1000)], // owes €10
     ]);
     const result = simplifyDebts(balances);
     expect(result).toHaveLength(1);
@@ -223,7 +223,7 @@ describe('simplifyDebts', () => {
     // Each person both owes and is owed €10 → net balance is zero → no instructions
     const balances: BalanceMap = new Map([
       [alice, ZERO],
-      [bob,   ZERO],
+      [bob, ZERO],
       [carol, ZERO],
     ]);
     expect(simplifyDebts(balances)).toHaveLength(0);
@@ -233,7 +233,7 @@ describe('simplifyDebts', () => {
     // Alice is owed €20, Bob owes €10, Carol owes €10
     const balances: BalanceMap = new Map([
       [alice, money(2000)],
-      [bob,   money(-1000)],
+      [bob, money(-1000)],
       [carol, money(-1000)],
     ]);
     const result = simplifyDebts(balances);
@@ -248,7 +248,7 @@ describe('simplifyDebts', () => {
     // Carol owes €20 total: €10 to Alice, €10 to Bob
     const balances: BalanceMap = new Map([
       [alice, money(1000)],
-      [bob,   money(1000)],
+      [bob, money(1000)],
       [carol, money(-2000)],
     ]);
     const result = simplifyDebts(balances);
@@ -259,7 +259,7 @@ describe('simplifyDebts', () => {
   it('instruction amounts sum to the total amount owed', () => {
     const balances: BalanceMap = new Map([
       [alice, money(3000)],
-      [bob,   money(-1000)],
+      [bob, money(-1000)],
       [carol, money(-2000)],
     ]);
     const result = simplifyDebts(balances);
@@ -272,7 +272,7 @@ describe('simplifyDebts', () => {
     // Alice owed €30, Bob owes €10, Carol owes €20
     const balances: BalanceMap = new Map([
       [alice, money(3000)],
-      [bob,   money(-1000)],
+      [bob, money(-1000)],
       [carol, money(-2000)],
     ]);
     const result = simplifyDebts(balances);
@@ -280,7 +280,7 @@ describe('simplifyDebts', () => {
     // Then bob (1000) pays alice (1000 remaining)
     expect(result).toHaveLength(2);
     const carolPays = result.find((i) => i.fromUserId === carol);
-    const bobPays   = result.find((i) => i.fromUserId === bob);
+    const bobPays = result.find((i) => i.fromUserId === bob);
     expect(carolPays?.toUserId).toBe(alice);
     expect(carolPays?.amount).toBe(money(2000));
     expect(bobPays?.toUserId).toBe(alice);

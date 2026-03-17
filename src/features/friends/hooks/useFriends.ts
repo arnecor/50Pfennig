@@ -7,12 +7,12 @@
  * Invalidate this key whenever a friendship is created or updated.
  */
 
-import { useQuery } from '@tanstack/react-query';
 import { friendRepository } from '@repositories';
+import { useQuery } from '@tanstack/react-query';
 
 export const friendsQueryOptions = () => ({
   queryKey: ['friends'] as const,
-  queryFn:  () => friendRepository.getAll(),
+  queryFn: () => friendRepository.getAll(),
 });
 
 export function useFriends() {

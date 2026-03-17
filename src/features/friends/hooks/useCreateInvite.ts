@@ -5,8 +5,8 @@
  * Returns a FriendInvite with the token and expiry date.
  */
 
-import { useMutation } from '@tanstack/react-query';
 import { friendRepository } from '@repositories';
+import { useMutation } from '@tanstack/react-query';
 
 export function useCreateInvite() {
   return useMutation({

@@ -4,9 +4,9 @@
  * Renders the list of groups the current user belongs to.
  */
 
-import { useTranslation } from 'react-i18next';
-import { Button } from '@components/ui/button';
 import EmptyState from '@components/shared/EmptyState';
+import { Button } from '@components/ui/button';
+import { useTranslation } from 'react-i18next';
 import { useGroups } from '../hooks/useGroups';
 import GroupCard from './GroupCard';
 
@@ -46,11 +46,7 @@ export default function GroupList({ onCreateGroup }: Props) {
       <EmptyState
         title={t('groups.empty_title')}
         description={t('groups.empty_description')}
-        action={
-          <Button onClick={onCreateGroup}>
-            {t('groups.create')}
-          </Button>
-        }
+        action={<Button onClick={onCreateGroup}>{t('groups.create')}</Button>}
       />
     );
   }

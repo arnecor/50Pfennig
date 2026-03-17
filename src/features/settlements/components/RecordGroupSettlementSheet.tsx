@@ -10,16 +10,16 @@
  * needed here because the user is explicitly settling a group-level debt.
  */
 
-import type { DebtInstruction, Group, Money, UserId } from '@domain/types';
-import { money } from '@domain/types';
-import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
 import { UserAvatar } from '@components/shared/UserAvatar';
-import { Circle, CircleDot, X } from 'lucide-react';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
+import type { DebtInstruction, Group, Money, UserId } from '@domain/types';
+import { money } from '@domain/types';
+import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
+import { Circle, CircleDot, X } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,7 +38,10 @@ type Props = {
 // ---------------------------------------------------------------------------
 
 function parseAmountCents(input: string): number {
-  const normalized = input.trim().replace(',', '.').replace(/[^0-9.]/g, '');
+  const normalized = input
+    .trim()
+    .replace(',', '.')
+    .replace(/[^0-9.]/g, '');
   const val = Number.parseFloat(normalized);
   return Number.isNaN(val) ? 0 : Math.round(val * 100);
 }
@@ -61,20 +64,20 @@ export default function RecordGroupSettlementSheet({
   const createSettlement = useCreateSettlement();
 
   const defaultFrom = suggestion?.fromUserId ?? group.members[0]?.userId;
-  const defaultTo   = suggestion?.toUserId   ?? group.members[1]?.userId;
+  const defaultTo = suggestion?.toUserId ?? group.members[1]?.userId;
 
   const [fromUserId, setFromUserId] = useState<UserId | undefined>(defaultFrom);
-  const [toUserId, setToUserId]     = useState<UserId | undefined>(defaultTo);
-  const [amountStr, setAmountStr]   = useState(
+  const [toUserId, setToUserId] = useState<UserId | undefined>(defaultTo);
+  const [amountStr, setAmountStr] = useState(
     suggestion ? centsToInputString(suggestion.amount) : '',
   );
-  const [note, setNote]             = useState('');
+  const [note, setNote] = useState('');
   const [amountError, setAmountError] = useState('');
 
   const memberName = (id: UserId) =>
     id === currentUserId
       ? t('common.you')
-      : (group.members.find(m => m.userId === id)?.displayName ?? String(id));
+      : (group.members.find((m) => m.userId === id)?.displayName ?? String(id));
 
   const handleSubmit = async () => {
     const cents = parseAmountCents(amountStr);
@@ -103,7 +106,12 @@ export default function RecordGroupSettlementSheet({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[55] bg-black/40" onClick={onClose} onKeyDown={onClose} aria-hidden="true" />
+      <div
+        className="fixed inset-0 z-[55] bg-black/40"
+        onClick={onClose}
+        onKeyDown={onClose}
+        aria-hidden="true"
+      />
 
       {/* Sheet */}
       <div
@@ -125,14 +133,13 @@ export default function RecordGroupSettlementSheet({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-
           {/* From */}
           <section className="mb-5">
             <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t('settlements.from')}
             </p>
             <div className="flex flex-col gap-0.5">
-              {group.members.map(m => (
+              {group.members.map((m) => (
                 <button
                   key={String(m.userId)}
                   type="button"
@@ -145,10 +152,11 @@ export default function RecordGroupSettlementSheet({
                 >
                   <UserAvatar name={m.displayName} size="sm" />
                   <span className="flex-1 text-left">{memberName(m.userId)}</span>
-                  {fromUserId === m.userId
-                    ? <CircleDot className="h-4 w-4 shrink-0 text-primary" />
-                    : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  }
+                  {fromUserId === m.userId ? (
+                    <CircleDot className="h-4 w-4 shrink-0 text-primary" />
+                  ) : (
+                    <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  )}
                 </button>
               ))}
             </div>
@@ -161,8 +169,8 @@ export default function RecordGroupSettlementSheet({
             </p>
             <div className="flex flex-col gap-0.5">
               {group.members
-                .filter(m => m.userId !== fromUserId)
-                .map(m => (
+                .filter((m) => m.userId !== fromUserId)
+                .map((m) => (
                   <button
                     key={String(m.userId)}
                     type="button"
@@ -175,10 +183,11 @@ export default function RecordGroupSettlementSheet({
                   >
                     <UserAvatar name={m.displayName} size="sm" />
                     <span className="flex-1 text-left">{memberName(m.userId)}</span>
-                    {toUserId === m.userId
-                      ? <CircleDot className="h-4 w-4 shrink-0 text-primary" />
-                      : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    }
+                    {toUserId === m.userId ? (
+                      <CircleDot className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
                   </button>
                 ))}
             </div>
@@ -196,7 +205,10 @@ export default function RecordGroupSettlementSheet({
                 inputMode="decimal"
                 placeholder="0,00"
                 value={amountStr}
-                onChange={e => { setAmountStr(e.target.value); setAmountError(''); }}
+                onChange={(e) => {
+                  setAmountStr(e.target.value);
+                  setAmountError('');
+                }}
                 className="pl-7"
               />
             </div>
@@ -210,7 +222,7 @@ export default function RecordGroupSettlementSheet({
               id="settlement-note"
               placeholder={t('settlements.note_placeholder')}
               value={note}
-              onChange={e => setNote(e.target.value)}
+              onChange={(e) => setNote(e.target.value)}
             />
           </div>
         </div>
@@ -231,10 +243,7 @@ export default function RecordGroupSettlementSheet({
               size="lg"
               className="flex-1"
               disabled={
-                !fromUserId ||
-                !toUserId ||
-                fromUserId === toUserId ||
-                createSettlement.isPending
+                !fromUserId || !toUserId || fromUserId === toUserId || createSettlement.isPending
               }
               onClick={handleSubmit}
             >

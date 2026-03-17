@@ -46,7 +46,7 @@ export class SupabaseGroupRepository implements IGroupRepository {
   }
 
   async create(input: CreateGroupInput): Promise<Group> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
     const { data: group, error } = await (supabase.rpc as any)('create_group', {
       p_name: input.name,
       p_member_ids: input.memberIds ?? [],

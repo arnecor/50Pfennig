@@ -18,11 +18,7 @@
  */
 
 import { Capacitor } from '@capacitor/core';
-import {
-  PushNotifications,
-  type ActionPerformed,
-  type Token,
-} from '@capacitor/push-notifications';
+import { type ActionPerformed, PushNotifications, type Token } from '@capacitor/push-notifications';
 
 export type NotificationData = {
   type: 'expense' | 'group_member';
@@ -72,27 +68,21 @@ export async function initPushNotifications(
   const registrationListener = await PushNotifications.addListener(
     'registration',
     (token: Token) => {
-      console.info('[Push] FCM token received:', token.value.slice(0, 20) + '…');
+      console.info('[Push] FCM token received:', `${token.value.slice(0, 20)}…`);
       onToken(token.value);
     },
   );
 
-  const errorListener = await PushNotifications.addListener(
-    'registrationError',
-    (err) => {
-      console.error('Push registration failed', err);
-    },
-  );
+  const errorListener = await PushNotifications.addListener('registrationError', (err) => {
+    console.error('Push registration failed', err);
+  });
 
   // Notification received while app is in the foreground — no default UI,
   // so we do nothing here (background notifications are handled by the OS).
-  const foregroundListener = await PushNotifications.addListener(
-    'pushNotificationReceived',
-    () => {
-      // Intentionally empty: foreground notifications are silent in V1.
-      // A future iteration could show an in-app banner here.
-    },
-  );
+  const foregroundListener = await PushNotifications.addListener('pushNotificationReceived', () => {
+    // Intentionally empty: foreground notifications are silent in V1.
+    // A future iteration could show an in-app banner here.
+  });
 
   // User tapped a notification (foreground or background)
   const tapListener = await PushNotifications.addListener(

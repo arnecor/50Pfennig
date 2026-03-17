@@ -9,13 +9,16 @@
  */
 
 import EmptyState from '@components/shared/EmptyState';
-import { PageHeader } from '@components/shared/PageHeader';
 import { FriendCard } from '@components/shared/FriendCard';
+import { PageHeader } from '@components/shared/PageHeader';
 import { computeBilateralBalance } from '@domain/balance';
 import type { Expense, UserId } from '@domain/types';
 import { ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
-import { expensesQueryOptions, friendExpensesQueryOptions } from '@features/expenses/expenseQueries';
+import {
+  expensesQueryOptions,
+  friendExpensesQueryOptions,
+} from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
@@ -47,19 +50,21 @@ export default function FriendsPage() {
     friendExpensesQueryOptions(),
   );
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
-  const currentUserId = useAuthStore(s => s.session?.user.id) as UserId | undefined;
+  const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
 
-  const groupExpensesResults = useQueries({ queries: groups.map(g => expensesQueryOptions(g.id)) });
+  const groupExpensesResults = useQueries({
+    queries: groups.map((g) => expensesQueryOptions(g.id)),
+  });
   const sharedSettlementsResults = useQueries({
-    queries: friends.map(f => sharedSettlementsQueryOptions(f.userId)),
+    queries: friends.map((f) => sharedSettlementsQueryOptions(f.userId)),
   });
 
   const isLoading =
     friendsLoading ||
     friendExpensesLoading ||
     groupsLoading ||
-    groupExpensesResults.some(r => r.isLoading) ||
-    sharedSettlementsResults.some(r => r.isLoading);
+    groupExpensesResults.some((r) => r.isLoading) ||
+    sharedSettlementsResults.some((r) => r.isLoading);
 
   const allExpenses = useMemo(() => {
     const result: Expense[] = [...friendExpenses];
@@ -75,12 +80,17 @@ export default function FriendsPage() {
       .map((friend, i) => {
         const friendIdStr = friend.userId as string;
         const shared = allExpenses.filter(
-          e =>
+          (e) =>
             (e.paidBy as string) === friendIdStr ||
-            e.splits.some(s => (s.userId as string) === friendIdStr),
+            e.splits.some((s) => (s.userId as string) === friendIdStr),
         );
         const friendSettlements = sharedSettlementsResults[i]?.data ?? [];
-        const balance = computeBilateralBalance(shared, friendSettlements, currentUserId, friend.userId);
+        const balance = computeBilateralBalance(
+          shared,
+          friendSettlements,
+          currentUserId,
+          friend.userId,
+        );
         const lastExpenseDate = shared[0]?.createdAt;
         return { friend, balance, lastExpenseDate };
       })

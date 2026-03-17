@@ -1,17 +1,17 @@
-import { describe, it, expect } from 'vitest';
-import { allocateSettlement, type ContextDebt } from './index';
-import { money, ZERO } from '../types';
+import { describe, expect, it } from 'vitest';
+import { ZERO, money } from '../types';
 import type { GroupId, UserId } from '../types';
+import { type ContextDebt, allocateSettlement } from './index';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const uid  = (s: string) => s as UserId;
-const gid  = (s: string) => s as GroupId;
+const uid = (s: string) => s as UserId;
+const gid = (s: string) => s as GroupId;
 
 const anna = uid('anna');
-const me   = uid('me');
+const me = uid('me');
 
 const groupX = gid('group-x');
 const groupY = gid('group-y');
@@ -40,27 +40,27 @@ describe('allocateSettlement', () => {
   it('two contexts: allocates across group + direct', () => {
     const debts: ContextDebt[] = [
       { groupId: groupX, amount: money(1500) }, // anna owes me €15 in group X
-      { groupId: null,   amount: money(500) },  // anna owes me €5 direct
+      { groupId: null, amount: money(500) }, // anna owes me €5 direct
     ];
 
     const result = allocateSettlement(money(2000), anna, me, debts);
 
     expect(result).toHaveLength(2);
 
-    const groupAlloc = result.find(a => a.groupId === groupX);
-    const directAlloc = result.find(a => a.groupId === null);
+    const groupAlloc = result.find((a) => a.groupId === groupX);
+    const directAlloc = result.find((a) => a.groupId === null);
 
     expect(groupAlloc?.amount).toBe(money(1500));
     expect(directAlloc?.amount).toBe(money(500));
 
     // All allocations are anna → me
-    expect(result.every(a => a.fromUserId === anna && a.toUserId === me)).toBe(true);
+    expect(result.every((a) => a.fromUserId === anna && a.toUserId === me)).toBe(true);
   });
 
   it('partial payment: greedy allocation to largest debt first', () => {
     const debts: ContextDebt[] = [
       { groupId: groupX, amount: money(1500) }, // largest debt
-      { groupId: null,   amount: money(500) },
+      { groupId: null, amount: money(500) },
     ];
 
     const result = allocateSettlement(money(1000), anna, me, debts);
@@ -78,31 +78,29 @@ describe('allocateSettlement', () => {
   it('partial payment: spills to second context when first is exhausted', () => {
     const debts: ContextDebt[] = [
       { groupId: groupX, amount: money(1500) },
-      { groupId: null,   amount: money(500) },
+      { groupId: null, amount: money(500) },
     ];
 
     const result = allocateSettlement(money(1800), anna, me, debts);
 
     expect(result).toHaveLength(2);
 
-    const groupAlloc = result.find(a => a.groupId === groupX);
-    const directAlloc = result.find(a => a.groupId === null);
+    const groupAlloc = result.find((a) => a.groupId === groupX);
+    const directAlloc = result.find((a) => a.groupId === null);
 
     expect(groupAlloc?.amount).toBe(money(1500)); // fully allocated
-    expect(directAlloc?.amount).toBe(money(300));  // remainder
+    expect(directAlloc?.amount).toBe(money(300)); // remainder
   });
 
   it('overpayment: excess goes to direct context', () => {
-    const debts: ContextDebt[] = [
-      { groupId: groupX, amount: money(1500) },
-    ];
+    const debts: ContextDebt[] = [{ groupId: groupX, amount: money(1500) }];
 
     const result = allocateSettlement(money(2000), anna, me, debts);
 
     expect(result).toHaveLength(2);
 
-    const groupAlloc = result.find(a => a.groupId === groupX);
-    const directAlloc = result.find(a => a.groupId === null);
+    const groupAlloc = result.find((a) => a.groupId === groupX);
+    const directAlloc = result.find((a) => a.groupId === null);
 
     expect(groupAlloc?.amount).toBe(money(1500));
     expect(directAlloc?.amount).toBe(money(500)); // overpayment
@@ -111,8 +109,8 @@ describe('allocateSettlement', () => {
   it('full settlement with cross-direction debts zeros all contexts', () => {
     // anna owes me €15 in group X, I owe anna €3 in group Y → net = €12
     const debts: ContextDebt[] = [
-      { groupId: groupX, amount: money(1500) },   // anna owes me
-      { groupId: groupY, amount: money(-300) },    // I owe anna (negative)
+      { groupId: groupX, amount: money(1500) }, // anna owes me
+      { groupId: groupY, amount: money(-300) }, // I owe anna (negative)
     ];
 
     const result = allocateSettlement(money(1200), anna, me, debts);
@@ -120,7 +118,7 @@ describe('allocateSettlement', () => {
     expect(result).toHaveLength(2);
 
     // Group X: anna → me €15 (same direction)
-    const groupXAlloc = result.find(a => a.groupId === groupX);
+    const groupXAlloc = result.find((a) => a.groupId === groupX);
     expect(groupXAlloc).toEqual({
       groupId: groupX,
       fromUserId: anna,
@@ -129,11 +127,11 @@ describe('allocateSettlement', () => {
     });
 
     // Group Y: me → anna €3 (reversed direction!)
-    const groupYAlloc = result.find(a => a.groupId === groupY);
+    const groupYAlloc = result.find((a) => a.groupId === groupY);
     expect(groupYAlloc).toEqual({
       groupId: groupY,
-      fromUserId: me,    // reversed
-      toUserId: anna,    // reversed
+      fromUserId: me, // reversed
+      toUserId: anna, // reversed
       amount: money(300),
     });
   });
@@ -141,7 +139,7 @@ describe('allocateSettlement', () => {
   it('net cash flow invariant: same-direction allocations sum to payment', () => {
     const debts: ContextDebt[] = [
       { groupId: groupX, amount: money(1500) },
-      { groupId: null,   amount: money(500) },
+      { groupId: null, amount: money(500) },
     ];
 
     const result = allocateSettlement(money(2000), anna, me, debts);
@@ -159,8 +157,8 @@ describe('allocateSettlement', () => {
     const result = allocateSettlement(money(1200), anna, me, debts);
 
     // Net = same-dir sum - cross-dir sum = 1500 - 300 = 1200
-    const sameDir = result.filter(a => a.fromUserId === anna);
-    const crossDir = result.filter(a => a.fromUserId === me);
+    const sameDir = result.filter((a) => a.fromUserId === anna);
+    const crossDir = result.filter((a) => a.fromUserId === me);
 
     const sameDirTotal = sameDir.reduce((s, a) => s + a.amount, 0);
     const crossDirTotal = crossDir.reduce((s, a) => s + a.amount, 0);
@@ -183,9 +181,7 @@ describe('allocateSettlement', () => {
   it('only cross-direction debts: treated as greedy (no full settlement)', () => {
     // I owe anna €5 in group Y, but anna is paying me?
     // This is a weird case — payment goes to direct context
-    const debts: ContextDebt[] = [
-      { groupId: groupY, amount: money(-500) },
-    ];
+    const debts: ContextDebt[] = [{ groupId: groupY, amount: money(-500) }];
 
     const result = allocateSettlement(money(1000), anna, me, debts);
 
@@ -208,16 +204,16 @@ describe('allocateSettlement', () => {
     const debts: ContextDebt[] = [
       { groupId: groupX, amount: money(500) },
       { groupId: groupY, amount: money(1500) },
-      { groupId: null,   amount: money(200) },
+      { groupId: null, amount: money(200) },
     ];
 
     const result = allocateSettlement(money(2200), anna, me, debts);
 
     expect(result).toHaveLength(3);
 
-    const xAlloc = result.find(a => a.groupId === groupX);
-    const yAlloc = result.find(a => a.groupId === groupY);
-    const dAlloc = result.find(a => a.groupId === null);
+    const xAlloc = result.find((a) => a.groupId === groupX);
+    const yAlloc = result.find((a) => a.groupId === groupY);
+    const dAlloc = result.find((a) => a.groupId === null);
 
     expect(xAlloc?.amount).toBe(money(500));
     expect(yAlloc?.amount).toBe(money(1500));

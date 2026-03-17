@@ -44,7 +44,9 @@ export default function EqualSplit({ totalAmount, participants }: Props) {
               className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0"
             >
               <UserAvatar name={member.displayName} size="sm" />
-              <span className="flex-1 text-sm font-medium text-foreground">{member.displayName}</span>
+              <span className="flex-1 text-sm font-medium text-foreground">
+                {member.displayName}
+              </span>
               <MoneyDisplay amount={amount} className="text-sm font-semibold tabular-nums" />
             </li>
           ))}

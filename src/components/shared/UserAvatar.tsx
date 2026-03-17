@@ -23,6 +23,7 @@ function nameToColor(name: string): string {
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {
+    // biome-ignore lint/style/noNonNullAssertion: guarded by parts.length >= 2
     return `${parts[0]![0]}${parts[1]![0]}`.toUpperCase();
   }
   return (parts[0]?.[0] ?? '?').toUpperCase();
@@ -54,18 +55,12 @@ export function UserAvatar({
         aria-label={name}
       >
         {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={name}
-            className="w-full h-full rounded-full object-cover"
-          />
+          <img src={avatarUrl} alt={name} className="w-full h-full rounded-full object-cover" />
         ) : (
           getInitials(name)
         )}
       </div>
-      {showName && (
-        <span className="font-medium text-foreground">{name}</span>
-      )}
+      {showName && <span className="font-medium text-foreground">{name}</span>}
     </div>
   );
 }
@@ -77,12 +72,7 @@ type AvatarGroupProps = {
   className?: string;
 };
 
-export function AvatarGroup({
-  users,
-  max = 3,
-  size = 'sm',
-  className,
-}: AvatarGroupProps) {
+export function AvatarGroup({ users, max = 3, size = 'sm', className }: AvatarGroupProps) {
   const displayUsers = users.slice(0, max);
   const remainingCount = users.length - max;
 
