@@ -47,7 +47,7 @@ All monetary columns are **integer cents**.
 - `expenses` — `group_id` is now **nullable** (NULL = friend expense)
 - `expense_splits` — unchanged (source of truth for all balances)
 - `settlements` — `group_id` is now **nullable** (NULL = friend settlement)
-- `friendships` — **new** (see migration 0003)
+- `friendships` — one row per pair, unordered unique index
 
 ```sql
 -- friendships
