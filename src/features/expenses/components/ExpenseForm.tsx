@@ -11,20 +11,18 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, ChevronRight, Users, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronRight, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button } from '@components/ui/button';
-import { Input } from '@components/ui/input';
-import { Label } from '@components/ui/label';
 import { money } from '@domain/types';
 import type { Friend, Group, GroupId, GroupMember, UserId } from '@domain/types';
 import { useCreateExpense } from '../hooks/useCreateExpense';
 import ParticipantPicker, { type ParticipantSelection } from './ParticipantPicker';
-import SplitEditor from './SplitEditor';
+import CustomSplitEditor, { type SplitShare } from './SplitEditor/CustomSplitEditor';
 
 // ---------------------------------------------------------------------------
 // Zod schema
@@ -72,6 +70,16 @@ export default function ExpenseForm({
   const { t } = useTranslation();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [paidByUserId, setPaidByUserId] = useState<UserId>(currentUserId);
+
+  // Split editor state
+  const [splitShares, setSplitShares] = useState<SplitShare[]>([]);
+  const [isSplitValid, setIsSplitValid] = useState(true);
+
+  const handleSplitChange = (shares: SplitShare[], isValid: boolean) => {
+    setSplitShares(shares);
+    setIsSplitValid(isValid);
+  };
 
   // Initialise with pre-selected group if navigated from group context.
   const preselectedGroup = preselectedGroupId
@@ -82,6 +90,22 @@ export default function ExpenseForm({
     preselectedGroup ? { type: 'group', group: preselectedGroup } : null,
   );
   const [selectionError, setSelectionError] = useState<string | null>(null);
+
+  const handleSelectionChange = (next: ParticipantSelection | null) => {
+    setSelection(next);
+    // If the previously chosen payer is no longer among the new participants, reset to self.
+    if (next === null) {
+      setPaidByUserId(currentUserId);
+      return;
+    }
+    const nextIds: UserId[] =
+      next.type === 'group'
+        ? next.group.members.map((m) => m.userId)
+        : [currentUserId, ...next.userIds];
+    if (!nextIds.includes(paidByUserId)) {
+      setPaidByUserId(currentUserId);
+    }
+  };
 
   const createExpense = useCreateExpense();
 
@@ -138,6 +162,11 @@ export default function ExpenseForm({
       return;
     }
 
+    // Validate split sums to totalAmount
+    if (!isSplitValid) {
+      return;
+    }
+
     try {
       const description =
         values.description?.trim() ||
@@ -151,12 +180,16 @@ export default function ExpenseForm({
 
       const groupId = selection.type === 'group' ? selection.group.id : null;
 
+      // Build split object from custom shares
+      const splitWeights = splitShares.map((s) => s.amountCents);
+      const isEqualSplit = splitWeights.every((w) => w === splitWeights[0]);
+
       await createExpense.mutateAsync({
         groupId,
         description,
         totalAmount,
-        paidBy: currentUserId,
-        split: { type: 'equal' },
+        paidBy: paidByUserId,
+        split: isEqualSplit ? { type: 'equal' } : { type: 'exact', amounts: splitWeights },
         participants,
       });
 
@@ -178,36 +211,41 @@ export default function ExpenseForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        {/* Description */}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="description">{t('expenses.form.description_label')}</Label>
-          <Input
-            id="description"
-            placeholder={t('expenses.form.description_placeholder_field')}
-            maxLength={200}
-            {...register('description')}
-          />
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 
-        {/* Amount */}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="amountInput">{t('expenses.form.amount_label')}</Label>
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+        {/* ── Hero amount input ── */}
+        <div className="flex flex-col items-center gap-1.5 rounded-2xl bg-card border border-border px-5 pt-5 pb-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            {t('expenses.form.amount_label')}
+          </p>
+
+          {/* Large currency + input row */}
+          <div className="flex items-center justify-center gap-1 w-full">
+            <span className="text-3xl font-bold text-muted-foreground/60 leading-none select-none">
               €
             </span>
-            <Input
+            <input
               id="amountInput"
               inputMode="decimal"
               placeholder="0,00"
-              className="pl-7"
+              autoFocus
+              aria-label={t('expenses.form.amount_label')}
+              className={[
+                'w-full min-w-0 bg-transparent text-center text-4xl font-bold tabular-nums leading-none text-foreground',
+                'placeholder:text-muted-foreground/30',
+                'outline-none border-none focus:ring-0',
+                errors.amountInput ? 'text-destructive' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               {...register('amountInput')}
             />
           </div>
+
+          {/* Inline amount error */}
           {errors.amountInput && (
-            <p className="flex items-center gap-1 text-sm text-destructive">
-              <AlertCircle className="h-3.5 w-3.5" />
+            <p className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="h-3 w-3" />
               {errors.amountInput.message === 'required'
                 ? t('expenses.form.amount_error_required')
                 : t('expenses.form.amount_error_positive')}
@@ -215,78 +253,176 @@ export default function ExpenseForm({
           )}
         </div>
 
-        {/* Paid by (read-only) */}
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('expenses.form.paid_by_label')}</Label>
-          <div className="rounded-xl border border-border bg-muted/40 px-3 py-2.5">
-            <p className="text-sm font-medium">{currentUserDisplayName}</p>
-          </div>
-        </div>
-
-        {/* Split with — picker trigger */}
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('expenses.form.split_with_label')}</Label>
-
-          {selectionLabel ? (
-            <div className="flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/5 px-3 py-2.5">
-              {selection?.type === 'group' && <Users className="h-4 w-4 shrink-0 text-primary" />}
-              <button
-                type="button"
-                className="flex-1 text-left text-sm font-medium text-foreground"
-                onClick={() => setPickerOpen(true)}
-              >
-                {selectionLabel}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelection(null)}
-                aria-label={t('common.cancel')}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted"
+        {/* ── Description — separate card, clearly optional ── */}
+        <div className="rounded-2xl border border-border bg-card px-4 py-3.5">
+          <div className="flex items-center justify-between mb-2">
+            <label
+              htmlFor="description"
+              className="text-sm font-medium text-foreground"
             >
-              <span>{t('expenses.form.split_with_placeholder')}</span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          )}
-
-          {selectionError && (
-            <p className="flex items-center gap-1 text-sm text-destructive">
-              <AlertCircle className="h-3.5 w-3.5" />
-              {selectionError}
-            </p>
-          )}
+              {t('expenses.form.description_label')}
+            </label>
+            <span className="text-xs text-muted-foreground/70 bg-muted px-2 py-0.5 rounded-full">
+              optional
+            </span>
+          </div>
+          <input
+            id="description"
+            maxLength={200}
+            placeholder={t('expenses.form.description_placeholder_field')}
+            aria-label={t('expenses.form.description_label')}
+            className={[
+              'w-full bg-muted/40 rounded-xl border border-border px-3 py-2',
+              'text-sm text-foreground placeholder:text-muted-foreground/50',
+              'outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
+              'transition-[border-color,box-shadow]',
+            ].join(' ')}
+            {...register('description')}
+          />
         </div>
 
-        {/* Split preview (shown only when participants are selected) */}
-        {participantsForPreview.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <Label>{t('expenses.form.split_type_label')}</Label>
-            <SplitEditor totalAmount={totalAmountCents} participants={participantsForPreview} />
+        {/* ── Details card (paid by + split with) ── */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+
+          {/* Paid by row — selectable */}
+          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
+            <label
+              htmlFor="paidBySelect"
+              className="text-sm text-muted-foreground shrink-0"
+            >
+              {t('expenses.form.paid_by_label')}
+            </label>
+            <div className="relative flex-1 flex justify-end">
+              <select
+                id="paidBySelect"
+                value={paidByUserId}
+                onChange={(e) => setPaidByUserId(e.target.value as UserId)}
+                disabled={participantsForPreview.length === 0}
+                className={[
+                  'appearance-none bg-muted/50 rounded-lg border border-border',
+                  'px-3 py-1.5 pr-7 text-sm font-semibold text-foreground text-right',
+                  'outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
+                  'cursor-pointer transition-[border-color,box-shadow]',
+                  'disabled:opacity-50 disabled:cursor-default',
+                ].join(' ')}
+              >
+                {participantsForPreview.length === 0 ? (
+                  <option value={currentUserId}>{currentUserDisplayName}</option>
+                ) : (
+                  participantsForPreview.map((m) => (
+                    <option key={m.userId} value={m.userId}>
+                      {m.userId === currentUserId
+                        ? `${m.displayName} (${t('common.you')})`
+                        : m.displayName}
+                    </option>
+                  ))
+                )}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            </div>
           </div>
+
+          {/* Split with row — expands when multiple friends are selected */}
+          <div className="flex flex-col px-4 py-3.5 gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                {t('expenses.form.split_with_label')}
+              </span>
+
+              {selection ? (
+                <button
+                  type="button"
+                  onClick={() => handleSelectionChange(null)}
+                  aria-label={t('common.cancel')}
+                  className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span>{t('expenses.form.split_with_placeholder')}</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Selected: group — single pill */}
+            {selection?.type === 'group' && (
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="flex items-center gap-1.5 self-start rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                <Users className="h-3.5 w-3.5 shrink-0" />
+                {selection.group.name}
+              </button>
+            )}
+
+            {/* Selected: friends — one pill per person */}
+            {selection?.type === 'friends' && selection.userIds.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {selection.userIds.map((uid) => {
+                  const name = friends.find((f) => f.userId === uid)?.displayName ?? uid;
+                  return (
+                    <button
+                      key={uid}
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                >
+                  + {t('expenses.form.split_with_placeholder')}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Selection error */}
+        {selectionError && (
+          <p className="flex items-center gap-1 text-sm text-destructive px-1">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            {selectionError}
+          </p>
         )}
 
-        {/* Submit error */}
+        {/* ── Aufteilung (collapsible split editor) ── */}
+        {participantsForPreview.length > 0 && (
+          <CustomSplitEditor
+            totalAmount={totalAmountCents}
+            participants={participantsForPreview}
+            paidByUserId={paidByUserId}
+            currentUserId={currentUserId}
+            onChange={handleSplitChange}
+          />
+        )}
+
+        {/* ── Submit error ── */}
         {submitError && (
-          <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+          <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {submitError}
           </div>
         )}
 
-        {/* Submit button */}
+        {/* ── Submit button ── */}
         <Button
           type="submit"
           size="lg"
-          className="w-full"
-          disabled={isSubmitting || createExpense.isPending}
+          className="w-full rounded-2xl h-14 text-base font-bold"
+          disabled={isSubmitting || createExpense.isPending || !isSplitValid}
         >
           {isSubmitting || createExpense.isPending
             ? t('common.loading')
@@ -300,7 +436,7 @@ export default function ExpenseForm({
           groups={groups}
           friends={friends}
           value={selection}
-          onChange={setSelection}
+          onChange={handleSelectionChange}
           onClose={() => setPickerOpen(false)}
         />
       )}
