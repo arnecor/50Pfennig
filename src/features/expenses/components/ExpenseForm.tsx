@@ -204,19 +204,9 @@ export default function ExpenseForm({
     }
   };
 
-  // Selection summary label shown in the trigger chip
-  const selectionLabel: string | null = (() => {
-    if (!selection) return null;
-    if (selection.type === 'group') return selection.group.name;
-    return selection.userIds
-      .map((uid) => friends.find((f) => f.userId === uid)?.displayName ?? uid)
-      .join(', ');
-  })();
-
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-
         {/* ── Hero amount input ── */}
         <div className="flex flex-col items-center gap-1.5 rounded-2xl bg-card border border-border px-5 pt-5 pb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -232,7 +222,6 @@ export default function ExpenseForm({
               id="amountInput"
               inputMode="decimal"
               placeholder="0,00"
-              autoFocus
               aria-label={t('expenses.form.amount_label')}
               className={[
                 'w-full min-w-0 bg-transparent text-center text-4xl font-bold tabular-nums leading-none text-foreground',
@@ -260,10 +249,7 @@ export default function ExpenseForm({
         {/* ── Description — separate card, clearly optional ── */}
         <div className="rounded-2xl border border-border bg-card px-4 py-3.5">
           <div className="flex items-center justify-between mb-2">
-            <label
-              htmlFor="description"
-              className="text-sm font-medium text-foreground"
-            >
+            <label htmlFor="description" className="text-sm font-medium text-foreground">
               {t('expenses.form.description_label')}
             </label>
             <span className="text-xs text-muted-foreground/70 bg-muted px-2 py-0.5 rounded-full">
@@ -287,13 +273,9 @@ export default function ExpenseForm({
 
         {/* ── Details card (paid by + split with) ── */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
-
           {/* Paid by row — selectable */}
           <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
-            <label
-              htmlFor="paidBySelect"
-              className="text-sm text-muted-foreground shrink-0"
-            >
+            <label htmlFor="paidBySelect" className="text-sm text-muted-foreground shrink-0">
               {t('expenses.form.paid_by_label')}
             </label>
             <div className="relative flex-1 flex justify-end">

@@ -41,8 +41,8 @@ type DisplayMode = 'amount' | 'percent';
 // ---------------------------------------------------------------------------
 
 type ShareInputProps = {
-  value: string;          // formatted value to display when not focused
-  suffix: string;         // '€' or '%'
+  value: string; // formatted value to display when not focused
+  suffix: string; // '€' or '%'
   onCommit: (raw: string) => void;
 };
 
@@ -133,7 +133,10 @@ export default function CustomSplitEditor({
         onChange([], true);
         return;
       }
-      const equalShares = allocate(totalAmount, parts.map(() => 1));
+      const equalShares = allocate(
+        totalAmount,
+        parts.map(() => 1),
+      );
       const newMap = new Map<UserId, number>();
       parts.forEach((p, i) => newMap.set(p.userId, equalShares[i] ?? 0));
       setSharesCents(newMap);
@@ -142,10 +145,14 @@ export default function CustomSplitEditor({
     [totalAmount, onChange, notifyChange],
   );
 
-  // Re-initialize when participants or total changes
+  // Re-initialize only when participants or totalAmount change.
+  // applyEqualSplit is intentionally excluded: it depends on onChange/notifyChange
+  // which get new references on every render, so including it would reset user
+  // edits after every keystroke.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see comment above
   useEffect(() => {
     applyEqualSplit(participants);
-  }, [participants, totalAmount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [participants, totalAmount]);
 
   // Compute display string for a participant's cents value
   const formatValue = (cents: number): string => {
@@ -278,10 +285,11 @@ export default function CustomSplitEditor({
             <div className="border-t border-destructive/20 bg-destructive/10 px-4 py-2.5 text-xs text-destructive">
               {displayMode === 'percent'
                 ? t('expenses.form.split_percent_mismatch', {
-                    actual: ((sumCents / totalAmount) * 100)
-                      .toFixed(2)
-                      .replace('.', ',')
-                      .replace(/,?0+$/, '') || '0',
+                    actual:
+                      ((sumCents / totalAmount) * 100)
+                        .toFixed(2)
+                        .replace('.', ',')
+                        .replace(/,?0+$/, '') || '0',
                   })
                 : t('expenses.form.split_sum_mismatch', {
                     actual: formatMoney(money(sumCents)),
