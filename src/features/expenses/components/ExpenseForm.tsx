@@ -178,114 +178,152 @@ export default function ExpenseForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        {/* Description */}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="description">{t('expenses.form.description_label')}</Label>
-          <Input
-            id="description"
-            placeholder={t('expenses.form.description_placeholder_field')}
-            maxLength={200}
-            {...register('description')}
-          />
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 
-        {/* Amount */}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="amountInput">{t('expenses.form.amount_label')}</Label>
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+        {/* ── Hero amount input ── */}
+        <div className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border px-6 pt-8 pb-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            {t('expenses.form.amount_label')}
+          </p>
+
+          {/* Large currency + input row */}
+          <div className="flex items-center justify-center gap-1 w-full">
+            <span className="text-4xl font-bold text-muted-foreground/60 leading-none select-none">
               €
             </span>
-            <Input
+            <input
               id="amountInput"
               inputMode="decimal"
               placeholder="0,00"
-              className="pl-7"
+              autoFocus
+              aria-label={t('expenses.form.amount_label')}
+              className={[
+                'w-full min-w-0 bg-transparent text-center text-5xl font-bold tabular-nums leading-none text-foreground',
+                'placeholder:text-muted-foreground/30',
+                'outline-none border-none focus:ring-0',
+                errors.amountInput ? 'text-destructive' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               {...register('amountInput')}
             />
           </div>
+
+          {/* Inline amount error */}
           {errors.amountInput && (
-            <p className="flex items-center gap-1 text-sm text-destructive">
-              <AlertCircle className="h-3.5 w-3.5" />
+            <p className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="h-3 w-3" />
               {errors.amountInput.message === 'required'
                 ? t('expenses.form.amount_error_required')
                 : t('expenses.form.amount_error_positive')}
             </p>
           )}
-        </div>
 
-        {/* Paid by (read-only) */}
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('expenses.form.paid_by_label')}</Label>
-          <div className="rounded-xl border border-border bg-muted/40 px-3 py-2.5">
-            <p className="text-sm font-medium">{currentUserDisplayName}</p>
+          {/* Description — visually subordinate, below the hero number */}
+          <div className="mt-3 w-full">
+            <input
+              id="description"
+              maxLength={200}
+              placeholder={t('expenses.form.description_placeholder_field')}
+              aria-label={t('expenses.form.description_label')}
+              className={[
+                'w-full bg-muted/50 rounded-xl border border-border px-3 py-2',
+                'text-sm text-center text-foreground placeholder:text-muted-foreground/50',
+                'outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
+                'transition-[border-color,box-shadow]',
+              ].join(' ')}
+              {...register('description')}
+            />
+            <p className="mt-1 text-center text-xs text-muted-foreground/60">
+              {t('expenses.form.description_label')} &mdash; optional
+            </p>
           </div>
         </div>
 
-        {/* Split with — picker trigger */}
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('expenses.form.split_with_label')}</Label>
+        {/* ── Details card (paid by + split with) ── */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
 
-          {selectionLabel ? (
-            <div className="flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/5 px-3 py-2.5">
-              {selection?.type === 'group' && <Users className="h-4 w-4 shrink-0 text-primary" />}
+          {/* Paid by row */}
+          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
+            <span className="text-sm text-muted-foreground w-20 shrink-0">
+              {t('expenses.form.paid_by_label')}
+            </span>
+            <span className="flex-1 text-sm font-semibold text-foreground text-right">
+              {currentUserDisplayName}
+            </span>
+          </div>
+
+          {/* Split with row */}
+          <div className="flex items-center gap-3 px-4 py-3.5">
+            <span className="text-sm text-muted-foreground w-20 shrink-0">
+              {t('expenses.form.split_with_label')}
+            </span>
+
+            {selectionLabel ? (
+              <div className="flex flex-1 items-center justify-end gap-1.5">
+                {selection?.type === 'group' && (
+                  <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
+                )}
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-foreground text-right truncate"
+                  onClick={() => setPickerOpen(true)}
+                >
+                  {selectionLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelection(null)}
+                  aria-label={t('common.cancel')}
+                  className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                className="flex-1 text-left text-sm font-medium text-foreground"
                 onClick={() => setPickerOpen(true)}
+                className="flex flex-1 items-center justify-end gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                {selectionLabel}
+                <span>{t('expenses.form.split_with_placeholder')}</span>
+                <ChevronRight className="h-4 w-4" />
               </button>
-              <button
-                type="button"
-                onClick={() => setSelection(null)}
-                aria-label={t('common.cancel')}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted"
-            >
-              <span>{t('expenses.form.split_with_placeholder')}</span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          )}
-
-          {selectionError && (
-            <p className="flex items-center gap-1 text-sm text-destructive">
-              <AlertCircle className="h-3.5 w-3.5" />
-              {selectionError}
-            </p>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Split preview (shown only when participants are selected) */}
+        {/* Selection error */}
+        {selectionError && (
+          <p className="flex items-center gap-1 text-sm text-destructive px-1">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            {selectionError}
+          </p>
+        )}
+
+        {/* ── Split preview ── */}
         {participantsForPreview.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <Label>{t('expenses.form.split_type_label')}</Label>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
+              {t('expenses.form.split_type_label')}
+            </p>
             <SplitEditor totalAmount={totalAmountCents} participants={participantsForPreview} />
           </div>
         )}
 
-        {/* Submit error */}
+        {/* ── Submit error ── */}
         {submitError && (
-          <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+          <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {submitError}
           </div>
         )}
 
-        {/* Submit button */}
+        {/* ── Submit button ── */}
         <Button
           type="submit"
           size="lg"
-          className="w-full"
+          className="w-full rounded-2xl h-14 text-base font-bold"
           disabled={isSubmitting || createExpense.isPending}
         >
           {isSubmitting || createExpense.isPending

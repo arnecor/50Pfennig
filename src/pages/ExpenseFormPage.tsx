@@ -44,7 +44,7 @@ export default function ExpenseFormPage() {
     <div className="min-h-full">
       <PageHeader title={t('expenses.form.page_title')} onBack={handleBack} />
 
-      <div className="px-5 py-5 pb-6">
+      <div className="px-4 pt-4 pb-10">
         {isLoading && (
           <div className="flex justify-center py-12">
             <span className="text-sm text-muted-foreground">{t('common.loading')}</span>
