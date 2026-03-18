@@ -11,7 +11,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, ChevronRight, Users, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronRight, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -72,6 +72,7 @@ export default function ExpenseForm({
   const { t } = useTranslation();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [paidByUserId, setPaidByUserId] = useState<UserId>(currentUserId);
 
   // Initialise with pre-selected group if navigated from group context.
   const preselectedGroup = preselectedGroupId
@@ -82,6 +83,22 @@ export default function ExpenseForm({
     preselectedGroup ? { type: 'group', group: preselectedGroup } : null,
   );
   const [selectionError, setSelectionError] = useState<string | null>(null);
+
+  const handleSelectionChange = (next: ParticipantSelection | null) => {
+    setSelection(next);
+    // If the previously chosen payer is no longer among the new participants, reset to self.
+    if (next === null) {
+      setPaidByUserId(currentUserId);
+      return;
+    }
+    const nextIds: UserId[] =
+      next.type === 'group'
+        ? next.group.members.map((m) => m.userId)
+        : [currentUserId, ...next.userIds];
+    if (!nextIds.includes(paidByUserId)) {
+      setPaidByUserId(currentUserId);
+    }
+  };
 
   const createExpense = useCreateExpense();
 
@@ -155,7 +172,7 @@ export default function ExpenseForm({
         groupId,
         description,
         totalAmount,
-        paidBy: currentUserId,
+        paidBy: paidByUserId,
         split: { type: 'equal' },
         participants,
       });
@@ -251,14 +268,40 @@ export default function ExpenseForm({
         {/* ── Details card (paid by + split with) ── */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
 
-          {/* Paid by row */}
+          {/* Paid by row — selectable */}
           <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
-            <span className="text-sm text-muted-foreground w-20 shrink-0">
+            <label
+              htmlFor="paidBySelect"
+              className="text-sm text-muted-foreground w-20 shrink-0"
+            >
               {t('expenses.form.paid_by_label')}
-            </span>
-            <span className="flex-1 text-sm font-semibold text-foreground text-right">
-              {currentUserDisplayName}
-            </span>
+            </label>
+            <div className="relative flex-1">
+              <select
+                id="paidBySelect"
+                value={paidByUserId}
+                onChange={(e) => setPaidByUserId(e.target.value as UserId)}
+                disabled={participantsForPreview.length === 0}
+                className={[
+                  'w-full appearance-none bg-transparent text-right text-sm font-semibold text-foreground',
+                  'outline-none cursor-pointer pr-5',
+                  'disabled:opacity-50 disabled:cursor-default',
+                ].join(' ')}
+              >
+                {participantsForPreview.length === 0 ? (
+                  <option value={currentUserId}>{currentUserDisplayName}</option>
+                ) : (
+                  participantsForPreview.map((m) => (
+                    <option key={m.userId} value={m.userId}>
+                      {m.userId === currentUserId
+                        ? `${m.displayName} (${t('common.you')})`
+                        : m.displayName}
+                    </option>
+                  ))
+                )}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            </div>
           </div>
 
           {/* Split with row — expands when multiple friends are selected */}
@@ -271,7 +314,7 @@ export default function ExpenseForm({
               {selection ? (
                 <button
                   type="button"
-                  onClick={() => setSelection(null)}
+                  onClick={() => handleSelectionChange(null)}
                   aria-label={t('common.cancel')}
                   className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
@@ -374,7 +417,7 @@ export default function ExpenseForm({
           groups={groups}
           friends={friends}
           value={selection}
-          onChange={setSelection}
+          onChange={handleSelectionChange}
           onClose={() => setPickerOpen(false)}
         />
       )}
