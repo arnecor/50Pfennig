@@ -96,6 +96,7 @@
       "split_toggle_percent": "%",
       "split_reset": "Zurücksetzen",
       "split_sum_mismatch": "Die Summe ({{actual}}) entspricht nicht dem Gesamtbetrag ({{expected}}).",
+      "split_percent_mismatch": "Die Summe muss 100% betragen (aktuell {{actual}}%).",
       "submit": "Ausgabe hinzufügen",
       "you_badge": "Du",
       "picker_title": "Teilen mit",

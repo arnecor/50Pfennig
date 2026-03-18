@@ -12,14 +12,14 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, ChevronDown, ChevronRight, Users, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button } from '@components/ui/button';
 import { money } from '@domain/types';
-import type { Friend, Group, GroupId, GroupMember, UserId } from '@domain/types';
+import type { Friend, Group, GroupId, GroupMember, Money, UserId } from '@domain/types';
 import { useCreateExpense } from '../hooks/useCreateExpense';
 import ParticipantPicker, { type ParticipantSelection } from './ParticipantPicker';
 import CustomSplitEditor, { type SplitShare } from './SplitEditor/CustomSplitEditor';
@@ -128,7 +128,9 @@ export default function ExpenseForm({
   })();
 
   // Derive the participant list for the split preview.
-  const participantsForPreview: GroupMember[] = (() => {
+  // Must be memoized — a new array reference on every render would cause
+  // CustomSplitEditor's useEffect to reset splits to equal on every state update.
+  const participantsForPreview = useMemo<GroupMember[]>(() => {
     if (!selection) return [];
     if (selection.type === 'group') return [...selection.group.members];
     // Friend expense: selected friends + the current user
@@ -151,7 +153,7 @@ export default function ExpenseForm({
       });
     }
     return friendMembers;
-  })();
+  }, [selection, friends, currentUserId, currentUserDisplayName]);
 
   const onSubmit = async (values: FormValues) => {
     setSubmitError(null);
@@ -181,15 +183,17 @@ export default function ExpenseForm({
       const groupId = selection.type === 'group' ? selection.group.id : null;
 
       // Build split object from custom shares
-      const splitWeights = splitShares.map((s) => s.amountCents);
-      const isEqualSplit = splitWeights.every((w) => w === splitWeights[0]);
+      const allEqual = splitShares.every((s) => s.amountCents === splitShares[0]?.amountCents);
+      const exactAmounts = Object.fromEntries(
+        splitShares.map((s) => [s.userId, money(s.amountCents)]),
+      ) as Record<UserId, Money>;
 
       await createExpense.mutateAsync({
         groupId,
         description,
         totalAmount,
         paidBy: paidByUserId,
-        split: isEqualSplit ? { type: 'equal' } : { type: 'exact', amounts: splitWeights },
+        split: allEqual ? { type: 'equal' } : { type: 'exact', amounts: exactAmounts },
         participants,
       });
 

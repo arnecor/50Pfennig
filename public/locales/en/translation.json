@@ -95,6 +95,7 @@
       "split_toggle_percent": "%",
       "split_reset": "Reset",
       "split_sum_mismatch": "Sum ({{actual}}) doesn't match total ({{expected}}).",
+      "split_percent_mismatch": "Percentages must add up to 100% (currently {{actual}}%).",
       "submit": "Add expense",
       "you_badge": "You",
       "picker_title": "Split with",
