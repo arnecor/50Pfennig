@@ -18,13 +18,11 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button } from '@components/ui/button';
-import { Input } from '@components/ui/input';
-import { Label } from '@components/ui/label';
 import { money } from '@domain/types';
 import type { Friend, Group, GroupId, GroupMember, UserId } from '@domain/types';
 import { useCreateExpense } from '../hooks/useCreateExpense';
 import ParticipantPicker, { type ParticipantSelection } from './ParticipantPicker';
-import SplitEditor from './SplitEditor';
+import CustomSplitEditor, { type SplitShare } from './SplitEditor/CustomSplitEditor';
 
 // ---------------------------------------------------------------------------
 // Zod schema
@@ -73,6 +71,15 @@ export default function ExpenseForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [paidByUserId, setPaidByUserId] = useState<UserId>(currentUserId);
+
+  // Split editor state
+  const [splitShares, setSplitShares] = useState<SplitShare[]>([]);
+  const [isSplitValid, setIsSplitValid] = useState(true);
+
+  const handleSplitChange = (shares: SplitShare[], isValid: boolean) => {
+    setSplitShares(shares);
+    setIsSplitValid(isValid);
+  };
 
   // Initialise with pre-selected group if navigated from group context.
   const preselectedGroup = preselectedGroupId
@@ -155,6 +162,11 @@ export default function ExpenseForm({
       return;
     }
 
+    // Validate split sums to totalAmount
+    if (!isSplitValid) {
+      return;
+    }
+
     try {
       const description =
         values.description?.trim() ||
@@ -168,12 +180,16 @@ export default function ExpenseForm({
 
       const groupId = selection.type === 'group' ? selection.group.id : null;
 
+      // Build split object from custom shares
+      const splitWeights = splitShares.map((s) => s.amountCents);
+      const isEqualSplit = splitWeights.every((w) => w === splitWeights[0]);
+
       await createExpense.mutateAsync({
         groupId,
         description,
         totalAmount,
         paidBy: paidByUserId,
-        split: { type: 'equal' },
+        split: isEqualSplit ? { type: 'equal' } : { type: 'exact', amounts: splitWeights },
         participants,
       });
 
@@ -272,19 +288,21 @@ export default function ExpenseForm({
           <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
             <label
               htmlFor="paidBySelect"
-              className="text-sm text-muted-foreground w-20 shrink-0"
+              className="text-sm text-muted-foreground shrink-0"
             >
               {t('expenses.form.paid_by_label')}
             </label>
-            <div className="relative flex-1">
+            <div className="relative flex-1 flex justify-end">
               <select
                 id="paidBySelect"
                 value={paidByUserId}
                 onChange={(e) => setPaidByUserId(e.target.value as UserId)}
                 disabled={participantsForPreview.length === 0}
                 className={[
-                  'w-full appearance-none bg-transparent text-right text-sm font-semibold text-foreground',
-                  'outline-none cursor-pointer pr-5',
+                  'appearance-none bg-muted/50 rounded-lg border border-border',
+                  'px-3 py-1.5 pr-7 text-sm font-semibold text-foreground text-right',
+                  'outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
+                  'cursor-pointer transition-[border-color,box-shadow]',
                   'disabled:opacity-50 disabled:cursor-default',
                 ].join(' ')}
               >
@@ -300,7 +318,7 @@ export default function ExpenseForm({
                   ))
                 )}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             </div>
           </div>
 
@@ -380,14 +398,15 @@ export default function ExpenseForm({
           </p>
         )}
 
-        {/* ── Split preview ── */}
+        {/* ── Aufteilung (collapsible split editor) ── */}
         {participantsForPreview.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
-              {t('expenses.form.split_type_label')}
-            </p>
-            <SplitEditor totalAmount={totalAmountCents} participants={participantsForPreview} />
-          </div>
+          <CustomSplitEditor
+            totalAmount={totalAmountCents}
+            participants={participantsForPreview}
+            paidByUserId={paidByUserId}
+            currentUserId={currentUserId}
+            onChange={handleSplitChange}
+          />
         )}
 
         {/* ── Submit error ── */}
@@ -403,7 +422,7 @@ export default function ExpenseForm({
           type="submit"
           size="lg"
           className="w-full rounded-2xl h-14 text-base font-bold"
-          disabled={isSubmitting || createExpense.isPending}
+          disabled={isSubmitting || createExpense.isPending || !isSplitValid}
         >
           {isSubmitting || createExpense.isPending
             ? t('common.loading')
