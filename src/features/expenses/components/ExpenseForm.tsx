@@ -214,14 +214,14 @@ export default function ExpenseForm({
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 
         {/* ── Hero amount input ── */}
-        <div className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border px-6 pt-8 pb-6">
+        <div className="flex flex-col items-center gap-1.5 rounded-2xl bg-card border border-border px-5 pt-5 pb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             {t('expenses.form.amount_label')}
           </p>
 
           {/* Large currency + input row */}
           <div className="flex items-center justify-center gap-1 w-full">
-            <span className="text-4xl font-bold text-muted-foreground/60 leading-none select-none">
+            <span className="text-3xl font-bold text-muted-foreground/60 leading-none select-none">
               €
             </span>
             <input
@@ -231,7 +231,7 @@ export default function ExpenseForm({
               autoFocus
               aria-label={t('expenses.form.amount_label')}
               className={[
-                'w-full min-w-0 bg-transparent text-center text-5xl font-bold tabular-nums leading-none text-foreground',
+                'w-full min-w-0 bg-transparent text-center text-4xl font-bold tabular-nums leading-none text-foreground',
                 'placeholder:text-muted-foreground/30',
                 'outline-none border-none focus:ring-0',
                 errors.amountInput ? 'text-destructive' : '',
