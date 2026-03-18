@@ -54,6 +54,8 @@ export default function CustomSplitEditor({
 
   // Internal state: cents per userId
   const [sharesCents, setSharesCents] = useState<Map<UserId, number>>(new Map());
+  // Raw string values the user is actively typing (keyed by userId)
+  const [rawInputs, setRawInputs] = useState<Map<UserId, string>>(new Map());
 
   // Sort participants: paidByUserId first
   const sortedParticipants = useMemo(() => {
@@ -84,6 +86,7 @@ export default function CustomSplitEditor({
       newMap.set(p.userId, equalShares[i] ?? 0);
     });
     setSharesCents(newMap);
+    setRawInputs(new Map()); // clear any in-progress edits
 
     const sharesArray = participants.map((p, i) => ({
       userId: p.userId,
@@ -117,8 +120,18 @@ export default function CustomSplitEditor({
     [participants, totalAmount, onChange],
   );
 
-  // Handle input change for a participant
-  const handleInputChange = (userId: UserId, value: string, isLast: boolean) => {
+  // Handle input change for a participant (onChange keeps raw string, onBlur commits)
+  const handleInputChange = (userId: UserId, value: string) => {
+    // Just store the raw string as the user types
+    const newRaw = new Map(rawInputs);
+    newRaw.set(userId, value);
+    setRawInputs(newRaw);
+  };
+
+  const handleInputBlur = (userId: UserId, isLast: boolean) => {
+    const value = rawInputs.get(userId);
+    if (value === undefined) return;
+
     const newMap = new Map(sharesCents);
 
     if (displayMode === 'amount') {
@@ -145,6 +158,10 @@ export default function CustomSplitEditor({
     }
 
     setSharesCents(newMap);
+    // Clear raw input for this field
+    const clearedRaw = new Map(rawInputs);
+    clearedRaw.delete(userId);
+    setRawInputs(clearedRaw);
     notifyChange(newMap);
   };
 
@@ -162,6 +179,7 @@ export default function CustomSplitEditor({
       newMap.set(p.userId, equalShares[i] ?? 0);
     });
     setSharesCents(newMap);
+    setRawInputs(new Map());
     notifyChange(newMap);
   };
 
@@ -265,8 +283,16 @@ export default function CustomSplitEditor({
                     <input
                       type="text"
                       inputMode="decimal"
-                      value={formatValue(cents)}
-                      onChange={(e) => handleInputChange(member.userId, e.target.value, isLast)}
+                      value={rawInputs.has(member.userId) ? rawInputs.get(member.userId)! : formatValue(cents)}
+                      onChange={(e) => handleInputChange(member.userId, e.target.value)}
+                      onBlur={() => handleInputBlur(member.userId, isLast)}
+                      onFocus={(e) => {
+                        // Pre-fill raw input with current formatted value so user can edit it
+                        const newRaw = new Map(rawInputs);
+                        newRaw.set(member.userId, formatValue(cents));
+                        setRawInputs(newRaw);
+                        e.target.select();
+                      }}
                       className={[
                         'w-full bg-muted/40 rounded-lg border border-border px-2 py-1.5 pr-6',
                         'text-sm text-right font-semibold tabular-nums text-foreground',
