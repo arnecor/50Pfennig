@@ -3,14 +3,14 @@
  *
  * Collapsible split editor that lets users customize how an expense is split.
  * - Collapsed by default, showing just "Aufteilung ▸"
- * - Expanded: participant list with editable amount/percentage fields
+ * - Expanded: participant list with fully editable amount/percentage fields
  * - Toggle between € and % modes
  * - Auto-adjusts last participant to ensure sum = totalAmount
  * - Exposes validation state via onChange callback
  */
 
 import { ChevronRight, RotateCcw } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { allocate, formatMoney } from '@domain/money';
@@ -31,14 +31,64 @@ type Props = {
   participants: GroupMember[];
   paidByUserId: UserId;
   currentUserId: UserId;
-  /** Called whenever shares change; includes validity flag */
   onChange: (shares: SplitShare[], isValid: boolean) => void;
 };
 
 type DisplayMode = 'amount' | 'percent';
 
 // ---------------------------------------------------------------------------
-// Component
+// ShareInput — fully self-contained editable field
+// ---------------------------------------------------------------------------
+
+type ShareInputProps = {
+  value: string;          // formatted value to display when not focused
+  suffix: string;         // '€' or '%'
+  onCommit: (raw: string) => void;
+};
+
+function ShareInput({ value, suffix, onCommit }: ShareInputProps) {
+  const [localValue, setLocalValue] = useState(value);
+  const isFocused = useRef(false);
+
+  // Sync incoming value only when the field is not being actively edited
+  useEffect(() => {
+    if (!isFocused.current) {
+      setLocalValue(value);
+    }
+  }, [value]);
+
+  return (
+    <div className="relative w-24">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onFocus={(e) => {
+          isFocused.current = true;
+          // Select all on focus so user can overwrite immediately
+          e.target.select();
+        }}
+        onBlur={() => {
+          isFocused.current = false;
+          onCommit(localValue);
+        }}
+        className={[
+          'w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 pr-6',
+          'text-right text-sm font-semibold tabular-nums text-foreground',
+          'outline-none transition-[border-color,box-shadow]',
+          'focus:border-ring focus:ring-2 focus:ring-ring/20',
+        ].join(' ')}
+      />
+      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+        {suffix}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CustomSplitEditor
 // ---------------------------------------------------------------------------
 
 export default function CustomSplitEditor({
@@ -51,143 +101,105 @@ export default function CustomSplitEditor({
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('amount');
-
-  // Internal state: cents per userId
   const [sharesCents, setSharesCents] = useState<Map<UserId, number>>(new Map());
-  // Increment this to force uncontrolled inputs to re-mount with fresh defaultValues
-  const [inputGeneration, setInputGeneration] = useState(0);
 
   // Sort participants: paidByUserId first
   const sortedParticipants = useMemo(() => {
-    const sorted = [...participants];
-    sorted.sort((a, b) => {
+    return [...participants].sort((a, b) => {
       if (a.userId === paidByUserId) return -1;
       if (b.userId === paidByUserId) return 1;
       return 0;
     });
-    return sorted;
   }, [participants, paidByUserId]);
 
-  // Initialize/reset shares when participants or totalAmount changes
-  useEffect(() => {
-    if (participants.length === 0 || totalAmount <= 0) {
-      setSharesCents(new Map());
-      onChange([], true);
-      return;
-    }
-
-    const equalShares = allocate(
-      totalAmount,
-      participants.map(() => 1),
-    );
-
-    const newMap = new Map<UserId, number>();
-    participants.forEach((p, i) => {
-      newMap.set(p.userId, equalShares[i] ?? 0);
-    });
-    setSharesCents(newMap);
-    setInputGeneration((g) => g + 1); // re-mount inputs with fresh defaultValues
-
-    const sharesArray = participants.map((p, i) => ({
-      userId: p.userId,
-      amountCents: equalShares[i] ?? 0,
-    }));
-    onChange(sharesArray, true);
-  }, [participants, totalAmount, onChange]);
-
-  // Calculate sum and validity
-  const sumCents = useMemo(() => {
-    let sum = 0;
-    for (const cents of sharesCents.values()) {
-      sum += cents;
-    }
-    return sum;
-  }, [sharesCents]);
-
-  const isValid = sumCents === totalAmount;
-
-  // Notify parent of changes
+  // Notify parent
   const notifyChange = useCallback(
-    (newMap: Map<UserId, number>) => {
-      const sum = Array.from(newMap.values()).reduce((a, b) => a + b, 0);
-      const valid = sum === totalAmount;
+    (map: Map<UserId, number>) => {
+      const sum = Array.from(map.values()).reduce((a, b) => a + b, 0);
       const sharesArray = participants.map((p) => ({
         userId: p.userId,
-        amountCents: newMap.get(p.userId) ?? 0,
+        amountCents: map.get(p.userId) ?? 0,
       }));
-      onChange(sharesArray, valid);
+      onChange(sharesArray, sum === totalAmount);
     },
     [participants, totalAmount, onChange],
   );
 
-  // Commit the typed value to state on blur
-  const handleInputBlur = (userId: UserId, isLast: boolean, rawValue: string) => {
-    const newMap = new Map(sharesCents);
+  // Reset to equal split (also used on init)
+  const applyEqualSplit = useCallback(
+    (parts: GroupMember[]) => {
+      if (parts.length === 0 || totalAmount <= 0) {
+        setSharesCents(new Map());
+        onChange([], true);
+        return;
+      }
+      const equalShares = allocate(totalAmount, parts.map(() => 1));
+      const newMap = new Map<UserId, number>();
+      parts.forEach((p, i) => newMap.set(p.userId, equalShares[i] ?? 0));
+      setSharesCents(newMap);
+      notifyChange(newMap);
+    },
+    [totalAmount, onChange, notifyChange],
+  );
 
-    if (displayMode === 'amount') {
-      const parsed = Number.parseFloat(rawValue.replace(',', '.'));
-      const cents = Number.isNaN(parsed) ? 0 : Math.round(parsed * 100);
-      newMap.set(userId, Math.max(0, cents));
-    } else {
-      const parsed = Number.parseFloat(rawValue.replace(',', '.'));
-      const percent = Number.isNaN(parsed) ? 0 : Math.max(0, Math.min(100, parsed));
-      const cents = Math.round((percent / 100) * totalAmount);
-      newMap.set(userId, cents);
-    }
+  // Re-initialize when participants or total changes
+  useEffect(() => {
+    applyEqualSplit(participants);
+  }, [participants, totalAmount]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Auto-adjust last participant if this is not the last one being edited
-    if (!isLast && sortedParticipants.length > 1) {
-      const lastUserId = sortedParticipants[sortedParticipants.length - 1]!.userId;
-      const othersSum = Array.from(newMap.entries())
-        .filter(([uid]) => uid !== lastUserId)
-        .reduce((sum, [, c]) => sum + c, 0);
-      newMap.set(lastUserId, Math.max(0, totalAmount - othersSum));
-    }
-
-    setSharesCents(newMap);
-    setInputGeneration((g) => g + 1); // re-mount all inputs to reflect new computed values
-    notifyChange(newMap);
-  };
-
-  // Reset to equal split
-  const handleReset = () => {
-    if (participants.length === 0 || totalAmount <= 0) return;
-
-    const equalShares = allocate(
-      totalAmount,
-      participants.map(() => 1),
-    );
-
-    const newMap = new Map<UserId, number>();
-    participants.forEach((p, i) => {
-      newMap.set(p.userId, equalShares[i] ?? 0);
-    });
-    setSharesCents(newMap);
-    setInputGeneration((g) => g + 1);
-    notifyChange(newMap);
-  };
-
-  // Format value for display
+  // Compute display string for a participant's cents value
   const formatValue = (cents: number): string => {
     if (displayMode === 'amount') {
       return (cents / 100).toFixed(2).replace('.', ',');
     }
     if (totalAmount === 0) return '0';
-    const percent = (cents / totalAmount) * 100;
-    // Show up to 2 decimal places, but trim trailing zeros
-    return percent.toFixed(2).replace('.', ',').replace(/,?0+$/, '') || '0';
+    const pct = (cents / totalAmount) * 100;
+    return pct.toFixed(2).replace('.', ',').replace(/,?0+$/, '') || '0';
   };
 
-  if (participants.length === 0) {
-    return null;
-  }
+  // Commit a user edit for one participant
+  const handleCommit = (userId: UserId, isLast: boolean, raw: string) => {
+    const newMap = new Map(sharesCents);
+
+    if (displayMode === 'amount') {
+      const parsed = Number.parseFloat(raw.replace(',', '.'));
+      const cents = Number.isNaN(parsed) ? 0 : Math.round(parsed * 100);
+      newMap.set(userId, Math.max(0, cents));
+    } else {
+      const parsed = Number.parseFloat(raw.replace(',', '.'));
+      const pct = Number.isNaN(parsed) ? 0 : Math.max(0, Math.min(100, parsed));
+      newMap.set(userId, Math.round((pct / 100) * totalAmount));
+    }
+
+    // Auto-adjust last participant to absorb rounding / user changes
+    if (!isLast && sortedParticipants.length > 1) {
+      const lastId = sortedParticipants[sortedParticipants.length - 1]!.userId;
+      const othersSum = Array.from(newMap.entries())
+        .filter(([uid]) => uid !== lastId)
+        .reduce((s, [, c]) => s + c, 0);
+      newMap.set(lastId, Math.max(0, totalAmount - othersSum));
+    }
+
+    setSharesCents(newMap);
+    notifyChange(newMap);
+  };
+
+  const sumCents = useMemo(
+    () => Array.from(sharesCents.values()).reduce((a, b) => a + b, 0),
+    [sharesCents],
+  );
+  const isValid = sumCents === totalAmount;
+
+  if (participants.length === 0) return null;
+
+  const suffix = displayMode === 'amount' ? '€' : '%';
 
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
       {/* Collapsed header */}
       <button
         type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => setIsExpanded((v) => !v)}
         className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-muted/30"
       >
         <span className="text-sm font-medium text-foreground">
@@ -195,7 +207,7 @@ export default function CustomSplitEditor({
         </span>
         <ChevronRight
           className={[
-            'h-4 w-4 text-muted-foreground transition-transform',
+            'h-4 w-4 text-muted-foreground transition-transform duration-200',
             isExpanded ? 'rotate-90' : '',
           ].join(' ')}
         />
@@ -206,8 +218,7 @@ export default function CustomSplitEditor({
         <div className="border-t border-border">
           {/* Toggle + Reset row */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20">
-            {/* Mode toggle */}
-            <div className="flex rounded-lg border border-border overflow-hidden text-xs font-medium">
+            <div className="flex overflow-hidden rounded-lg border border-border text-xs font-medium">
               <button
                 type="button"
                 onClick={() => setDisplayMode('amount')}
@@ -234,18 +245,17 @@ export default function CustomSplitEditor({
               </button>
             </div>
 
-            {/* Reset button */}
             <button
               type="button"
-              onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => applyEqualSplit(participants)}
+              className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               <RotateCcw className="h-3 w-3" />
               {t('expenses.form.split_reset')}
             </button>
           </div>
 
-          {/* Participant list */}
+          {/* Participant rows */}
           <ul>
             {sortedParticipants.map((member, index) => {
               const isLast = index === sortedParticipants.length - 1;
@@ -258,30 +268,16 @@ export default function CustomSplitEditor({
               return (
                 <li
                   key={member.userId}
-                  className="flex items-center gap-3 px-4 py-3 border-t border-border"
+                  className="flex items-center gap-3 border-t border-border px-4 py-3"
                 >
-                  <span className="flex-1 text-sm font-medium text-foreground truncate">
+                  <span className="flex-1 truncate text-sm font-medium text-foreground">
                     {displayName}
                   </span>
-                  <div className="relative w-24">
-                    <input
-                      key={`${member.userId}-${inputGeneration}`}
-                      type="text"
-                      inputMode="decimal"
-                      defaultValue={formatValue(cents)}
-                      onFocus={(e) => e.target.select()}
-                      onBlur={(e) => handleInputBlur(member.userId, isLast, e.target.value)}
-                      className={[
-                        'w-full bg-muted/40 rounded-lg border border-border px-2 py-1.5 pr-6',
-                        'text-sm text-right font-semibold tabular-nums text-foreground',
-                        'outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
-                        'transition-[border-color,box-shadow]',
-                      ].join(' ')}
-                    />
-                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                      {displayMode === 'amount' ? '€' : '%'}
-                    </span>
-                  </div>
+                  <ShareInput
+                    value={formatValue(cents)}
+                    suffix={suffix}
+                    onCommit={(raw) => handleCommit(member.userId, isLast, raw)}
+                  />
                 </li>
               );
             })}
@@ -289,7 +285,7 @@ export default function CustomSplitEditor({
 
           {/* Validation warning */}
           {!isValid && totalAmount > 0 && (
-            <div className="px-4 py-2.5 bg-destructive/10 border-t border-destructive/20 text-xs text-destructive">
+            <div className="border-t border-destructive/20 bg-destructive/10 px-4 py-2.5 text-xs text-destructive">
               {t('expenses.form.split_sum_mismatch', {
                 actual: formatMoney(money(sumCents)),
                 expected: formatMoney(money(totalAmount)),
