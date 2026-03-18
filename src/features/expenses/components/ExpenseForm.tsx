@@ -218,26 +218,34 @@ export default function ExpenseForm({
                 : t('expenses.form.amount_error_positive')}
             </p>
           )}
+        </div>
 
-          {/* Description — visually subordinate, below the hero number */}
-          <div className="mt-3 w-full">
-            <input
-              id="description"
-              maxLength={200}
-              placeholder={t('expenses.form.description_placeholder_field')}
-              aria-label={t('expenses.form.description_label')}
-              className={[
-                'w-full bg-muted/50 rounded-xl border border-border px-3 py-2',
-                'text-sm text-center text-foreground placeholder:text-muted-foreground/50',
-                'outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
-                'transition-[border-color,box-shadow]',
-              ].join(' ')}
-              {...register('description')}
-            />
-            <p className="mt-1 text-center text-xs text-muted-foreground/60">
-              {t('expenses.form.description_label')} &mdash; optional
-            </p>
+        {/* ── Description — separate card, clearly optional ── */}
+        <div className="rounded-2xl border border-border bg-card px-4 py-3.5">
+          <div className="flex items-center justify-between mb-2">
+            <label
+              htmlFor="description"
+              className="text-sm font-medium text-foreground"
+            >
+              {t('expenses.form.description_label')}
+            </label>
+            <span className="text-xs text-muted-foreground/70 bg-muted px-2 py-0.5 rounded-full">
+              optional
+            </span>
           </div>
+          <input
+            id="description"
+            maxLength={200}
+            placeholder={t('expenses.form.description_placeholder_field')}
+            aria-label={t('expenses.form.description_label')}
+            className={[
+              'w-full bg-muted/40 rounded-xl border border-border px-3 py-2',
+              'text-sm text-foreground placeholder:text-muted-foreground/50',
+              'outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
+              'transition-[border-color,box-shadow]',
+            ].join(' ')}
+            {...register('description')}
+          />
         </div>
 
         {/* ── Details card (paid by + split with) ── */}
@@ -253,42 +261,70 @@ export default function ExpenseForm({
             </span>
           </div>
 
-          {/* Split with row */}
-          <div className="flex items-center gap-3 px-4 py-3.5">
-            <span className="text-sm text-muted-foreground w-20 shrink-0">
-              {t('expenses.form.split_with_label')}
-            </span>
+          {/* Split with row — expands when multiple friends are selected */}
+          <div className="flex flex-col px-4 py-3.5 gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                {t('expenses.form.split_with_label')}
+              </span>
 
-            {selectionLabel ? (
-              <div className="flex flex-1 items-center justify-end gap-1.5">
-                {selection?.type === 'group' && (
-                  <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
-                )}
-                <button
-                  type="button"
-                  className="text-sm font-semibold text-foreground text-right truncate"
-                  onClick={() => setPickerOpen(true)}
-                >
-                  {selectionLabel}
-                </button>
+              {selection ? (
                 <button
                   type="button"
                   onClick={() => setSelection(null)}
                   aria-label={t('common.cancel')}
-                  className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </button>
-              </div>
-            ) : (
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span>{t('expenses.form.split_with_placeholder')}</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Selected: group — single pill */}
+            {selection?.type === 'group' && (
               <button
                 type="button"
                 onClick={() => setPickerOpen(true)}
-                className="flex flex-1 items-center justify-end gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 self-start rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
               >
-                <span>{t('expenses.form.split_with_placeholder')}</span>
-                <ChevronRight className="h-4 w-4" />
+                <Users className="h-3.5 w-3.5 shrink-0" />
+                {selection.group.name}
               </button>
+            )}
+
+            {/* Selected: friends — one pill per person */}
+            {selection?.type === 'friends' && selection.userIds.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {selection.userIds.map((uid) => {
+                  const name = friends.find((f) => f.userId === uid)?.displayName ?? uid;
+                  return (
+                    <button
+                      key={uid}
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                >
+                  + {t('expenses.form.split_with_placeholder')}
+                </button>
+              </div>
             )}
           </div>
         </div>
