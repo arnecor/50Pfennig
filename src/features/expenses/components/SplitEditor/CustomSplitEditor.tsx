@@ -90,7 +90,7 @@ export default function CustomSplitEditor({
       amountCents: equalShares[i] ?? 0,
     }));
     onChange(sharesArray, true);
-  }, [participants, totalAmount]);
+  }, [participants, totalAmount, onChange]);
 
   // Calculate sum and validity
   const sumCents = useMemo(() => {
