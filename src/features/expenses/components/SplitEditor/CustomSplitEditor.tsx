@@ -54,8 +54,8 @@ export default function CustomSplitEditor({
 
   // Internal state: cents per userId
   const [sharesCents, setSharesCents] = useState<Map<UserId, number>>(new Map());
-  // Raw string values the user is actively typing (keyed by userId)
-  const [rawInputs, setRawInputs] = useState<Map<UserId, string>>(new Map());
+  // Increment this to force uncontrolled inputs to re-mount with fresh defaultValues
+  const [inputGeneration, setInputGeneration] = useState(0);
 
   // Sort participants: paidByUserId first
   const sortedParticipants = useMemo(() => {
@@ -86,7 +86,7 @@ export default function CustomSplitEditor({
       newMap.set(p.userId, equalShares[i] ?? 0);
     });
     setSharesCents(newMap);
-    setRawInputs(new Map()); // clear any in-progress edits
+    setInputGeneration((g) => g + 1); // re-mount inputs with fresh defaultValues
 
     const sharesArray = participants.map((p, i) => ({
       userId: p.userId,
@@ -120,48 +120,32 @@ export default function CustomSplitEditor({
     [participants, totalAmount, onChange],
   );
 
-  // Handle input change for a participant (onChange keeps raw string, onBlur commits)
-  const handleInputChange = (userId: UserId, value: string) => {
-    // Just store the raw string as the user types
-    const newRaw = new Map(rawInputs);
-    newRaw.set(userId, value);
-    setRawInputs(newRaw);
-  };
-
-  const handleInputBlur = (userId: UserId, isLast: boolean) => {
-    const value = rawInputs.get(userId);
-    if (value === undefined) return;
-
+  // Commit the typed value to state on blur
+  const handleInputBlur = (userId: UserId, isLast: boolean, rawValue: string) => {
     const newMap = new Map(sharesCents);
 
     if (displayMode === 'amount') {
-      // Parse as euros, convert to cents
-      const parsed = Number.parseFloat(value.replace(',', '.'));
+      const parsed = Number.parseFloat(rawValue.replace(',', '.'));
       const cents = Number.isNaN(parsed) ? 0 : Math.round(parsed * 100);
       newMap.set(userId, Math.max(0, cents));
     } else {
-      // Parse as percentage, convert to cents
-      const parsed = Number.parseFloat(value.replace(',', '.'));
+      const parsed = Number.parseFloat(rawValue.replace(',', '.'));
       const percent = Number.isNaN(parsed) ? 0 : Math.max(0, Math.min(100, parsed));
       const cents = Math.round((percent / 100) * totalAmount);
       newMap.set(userId, cents);
     }
 
-    // Auto-adjust last participant if this is not the last one
+    // Auto-adjust last participant if this is not the last one being edited
     if (!isLast && sortedParticipants.length > 1) {
       const lastUserId = sortedParticipants[sortedParticipants.length - 1]!.userId;
       const othersSum = Array.from(newMap.entries())
         .filter(([uid]) => uid !== lastUserId)
-        .reduce((sum, [, cents]) => sum + cents, 0);
-      const remainder = Math.max(0, totalAmount - othersSum);
-      newMap.set(lastUserId, remainder);
+        .reduce((sum, [, c]) => sum + c, 0);
+      newMap.set(lastUserId, Math.max(0, totalAmount - othersSum));
     }
 
     setSharesCents(newMap);
-    // Clear raw input for this field
-    const clearedRaw = new Map(rawInputs);
-    clearedRaw.delete(userId);
-    setRawInputs(clearedRaw);
+    setInputGeneration((g) => g + 1); // re-mount all inputs to reflect new computed values
     notifyChange(newMap);
   };
 
@@ -179,7 +163,7 @@ export default function CustomSplitEditor({
       newMap.set(p.userId, equalShares[i] ?? 0);
     });
     setSharesCents(newMap);
-    setRawInputs(new Map());
+    setInputGeneration((g) => g + 1);
     notifyChange(newMap);
   };
 
@@ -281,18 +265,12 @@ export default function CustomSplitEditor({
                   </span>
                   <div className="relative w-24">
                     <input
+                      key={`${member.userId}-${inputGeneration}`}
                       type="text"
                       inputMode="decimal"
-                      value={rawInputs.has(member.userId) ? rawInputs.get(member.userId)! : formatValue(cents)}
-                      onChange={(e) => handleInputChange(member.userId, e.target.value)}
-                      onBlur={() => handleInputBlur(member.userId, isLast)}
-                      onFocus={(e) => {
-                        // Pre-fill raw input with current formatted value so user can edit it
-                        const newRaw = new Map(rawInputs);
-                        newRaw.set(member.userId, formatValue(cents));
-                        setRawInputs(newRaw);
-                        e.target.select();
-                      }}
+                      defaultValue={formatValue(cents)}
+                      onFocus={(e) => e.target.select()}
+                      onBlur={(e) => handleInputBlur(member.userId, isLast, e.target.value)}
                       className={[
                         'w-full bg-muted/40 rounded-lg border border-border px-2 py-1.5 pr-6',
                         'text-sm text-right font-semibold tabular-nums text-foreground',
