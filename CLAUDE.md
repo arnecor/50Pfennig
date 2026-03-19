@@ -8,6 +8,8 @@ Full architectural rationale lives in [docs/adr/](docs/adr/).
 ## General coding guidelines
 Always act like a professional Senir Developer. You code will be reviewed by codex.
 
+
+
 ## Tech Stack
 
 | Concern | Choice |
