@@ -3,6 +3,10 @@
     "ENABLE_LSP_TOOL": "1"
   },
   "permissions": {
+    "deny": [
+      "Bash(npm run db:migrate:prod*)",
+      "Bash(supabase db push --project-ref jjvguntlrsjcugdmuzuk*)"
+    ],
     "allow": [
       "Bash(ls)",
       "Bash(cd)",
