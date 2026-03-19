@@ -41,8 +41,8 @@ type DisplayMode = 'amount' | 'percent';
 // ---------------------------------------------------------------------------
 
 type ShareInputProps = {
-  value: string;          // formatted value to display when not focused
-  suffix: string;         // '€' or '%'
+  value: string; // formatted value to display when not focused
+  suffix: string; // '€' or '%'
   onCommit: (raw: string) => void;
 };
 
@@ -133,7 +133,10 @@ export default function CustomSplitEditor({
         onChange([], true);
         return;
       }
-      const equalShares = allocate(totalAmount, parts.map(() => 1));
+      const equalShares = allocate(
+        totalAmount,
+        parts.map(() => 1),
+      );
       const newMap = new Map<UserId, number>();
       parts.forEach((p, i) => newMap.set(p.userId, equalShares[i] ?? 0));
       setSharesCents(newMap);
@@ -142,10 +145,14 @@ export default function CustomSplitEditor({
     [totalAmount, onChange, notifyChange],
   );
 
-  // Re-initialize when participants or total changes
+  // Re-initialize only when participants or totalAmount change.
+  // applyEqualSplit is intentionally excluded: it depends on onChange/notifyChange
+  // which get new references on every render, so including it would reset user
+  // edits after every keystroke.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see comment above
   useEffect(() => {
     applyEqualSplit(participants);
-  }, [participants, totalAmount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [participants, totalAmount]);
 
   // Compute display string for a participant's cents value
   const formatValue = (cents: number): string => {
@@ -158,7 +165,7 @@ export default function CustomSplitEditor({
   };
 
   // Commit a user edit for one participant
-  const handleCommit = (userId: UserId, isLast: boolean, raw: string) => {
+  const handleCommit = (userId: UserId, raw: string) => {
     const newMap = new Map(sharesCents);
 
     if (displayMode === 'amount') {
@@ -169,15 +176,6 @@ export default function CustomSplitEditor({
       const parsed = Number.parseFloat(raw.replace(',', '.'));
       const pct = Number.isNaN(parsed) ? 0 : Math.max(0, Math.min(100, parsed));
       newMap.set(userId, Math.round((pct / 100) * totalAmount));
-    }
-
-    // Auto-adjust last participant to absorb rounding / user changes
-    if (!isLast && sortedParticipants.length > 1) {
-      const lastId = sortedParticipants[sortedParticipants.length - 1]!.userId;
-      const othersSum = Array.from(newMap.entries())
-        .filter(([uid]) => uid !== lastId)
-        .reduce((s, [, c]) => s + c, 0);
-      newMap.set(lastId, Math.max(0, totalAmount - othersSum));
     }
 
     setSharesCents(newMap);
@@ -257,8 +255,7 @@ export default function CustomSplitEditor({
 
           {/* Participant rows */}
           <ul>
-            {sortedParticipants.map((member, index) => {
-              const isLast = index === sortedParticipants.length - 1;
+            {sortedParticipants.map((member) => {
               const cents = sharesCents.get(member.userId) ?? 0;
               const displayName =
                 member.userId === currentUserId
@@ -276,7 +273,7 @@ export default function CustomSplitEditor({
                   <ShareInput
                     value={formatValue(cents)}
                     suffix={suffix}
-                    onCommit={(raw) => handleCommit(member.userId, isLast, raw)}
+                    onCommit={(raw) => handleCommit(member.userId, raw)}
                   />
                 </li>
               );
@@ -286,10 +283,18 @@ export default function CustomSplitEditor({
           {/* Validation warning */}
           {!isValid && totalAmount > 0 && (
             <div className="border-t border-destructive/20 bg-destructive/10 px-4 py-2.5 text-xs text-destructive">
-              {t('expenses.form.split_sum_mismatch', {
-                actual: formatMoney(money(sumCents)),
-                expected: formatMoney(money(totalAmount)),
-              })}
+              {displayMode === 'percent'
+                ? t('expenses.form.split_percent_mismatch', {
+                    actual:
+                      ((sumCents / totalAmount) * 100)
+                        .toFixed(2)
+                        .replace('.', ',')
+                        .replace(/,?0+$/, '') || '0',
+                  })
+                : t('expenses.form.split_sum_mismatch', {
+                    actual: formatMoney(money(sumCents)),
+                    expected: formatMoney(money(totalAmount)),
+                  })}
             </div>
           )}
         </div>

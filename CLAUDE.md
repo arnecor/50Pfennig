@@ -77,7 +77,7 @@ moving on. Fix any type errors or missing imports immediately.
 ## UI Components
 
 Only these shadcn/ui components are installed: `button`, `card`, `input`, `label`.
-No toast / sonner / dialog / select. Use inline error state for form errors.
+No toast / sonner / dialog / select. Use inline error state for form errors. If you want to add components, ask the user.
 
 ## Dependency Rule — Non-Negotiable
 
@@ -87,6 +87,13 @@ repositories/ →  imports from domain/ and lib/supabase/ only
 features/     →  imports from domain/, repositories/, store/, components/
 pages/        →  imports from features/ and router/ only
 ```
+## Where to find common tasks
+- Split math rules: `src/domain/splitting/index.ts` (+ tests in `src/domain/splitting/splitting.test.ts`).
+- Balance/debt logic: `src/domain/balance/index.ts` (+ tests in `src/domain/balance/balance.test.ts`).
+- Expense write/read behavior: `src/repositories/supabase/expenseRepository.ts` and DB RPC migrations.
+- Settlement behavior: `src/repositories/supabase/settlementRepository.ts` and `0001_schema.sql`.
+- Friend lifecycle logic: `src/repositories/supabase/friendRepository.ts` and `0001_schema.sql`.
+- Access bugs (permissions/visibility): inspect relevant RLS policies in migrations before touching UI.
 
 ## State Management Rules (Overview)
 
@@ -114,3 +121,9 @@ Details: `@docs/state-management.md`
 - `@docs/coding-patterns.md` — Hooks, Mutations, Zod, i18n, Mappers
 - `@docs/commands.md` — npm/Supabase/Capacitor commands
 - `@STATUS.md` — Implementation status of stubs
+
+## Output format expected from agent
+- “Files read” list (only relevant files).
+- “Invariants checked” list.
+- “Change surface” list grouped by Domain / Repository / SQL.
+- “Risk notes” for RLS, rounding, and context mixing.
