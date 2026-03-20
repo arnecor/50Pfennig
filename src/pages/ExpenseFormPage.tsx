@@ -41,7 +41,7 @@ export default function ExpenseFormPage() {
   };
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full pb-24">
       <PageHeader title={t('expenses.form.page_title')} onBack={handleBack} />
 
       <div className="px-4 pt-4 pb-10">
