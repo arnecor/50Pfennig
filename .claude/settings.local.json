@@ -50,6 +50,7 @@
       "Bash(npx vite *)",
       "Bash(npx vitest *)",
       "Bash(find *)",
+      "Bash(find*)",
       "Bash(grep *)",
       "Bash(npm run *)",
       "Bash(npx supabase *)",
