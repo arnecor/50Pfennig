@@ -7,8 +7,8 @@
  * Guarded by GuestGuard: redirects to /groups if already authenticated.
  */
 
-import { EnvBadge } from '@components/shared/EnvBadge';
 import { SharliMascot } from '@components/shared/EmptyState';
+import { EnvBadge } from '@components/shared/EnvBadge';
 import LoginForm from '../features/auth/components/LoginForm';
 
 export default function LoginPage() {

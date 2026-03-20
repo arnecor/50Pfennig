@@ -190,22 +190,8 @@ const FRIEND_EXPENSE_DEFS = [
 async function main() {
   console.log('🌱  Seeding 50Pfennig development database…\n');
 
-  // ── Step 1a: Create fixed personal user ───────────────────────────────────
-  console.log('👤  Creating fixed user…');
-  /*const arneData = must(
-    'createUser ar1@arne.de',
-    await supabase.auth.admin.createUser({
-      email: 'arne@arne.de',
-      password: '123456',
-      email_confirm: true,
-      user_metadata: { display_name: 'Arne Original' },
-    }),
-  );
-  const arneUser = arneData.user;
-  */
-  console.log(`  ✓  arne@arne.de  →  Arne`);
 
-  // ── Step 1b: Create 10 random test users ──────────────────────────────────
+  // ── Step 1: Create 10 random test users ──────────────────────────────────
   console.log('👤  Creating 10 test users…');
   const users = []; //arneUser
 
@@ -220,7 +206,7 @@ async function main() {
         email,
         password: '123456',
         email_confirm: true,
-        user_metadata: { display_name: `${firstName} ${lastName}` },
+        user_metadata: { display_name: `${firstName}` },
       }),
     );
 

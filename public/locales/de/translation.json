@@ -64,7 +64,14 @@
     "total": "Gesamt",
     "total_spent": "Gruppenausgaben",
     "participant_count": "{{count}} Pers.",
-    "activity_settlement": "{{payer}} hat {{payee}} bezahlt (Gruppenanteil)"
+    "activity_settlement": "{{payer}} hat {{payee}} bezahlt (Gruppenanteil)",
+    "settings": "Einstellungen",
+    "add_members": "Mitglieder hinzufügen",
+    "leave_group": "Gruppe verlassen",
+    "leave_group_confirm": "Möchtest du diese Gruppe wirklich verlassen?",
+    "leave_blocked_hint": "Du kannst die Gruppe erst verlassen, wenn dein Guthaben ausgeglichen ist.",
+    "event_member_joined": "{{name}} ist beigetreten",
+    "event_member_left": "{{name}} hat die Gruppe verlassen"
   },
   "expenses": {
     "title": "Ausgaben",

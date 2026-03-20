@@ -5,7 +5,7 @@
   "permissions": {
     "deny": [
       "Bash(npm run db:migrate:prod*)",
-      "Bash(supabase db push --project-ref jjvguntlrsjcugdmuzuk*)"
+      "Bash(supabase db push *)"
     ],
     "allow": [
       "Bash(ls)",

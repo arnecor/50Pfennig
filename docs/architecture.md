@@ -44,6 +44,7 @@ All monetary columns are **integer cents**.
 
 ### Tables
 - `groups`, `group_members` — unchanged
+- `group_events` — extensible event log for group lifecycle (member_joined, member_left). `event_type` is unconstrained text; `metadata` is jsonb for future payloads. New events are written atomically via RPC alongside the membership change.
 - `expenses` — `group_id` is now **nullable** (NULL = friend expense)
 - `expense_splits` — unchanged (source of truth for all balances)
 - `settlements` — `group_id` is now **nullable** (NULL = friend settlement)
@@ -67,6 +68,13 @@ RLS enabled on all tables. `expenses` access: group member (group expense) OR di
 - `requester_id` / `addressee_id` preserved for future invite flows (email, QR, phone).
 - `status = 'accepted'` for manually seeded friendships.
 - Adding friends via UI is **not yet implemented** — use seed script for dev data.
+
+## Group Settings & Member Lifecycle
+- `GroupSettingsPage` at `/groups/$groupId/settings` — member list with per-member balances, share placeholders, leave-group action.
+- **Leave group**: calls `leave_group` RPC (atomic: removes `group_members` row + inserts `member_left` event).
+- **Add member**: calls `add_member_with_event` RPC (atomic: inserts `group_members` row + inserts `member_joined` event).
+- **Rejoin**: allowed — leaving deletes the `group_members` row; re-adding creates a new row. Both events remain in `group_events`.
+- GroupDetailPage activity feed merges expenses + settlements + group_events (sorted by `createdAt`).
 
 ## Repositories
 - Features call `IExpenseRepository`, `IFriendRepository`, etc. — never Supabase client directly.

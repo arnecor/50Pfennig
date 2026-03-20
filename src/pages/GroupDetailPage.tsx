@@ -17,6 +17,7 @@ import { calculateGroupBalances } from '@domain/balance';
 import { add, formatMoney, isNegative, isPositive, isZero, negate } from '@domain/money';
 import {
   type Expense,
+  type GroupEvent,
   type GroupId,
   type Money,
   type Settlement,
@@ -28,16 +29,18 @@ import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import AddMemberOverlay from '@features/groups/components/AddMemberOverlay';
 import { useAddGroupMembers } from '@features/groups/hooks/useAddGroupMembers';
+import { useGroupEvents } from '@features/groups/hooks/useGroupEvents';
 import { useGroup } from '@features/groups/hooks/useGroups';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeftRight, Receipt, UserPlus } from 'lucide-react';
+import { ArrowLeftRight, Receipt, UserPlus, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 type ActivityExpense = { kind: 'expense'; data: Expense };
 type ActivitySettlement = { kind: 'settlement'; data: Settlement };
-type GroupActivityItem = ActivityExpense | ActivitySettlement;
+type ActivityEvent = { kind: 'event'; data: GroupEvent };
+type GroupActivityItem = ActivityExpense | ActivitySettlement | ActivityEvent;
 
 function ItemSkeleton() {
   return (
@@ -65,6 +68,7 @@ export default function GroupDetailPage() {
     groupId as GroupId,
   );
   const { data: friends = [] } = useFriends();
+  const { data: groupEvents = [] } = useGroupEvents(groupId as GroupId);
 
   const addMembers = useAddGroupMembers();
   const [showMemberOverlay, setShowMemberOverlay] = useState(false);
@@ -98,15 +102,21 @@ export default function GroupDetailPage() {
       kind: 'settlement',
       data: s,
     }));
-    return [...expenseItems, ...settlementItems].sort(
+    const eventItems: ActivityEvent[] = groupEvents.map((ev) => ({
+      kind: 'event',
+      data: ev,
+    }));
+    return [...expenseItems, ...settlementItems, ...eventItems].sort(
       (a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime(),
     );
-  }, [expenses, settlements]);
+  }, [expenses, settlements, groupEvents]);
 
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
   const handleAddExpense = () => navigate({ to: '/expenses/new', search: { groupId } });
   const handleBack = () => navigate({ to: '/groups' });
+  const handleOpenSettings = () =>
+    navigate({ to: '/groups/$groupId/settings', params: { groupId } });
 
   function handleAddMembers(userIds: UserId[]) {
     if (!group) return;
@@ -124,6 +134,7 @@ export default function GroupDetailPage() {
       <PageHeader
         title={groupLoading ? '…' : (group?.name ?? '')}
         {...(group && { subtitle: `${group.members.length} ${t('groups.members')}` })}
+        {...(group && { onSubtitleClick: handleOpenSettings })}
         onBack={handleBack}
         onAction={() => setShowMemberOverlay(true)}
         actionIcon={<UserPlus className="w-5 h-5" />}
@@ -261,6 +272,35 @@ export default function GroupDetailPage() {
                         </p>
                       </div>
                     </button>
+                  );
+                }
+
+                // event row (member joined / left)
+                if (item.kind === 'event') {
+                  const ev = item.data;
+                  const isJoin = ev.eventType === 'member_joined';
+                  const label = isJoin
+                    ? t('groups.event_member_joined', { name: ev.displayName })
+                    : t('groups.event_member_left', { name: ev.displayName });
+                  return (
+                    <div
+                      key={ev.id}
+                      className="flex items-center gap-3 py-3 border-b border-border last:border-0 px-1"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-muted-foreground truncate">{label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {ev.createdAt.toLocaleDateString(dateLocale, {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                    </div>
                   );
                 }
 

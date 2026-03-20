@@ -63,7 +63,14 @@
     "total": "Total",
     "total_spent": "Group total",
     "participant_count": "{{count}} ppl.",
-    "activity_settlement": "{{payer}} paid {{payee}} (group share)"
+    "activity_settlement": "{{payer}} paid {{payee}} (group share)",
+    "settings": "Settings",
+    "add_members": "Add members",
+    "leave_group": "Leave group",
+    "leave_group_confirm": "Do you really want to leave this group?",
+    "leave_blocked_hint": "You can only leave the group once your balance is settled.",
+    "event_member_joined": "{{name}} joined",
+    "event_member_left": "{{name}} left the group"
   },
   "expenses": {
     "title": "Expenses",
