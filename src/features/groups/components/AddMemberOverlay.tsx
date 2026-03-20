@@ -69,13 +69,13 @@ export default function AddMemberOverlay({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — above the nav bar (z-50) */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop is aria-hidden, keyboard users interact via the sheet's close button */}
-      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 z-[55] bg-black/40" onClick={onClose} aria-hidden="true" />
 
-      {/* Sheet */}
+      {/* Sheet — sits above backdrop and nav bar */}
       <div
-        className="fixed left-0 right-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-xl"
+        className="fixed left-0 right-0 z-[60] flex flex-col rounded-t-2xl bg-background shadow-xl"
         style={{
           bottom: 0,
           maxHeight: 'min(85dvh, calc(100vh - env(safe-area-inset-top, 24px)))',

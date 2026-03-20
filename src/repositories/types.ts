@@ -21,6 +21,7 @@ import type {
   Friend,
   FriendshipId,
   Group,
+  GroupEvent,
   GroupId,
   GroupMember,
   Money,
@@ -53,6 +54,15 @@ export interface IGroupRepository {
 
   /** Remove a user from a group */
   removeMember(groupId: GroupId, userId: UserId): Promise<void>;
+
+  /**
+   * Leave a group atomically — removes caller from group_members and records
+   * a 'member_left' event via the leave_group RPC.
+   */
+  leaveGroup(groupId: GroupId): Promise<void>;
+
+  /** All lifecycle events for a group (joins, leaves), newest first */
+  getEvents(groupId: GroupId): Promise<GroupEvent[]>;
 }
 
 // ---------------------------------------------------------------------------
