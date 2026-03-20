@@ -20,8 +20,8 @@ import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import AddMemberOverlay from '@features/groups/components/AddMemberOverlay';
 import { useAddGroupMembers } from '@features/groups/hooks/useAddGroupMembers';
-import { useLeaveGroup } from '@features/groups/hooks/useLeaveGroup';
 import { useGroup } from '@features/groups/hooks/useGroups';
+import { useLeaveGroup } from '@features/groups/hooks/useLeaveGroup';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Link2, LogOut, QrCode, UserPlus } from 'lucide-react';
@@ -133,19 +133,16 @@ export default function GroupSettingsPage() {
           </div>
 
           <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
-            {isLoading && (
-              <>
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 py-3 border-b border-border last:border-0"
-                  >
-                    <div className="flex-1 h-4 w-32 animate-pulse rounded bg-muted" />
-                    <div className="h-4 w-16 animate-pulse rounded bg-muted" />
-                  </div>
-                ))}
-              </>
-            )}
+            {isLoading &&
+              [0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 py-3 border-b border-border last:border-0"
+                >
+                  <div className="flex-1 h-4 w-32 animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+                </div>
+              ))}
 
             {!isLoading &&
               group?.members.map((member) => {
