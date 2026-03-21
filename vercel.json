@@ -1,5 +1,4 @@
 {
-  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/f/:token", "destination": "/api/invite/friend?token=:token" },
     { "source": "/g/:token", "destination": "/api/invite/group?token=:token" }
