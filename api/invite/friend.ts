@@ -29,7 +29,7 @@ const supabase = createClient(
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).send('Method not allowed');
+    return res.status(405).send('Method not allowed.');
   }
 
   const token = req.query.token as string;
