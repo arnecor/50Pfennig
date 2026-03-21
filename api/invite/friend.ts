@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const token = req.query.token as string;
   if (!token || !/^[A-Z0-9]{6}$/.test(token)) {
-    return res.status(400).send('Invalid invite link');
+    return res.status(400).send('Invalid invite link.');
   }
 
   const { data: invite } = await supabase
