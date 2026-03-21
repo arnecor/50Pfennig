@@ -32,7 +32,21 @@
     "error_weak_password": "Password must be at least 6 characters.",
     "check_email_title": "Confirm your email",
     "check_email_message": "We sent a confirmation link to {{email}}. Tap the link in the email to activate your account.",
-    "check_email_back": "Back to sign in"
+    "check_email_back": "Back to sign in",
+    "tagline": "Who owes whom? Sharli knows.",
+    "continue_with_google": "Continue with Google",
+    "or_divider": "or",
+    "magic_link_button": "Continue",
+    "magic_link_sending": "Sending…",
+    "magic_link_hint": "We'll send you a sign-in link via email.",
+    "use_password": "Sign in with password",
+    "use_magic_link": "Use magic link instead",
+    "check_email_magic_link_title": "Check your email",
+    "check_email_magic_link_message": "We sent a sign-in link to {{email}}. Tap the link in the email to sign in.",
+    "error_google_sign_in": "Google sign-in failed. Please try again.",
+    "error_magic_link": "Could not send link. Please try again.",
+    "error_rate_limited": "Too many attempts. Please wait a moment.",
+    "signing_in": "Signing in…"
   },
   "groups": {
     "title": "Groups",

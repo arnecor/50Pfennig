@@ -15,10 +15,7 @@ import QRCode from 'qrcode';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-function getInviteUrl(token: string): string {
-  const base = import.meta.env.VITE_SUPABASE_URL as string;
-  return `${base}/functions/v1/invite/${token}`;
-}
+import { getInviteUrl } from '@features/friends/utils/getInviteUrl';
 
 export default function QRCodeDisplay() {
   const { t } = useTranslation();

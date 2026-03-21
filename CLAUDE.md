@@ -1,4 +1,4 @@
-# 50Pfennig — Claude Code Source of Truth
+# Sharli — Claude Code Source of Truth
 
 Shared expense splitting app for small trust-based groups (2–10 people).  
 React + Capacitor hybrid (Android-first, iOS later). German UI (de default, en secondary).
@@ -6,9 +6,13 @@ React + Capacitor hybrid (Android-first, iOS later). German UI (de default, en s
 Full architectural rationale lives in [docs/adr/](docs/adr/).
 
 ## General coding guidelines
-Always act like a professional Senir Developer. You code will be reviewed by codex.
+Always act like a professional Senior Developer. Do not take shortcuts or do dirty fixes. A clean architecture needs to be maintained. You code will be reviewed by codex.
 
+## Code Changes 
+When fixing TypeScript or lint errors, verify the fix doesn't break existing functionality. Run `npx tsc --noEmit` after edits and avoid changing dependency arrays or logic beyond the scope of the fix.
 
+## Supabase
+When generating or modifying SQL migrations, always use `DROP POLICY IF EXISTS` before `CREATE POLICY`, and verify function/table ordering so that referenced objects exist before they are used.
 
 ## Tech Stack
 
@@ -80,6 +84,11 @@ moving on. Fix any type errors or missing imports immediately.
 
 Only these shadcn/ui components are installed: `button`, `card`, `input`, `label`.
 No toast / sonner / dialog / select. Use inline error state for form errors. If you want to add components, ask the user.
+ 
+ ## UI Designs & Creating new UIs
+ This is a Capacitor mobile app targeting Android. Always test UI fixes against safe area insets, nav bar overlap, and keyboard behavior. Status bar config uses Capacitor's Style enum.
+ 
+ When changing or creating UIs act as a professional UX Designer. Consider best practices and care for a minimalistic, clean and easy understanable Design
 
 ## Dependency Rule — Non-Negotiable
 
