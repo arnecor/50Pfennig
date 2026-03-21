@@ -29,12 +29,12 @@ const supabase = createClient(
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).send('Method not allowed');
+    return res.status(405).send('Method not allowed.');
   }
 
   const token = req.query.token as string;
   if (!token || !/^[A-Z0-9]{6}$/.test(token)) {
-    return res.status(400).send('Invalid invite link');
+    return res.status(400).send('Invalid invite link.');
   }
 
   const { data: invite } = await supabase
