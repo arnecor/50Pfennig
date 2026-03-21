@@ -84,11 +84,9 @@ export default function App() {
       try {
         const urlObj = new URL(url);
 
-        // --- Invite deep link: com.pfennig50.app://invite/{token} ---
-        // Also matches URLs with /invite/{token} in the path (from Edge Function redirect)
+        // --- Invite deep link: com.arco.sharli://invite/f/{token} ---
         const inviteMatch =
-          urlObj.pathname.match(/\/invite\/([a-f0-9]{32})$/) ??
-          (urlObj.host === 'invite' ? urlObj.pathname.match(/^\/([a-f0-9]{32})$/) : null);
+          urlObj.pathname.match(/\/invite\/f\/([A-Z0-9]{6})$/) ?? null;
 
         if (inviteMatch?.[1]) {
           const token = inviteMatch[1];

@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/f/:token([A-Z0-9]{6})", "destination": "/api/invite/friend?token=:token" },
+    { "source": "/g/:token([A-Z0-9]{6})", "destination": "/api/invite/group?token=:token" }
+  ]
+}
