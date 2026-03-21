@@ -15,6 +15,7 @@
  */
 
 import { App as CapacitorApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -107,7 +108,10 @@ export default function App() {
         const code = urlObj.searchParams.get('code');
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (!error) router.navigate({ to: '/home' });
+          if (!error) {
+            void Browser.close().catch(() => {}); // dismiss OAuth browser tab if open
+            router.navigate({ to: '/home' });
+          }
           return;
         }
         // Implicit flow: tokens are in the URL fragment
@@ -116,7 +120,10 @@ export default function App() {
         const refresh_token = hash.get('refresh_token');
         if (access_token && refresh_token) {
           const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-          if (!error) router.navigate({ to: '/home' });
+          if (!error) {
+            void Browser.close().catch(() => {}); // dismiss OAuth browser tab if open
+            router.navigate({ to: '/home' });
+          }
         }
       } catch {
         // Ignore malformed URLs or non-auth deep links

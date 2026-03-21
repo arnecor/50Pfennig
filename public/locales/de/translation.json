@@ -33,7 +33,21 @@
     "error_weak_password": "Das Passwort muss mindestens 6 Zeichen lang sein.",
     "check_email_title": "E-Mail bestätigen",
     "check_email_message": "Wir haben einen Bestätigungslink an {{email}} gesendet. Tippe auf den Link in der E-Mail, um dein Konto zu aktivieren.",
-    "check_email_back": "Zurück zur Anmeldung"
+    "check_email_back": "Zurück zur Anmeldung",
+    "tagline": "Wer schuldet wem? Sharli weiß es.",
+    "continue_with_google": "Mit Google anmelden",
+    "or_divider": "oder",
+    "magic_link_button": "Weiter",
+    "magic_link_sending": "Wird gesendet…",
+    "magic_link_hint": "Wir senden dir einen Anmelde-Link per E-Mail.",
+    "use_password": "Mit Passwort anmelden",
+    "use_magic_link": "Magic-Link verwenden",
+    "check_email_magic_link_title": "E-Mail prüfen",
+    "check_email_magic_link_message": "Wir haben dir einen Anmelde-Link an {{email}} gesendet. Tippe auf den Link in der E-Mail, um dich anzumelden.",
+    "error_google_sign_in": "Google-Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
+    "error_magic_link": "Link konnte nicht gesendet werden. Bitte versuche es erneut.",
+    "error_rate_limited": "Zu viele Versuche. Bitte warte einen Moment.",
+    "signing_in": "Anmeldung…"
   },
   "groups": {
     "title": "Gruppen",

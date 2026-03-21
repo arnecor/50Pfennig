@@ -83,6 +83,10 @@ const checkEmailRoute = createRoute({
   component: CheckEmailPage,
   validateSearch: (search: Record<string, unknown>) => ({
     email: typeof search.email === 'string' ? search.email : undefined,
+    type:
+      search.type === 'magic_link' || search.type === 'signup'
+        ? (search.type as 'magic_link' | 'signup')
+        : undefined,
   }),
 });
 
