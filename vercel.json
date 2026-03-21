@@ -1,6 +1,7 @@
 {
+  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/f/:token([A-Z0-9]{6})", "destination": "/api/invite/friend?token=:token" },
-    { "source": "/g/:token([A-Z0-9]{6})", "destination": "/api/invite/group?token=:token" }
+    { "source": "/f/:token", "destination": "/api/invite/friend?token=:token" },
+    { "source": "/g/:token", "destination": "/api/invite/group?token=:token" }
   ]
 }
