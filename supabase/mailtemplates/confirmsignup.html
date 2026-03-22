@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-Mail bestätigen – Sharli</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F5F6FA;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td align="center" style="padding:48px 16px 32px;">
+        <table role="presentation" width="100%" style="max-width:520px;" cellspacing="0" cellpadding="0" border="0">
+
+          <!-- Logo + Wordmark -->
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <!-- Owl icon (inline SVG, no external request) -->
+              <svg width="56" height="56" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 10px;">
+                <rect width="512" height="512" rx="112" fill="#5B6380"/>
+                <ellipse cx="256" cy="320" rx="130" ry="118" fill="white" fill-opacity="0.18"/>
+                <circle cx="256" cy="210" r="118" fill="white" fill-opacity="0.25"/>
+                <circle cx="216" cy="200" r="40" fill="white" fill-opacity="0.90"/>
+                <circle cx="296" cy="200" r="40" fill="white" fill-opacity="0.90"/>
+                <circle cx="220" cy="200" r="22" fill="#2d3748"/>
+                <circle cx="300" cy="200" r="22" fill="#2d3748"/>
+                <circle cx="228" cy="192" r="7" fill="white" fill-opacity="0.70"/>
+                <circle cx="308" cy="192" r="7" fill="white" fill-opacity="0.70"/>
+                <path d="M256 228 L236 258 L276 258 Z" fill="#d4956a"/>
+                <path d="M148 128 L178 168 L158 178 Z" fill="white" fill-opacity="0.30"/>
+                <path d="M364 128 L334 168 L354 178 Z" fill="white" fill-opacity="0.30"/>
+                <ellipse cx="132" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.15"/>
+                <ellipse cx="380" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.15"/>
+                <ellipse cx="224" cy="432" rx="26" ry="12" fill="#d4956a"/>
+                <ellipse cx="288" cy="432" rx="26" ry="12" fill="#d4956a"/>
+              </svg>
+              <span style="display:block;font-size:22px;font-weight:700;letter-spacing:-0.5px;color:#484E68;line-height:1.2;">Sharli</span>
+              <span style="display:block;font-size:13px;color:#A0A6BC;margin-top:3px;">Ausgaben mit Freudnen teilen - gemeinsam abrechnen</span>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color:#FFFFFF;border-radius:16px;border:1px solid #E2E4ED;padding:36px 32px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+
+                <!-- Heading -->
+                <tr>
+                  <td style="padding-bottom:10px;">
+                    <p style="margin:0;font-size:20px;font-weight:700;color:#484E68;letter-spacing:-0.3px;">
+                      E-Mail bestätigen
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Body text -->
+                <tr>
+                  <td style="padding-bottom:28px;">
+                    <p style="margin:0;font-size:15px;line-height:1.65;color:#71789A;">
+                      Klick den Button unten, um deine E-Mail-Adresse zu bestätigen und deinen Sharli-Account zu aktivieren.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- CTA Button -->
+                <tr>
+                  <td align="center" style="padding-bottom:28px;">
+                    <a href="{{ .ConfirmationURL }}"
+                       style="display:inline-block;background-color:#5B6380;color:#F5F6FA;font-size:15px;font-weight:600;text-decoration:none;padding:14px 36px;border-radius:10px;letter-spacing:0.1px;">
+                      E-Mail bestätigen
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- Divider -->
+                <tr>
+                  <td style="padding-bottom:20px;">
+                    <hr style="border:none;border-top:1px solid #E2E4ED;margin:0;" />
+                  </td>
+                </tr>
+
+                <!-- Fallback link -->
+                <tr>
+                  <td>
+                    <p style="margin:0;font-size:13px;color:#A0A6BC;line-height:1.5;">
+                      Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:
+                    </p>
+                    <p style="margin:8px 0 0;font-size:12px;color:#5B6380;word-break:break-all;">
+                      {{ .ConfirmationURL }}
+                    </p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:12px;color:#A0A6BC;line-height:1.6;">
+                Du hast kein Konto erstellt? Dann ignoriere diese E-Mail.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

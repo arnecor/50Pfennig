@@ -16,6 +16,8 @@ import EmailPasswordForm from './EmailPasswordForm';
 import GoogleSignInButton from './GoogleSignInButton';
 import MagicLinkForm from './MagicLinkForm';
 
+const GOOGLE_LOGIN_ENABLED = import.meta.env.VITE_ENABLE_GOOGLE_LOGIN === 'true';
+
 export default function LoginForm() {
   const { t } = useTranslation();
   const [authMethod, setAuthMethod] = useState<'magic_link' | 'password'>('magic_link');
@@ -23,17 +25,21 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-sm space-y-0">
-      {/* Google OAuth — highest-conversion option */}
-      <GoogleSignInButton />
+      {GOOGLE_LOGIN_ENABLED && (
+        <>
+          {/* Google OAuth — highest-conversion option */}
+          <GoogleSignInButton />
 
-      {/* Divider */}
-      <div className="my-6 flex items-center gap-4">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-xs uppercase tracking-wider text-muted-foreground">
-          {t('auth.or_divider')}
-        </span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
+          {/* Divider */}
+          <div className="my-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">
+              {t('auth.or_divider')}
+            </span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+        </>
+      )}
 
       {/* Email auth — magic link (default) or password (toggled) */}
       {authMethod === 'magic_link' ? (
