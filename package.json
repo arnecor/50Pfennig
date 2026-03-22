@@ -22,10 +22,11 @@
     "db:types": "supabase gen types typescript --local > src/lib/supabase/types.gen.ts",
     "db:migrate": "supabase db push",
     "db:reset": "supabase db reset",
-    "db:seed": "node --env-file=.env.local scripts/seed.js",
-    "db:seed:dev": "node --env-file=.env.development scripts/seed.js",
-    "db:seed-val-users": "node --env-file=.env.local scripts/seed-val-users.js",
-    "db:remove-val-users": "node --env-file=.env.local scripts/remove-val-users.js",
+    "db:seed": "node --env-file=.env.development scripts/seed.js",
+    "db:cleanup-dev": "node --env-file=.env.development scripts/cleanup-dev.js",
+    "db:seed-test": "node --env-file=.env.development scripts/seed-test.js",
+    "db:seed-val-users": "node --env-file=.env.development scripts/seed-val-users.js",
+    "db:remove-val-users": "node --env-file=.env.development scripts/remove-val-users.js",
     "generate-icons": "capacitor-assets generate --android"
   },
   "dependencies": {
