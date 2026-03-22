@@ -23,9 +23,9 @@ import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
 async function apply(dark: boolean): Promise<void> {
-  // Style.Dark  = sets SYSTEM_UI_FLAG_LIGHT_STATUS_BAR → dark (black) icons
-  // Style.Light = clears the flag                      → light (white) icons
-  await StatusBar.setStyle({ style: dark ? Style.Light : Style.Dark });
+  // Style.Dark  = light (white) icons — use on dark backgrounds
+  // Style.Light = dark (black) icons  — use on light backgrounds
+  await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light });
 }
 
 /**

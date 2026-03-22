@@ -24,6 +24,7 @@ import {
   type Friend,
   type FriendshipId,
   type Group,
+  type GroupEvent,
   type GroupId,
   type GroupMember,
   type Settlement,
@@ -120,6 +121,27 @@ export const mapSettlement = (row: SettlementRow): Settlement => ({
   toUserId: row.to_user_id as UserId,
   amount: money(row.amount),
   ...(row.note != null ? { note: row.note } : {}),
+  createdAt: new Date(row.created_at),
+});
+
+/** Shape returned by group_events queries that embed profiles via FK join */
+export type GroupEventRow = {
+  id: string;
+  group_id: string;
+  user_id: string;
+  event_type: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  profiles: { display_name: string } | null;
+};
+
+export const mapGroupEvent = (row: GroupEventRow): GroupEvent => ({
+  id: row.id,
+  groupId: row.group_id as GroupId,
+  userId: row.user_id as UserId,
+  eventType: row.event_type,
+  displayName: row.profiles?.display_name ?? '',
+  metadata: row.metadata ?? {},
   createdAt: new Date(row.created_at),
 });
 

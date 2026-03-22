@@ -24,6 +24,7 @@ export const useAddGroupMembers = () => {
       Promise.all(userIds.map((userId) => groupRepository.addMember(groupId, userId))),
     onSuccess: (_data, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ['groups', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['groups', groupId, 'events'] });
       queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
   });

@@ -6,10 +6,10 @@
  * Imported by: repositories/index.ts (factory binding)
  */
 
-import type { Group, GroupId, GroupMember, UserId } from '../../domain/types';
+import type { Group, GroupEvent, GroupId, GroupMember, UserId } from '../../domain/types';
 import { supabase } from '../../lib/supabase/client';
-import { mapGroup, mapGroupMember } from '../../lib/supabase/mappers';
-import type { GroupMemberWithProfile } from '../../lib/supabase/mappers';
+import { mapGroup, mapGroupEvent, mapGroupMember } from '../../lib/supabase/mappers';
+import type { GroupEventRow, GroupMemberWithProfile } from '../../lib/supabase/mappers';
 import type { CreateGroupInput, IGroupRepository } from '../types';
 
 /** Select string that embeds the profiles join for display names */
@@ -58,14 +58,24 @@ export class SupabaseGroupRepository implements IGroupRepository {
   }
 
   async addMember(groupId: GroupId, userId: UserId): Promise<GroupMember> {
-    const { data, error } = await supabase
-      .from('group_members')
-      .insert({ group_id: groupId, user_id: userId })
-      .select('user_id, group_id, joined_at, profiles(display_name)')
-      .single();
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types
+    const { error } = await (supabase.rpc as any)('add_member_with_event', {
+      p_group_id: groupId,
+      p_user_id: userId,
+    });
 
     if (error) throw error;
-    return mapGroupMember(data as GroupMemberWithProfile);
+
+    // Fetch the full member row with display name
+    const { data: memberRow, error: memberError } = await supabase
+      .from('group_members')
+      .select('user_id, group_id, joined_at, profiles(display_name)')
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .single();
+
+    if (memberError) throw memberError;
+    return mapGroupMember(memberRow as GroupMemberWithProfile);
   }
 
   async removeMember(groupId: GroupId, userId: UserId): Promise<void> {
@@ -76,5 +86,26 @@ export class SupabaseGroupRepository implements IGroupRepository {
       .eq('user_id', userId);
 
     if (error) throw error;
+  }
+
+  async leaveGroup(groupId: GroupId): Promise<void> {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types
+    const { error } = await (supabase.rpc as any)('leave_group', {
+      p_group_id: groupId,
+    });
+
+    if (error) throw error;
+  }
+
+  async getEvents(groupId: GroupId): Promise<GroupEvent[]> {
+    // biome-ignore lint/suspicious/noExplicitAny: group_events table not yet in generated types — remove cast after next db:types run
+    const { data, error } = await (supabase as any)
+      .from('group_events')
+      .select('id, group_id, user_id, event_type, metadata, created_at, profiles(display_name)')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return ((data as unknown[]) ?? []).map((row) => mapGroupEvent(row as GroupEventRow));
   }
 }

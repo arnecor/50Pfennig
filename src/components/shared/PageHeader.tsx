@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 type PageHeaderProps = {
   title: string;
   subtitle?: string;
+  onSubtitleClick?: () => void;
   onBack?: () => void;
   onAction?: () => void;
   actionIcon?: React.ReactNode;
@@ -16,6 +17,7 @@ type PageHeaderProps = {
 export function PageHeader({
   title,
   subtitle,
+  onSubtitleClick,
   onBack,
   onAction,
   actionIcon,
@@ -46,7 +48,18 @@ export function PageHeader({
           >
             {title}
           </h1>
-          {subtitle && <p className="text-sm text-muted-foreground truncate">{subtitle}</p>}
+          {subtitle &&
+            (onSubtitleClick ? (
+              <button
+                type="button"
+                onClick={onSubtitleClick}
+                className="text-sm text-muted-foreground truncate underline underline-offset-2 hover:text-foreground transition-colors"
+              >
+                {subtitle}
+              </button>
+            ) : (
+              <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+            ))}
         </div>
 
         {onAction && (

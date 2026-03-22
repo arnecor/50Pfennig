@@ -136,6 +136,25 @@ export type Settlement = {
 };
 
 // ---------------------------------------------------------------------------
+// Group event types — lifecycle events (join, leave, future types)
+// ---------------------------------------------------------------------------
+
+/**
+ * A group lifecycle event recorded when a member joins or leaves.
+ * event_type is an open string so future types can be added without schema
+ * changes. Known values: 'member_joined' | 'member_left'.
+ */
+export type GroupEvent = {
+  readonly id: string;
+  readonly groupId: GroupId;
+  readonly userId: UserId;
+  readonly eventType: string;
+  readonly displayName: string; // resolved from profiles at read time
+  readonly metadata: Record<string, unknown>;
+  readonly createdAt: Date;
+};
+
+// ---------------------------------------------------------------------------
 // Balance types — always derived, never stored (see ADR-0009)
 // ---------------------------------------------------------------------------
 

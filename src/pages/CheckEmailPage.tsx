@@ -1,10 +1,12 @@
 /**
  * pages/CheckEmailPage.tsx
  *
- * Shown after successful registration — tells the user to check their inbox
- * and tap the confirmation link before they can use the app.
+ * Shown after magic link send or sign-up — tells the user to check their inbox.
+ * Differentiates messaging based on `type` search param:
+ *   - 'magic_link': "We sent a sign-in link…"
+ *   - 'signup' (or missing): "We sent a confirmation link…" (original behavior)
  *
- * Route: /auth/check-email?email=...
+ * Route: /auth/check-email?email=...&type=magic_link|signup
  * Guard: none (accessible without a session)
  */
 
@@ -14,7 +16,12 @@ import { useTranslation } from 'react-i18next';
 
 export default function CheckEmailPage() {
   const { t } = useTranslation();
-  const { email } = useSearch({ strict: false }) as { email?: string };
+  const { email, type } = useSearch({ strict: false }) as {
+    email?: string;
+    type?: 'magic_link' | 'signup';
+  };
+
+  const isMagicLink = type === 'magic_link';
 
   return (
     <div className="flex flex-col items-center justify-center min-h-dvh px-6 gap-6 text-center">
@@ -23,9 +30,13 @@ export default function CheckEmailPage() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">{t('auth.check_email_title')}</h1>
+        <h1 className="text-2xl font-semibold">
+          {t(isMagicLink ? 'auth.check_email_magic_link_title' : 'auth.check_email_title')}
+        </h1>
         <p className="text-sm text-muted-foreground max-w-xs">
-          {t('auth.check_email_message', { email: email ?? '' })}
+          {t(isMagicLink ? 'auth.check_email_magic_link_message' : 'auth.check_email_message', {
+            email: email ?? '',
+          })}
         </p>
       </div>
 

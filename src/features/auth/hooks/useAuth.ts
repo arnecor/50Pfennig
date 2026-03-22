@@ -7,10 +7,13 @@
  *   - currentUser: the authenticated user (or null)
  *   - isLoading: true while session is hydrating
  *   - signIn(email, password): Supabase email/password sign-in
- *   - signInWithGoogle(): OAuth sign-in
+ *   - signInWithGoogle(): OAuth sign-in via system browser
+ *   - signInWithMagicLink(email): passwordless email sign-in
  *   - signOut(): clears session and redirects to /login
  */
 
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useCallback } from 'react';
@@ -36,10 +39,51 @@ export const useAuth = () => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: 'com.pfennig50.app://auth/callback' },
+        options: { emailRedirectTo: 'com.arco.sharli://auth/callback' },
       });
       if (error) throw error;
-      await router.navigate({ to: '/auth/check-email', search: { email } });
+      await router.navigate({
+        to: '/auth/check-email',
+        search: { email, type: 'signup' as const },
+      });
+    },
+    [router],
+  );
+
+  const signInWithGoogle = useCallback(async () => {
+    const redirectTo = Capacitor.isNativePlatform()
+      ? 'com.arco.sharli://auth/callback'
+      : `${window.location.origin}/home`;
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        skipBrowserRedirect: Capacitor.isNativePlatform(),
+      },
+    });
+    if (error) throw error;
+
+    if (Capacitor.isNativePlatform() && data.url) {
+      await Browser.open({ url: data.url });
+    }
+  }, []);
+
+  const signInWithMagicLink = useCallback(
+    async (email: string) => {
+      const emailRedirectTo = Capacitor.isNativePlatform()
+        ? 'com.arco.sharli://auth/callback'
+        : `${window.location.origin}/home`;
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo },
+      });
+      if (error) throw error;
+      await router.navigate({
+        to: '/auth/check-email',
+        search: { email, type: 'magic_link' },
+      });
     },
     [router],
   );
@@ -79,6 +123,8 @@ export const useAuth = () => {
     session,
     signIn,
     signUp,
+    signInWithGoogle,
+    signInWithMagicLink,
     signOut,
     updateDisplayName,
   };

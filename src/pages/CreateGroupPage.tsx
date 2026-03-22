@@ -24,7 +24,7 @@ export default function CreateGroupPage() {
   };
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full pb-24">
       <PageHeader title={t('groups.create_title')} onBack={handleBack} />
 
       <div className="px-5 py-5">

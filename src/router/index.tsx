@@ -44,6 +44,7 @@ import ExpenseFormPage from '../pages/ExpenseFormPage';
 import FriendDetailPage from '../pages/FriendDetailPage';
 import FriendsPage from '../pages/FriendsPage';
 import GroupDetailPage from '../pages/GroupDetailPage';
+import GroupSettingsPage from '../pages/GroupSettingsPage';
 import GroupsPage from '../pages/GroupsPage';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
@@ -82,6 +83,10 @@ const checkEmailRoute = createRoute({
   component: CheckEmailPage,
   validateSearch: (search: Record<string, unknown>) => ({
     email: typeof search.email === 'string' ? search.email : undefined,
+    type:
+      search.type === 'magic_link' || search.type === 'signup'
+        ? (search.type as 'magic_link' | 'signup')
+        : undefined,
   }),
 });
 
@@ -117,6 +122,15 @@ const groupDetailRoute = createRoute({
   path: '/groups/$groupId',
   beforeLoad: requireAuth,
   component: GroupDetailPage,
+});
+
+// /groups/$groupId/settings must be declared before /groups/$groupId/settlements
+// so that the static 'settings' segment wins over any potential ambiguity.
+const groupSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/groups/$groupId/settings',
+  beforeLoad: requireAuth,
+  component: GroupSettingsPage,
 });
 
 // Edit route stays group-scoped (existing expenses already have a groupId).
@@ -221,6 +235,7 @@ const routeTree = rootRoute.addChildren([
   groupsRoute,
   groupCreateRoute,
   groupDetailRoute,
+  groupSettingsRoute,
   expenseNewRoute,
   expenseDetailRoute,
   expenseEditRoute,
