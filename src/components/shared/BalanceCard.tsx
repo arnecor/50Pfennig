@@ -12,7 +12,7 @@ type BalanceCardProps = {
 
 export function BalanceCard({ youAreOwed, youOwe, className }: BalanceCardProps) {
   const { t } = useTranslation();
-  const total = (youAreOwed - youOwe) as Money;
+  const total = (youAreOwed + youOwe) as Money;
   const positive = !isNegative(total);
 
   return (
