@@ -11,6 +11,7 @@
     "error_generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "back": "Zurück",
     "you": "Du",
+    "you_dative": "dir",
     "close": "Schließen"
   },
   "auth": {
@@ -93,6 +94,10 @@
     "empty_title": "Noch keine Ausgaben",
     "empty_description": "Füge die erste Ausgabe dieser Gruppe hinzu.",
     "paid_by": "Bezahlt von {{name}}",
+    "paid_by_label": "Bezahlt von",
+    "with": "Mit",
+    "x_people": "{{count}} Personen",
+    "my_share": "Dein Anteil",
     "form": {
       "page_title": "Ausgabe hinzufügen",
       "description_label": "Beschreibung",

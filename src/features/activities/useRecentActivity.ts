@@ -48,7 +48,12 @@ function resolveName(
   return userId;
 }
 
-export function useRecentActivity(currentUserId: UserId | undefined, youLabel: string) {
+export function useRecentActivity(
+  currentUserId: UserId | undefined,
+  youLabel: string,
+  youDativeLabel: string,
+  personsLabel: (count: number) => string,
+) {
   const [page, setPage] = useState(1);
 
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
@@ -106,6 +111,7 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
           paidByCurrentUser,
           paidByName: getName(expense.paidBy as string),
           myShare,
+          sharedWithLabel: group.name,
           context: 'group',
           groupName: group.name,
           groupId: group.id,
@@ -119,6 +125,19 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
       const myShare =
         expense.splits.find((s) => (s.userId as string) === currentIdStr)?.amount ?? ZERO;
 
+      const paidByStr = expense.paidBy as string;
+      const otherSplits = expense.splits.filter((s) => (s.userId as string) !== paidByStr);
+      let sharedWithLabel: string;
+      if (otherSplits.length === 0) {
+        sharedWithLabel = youDativeLabel;
+      } else if (otherSplits.length === 1) {
+        // biome-ignore lint/style/noNonNullAssertion: length === 1 guarantees element exists
+        const otherId = otherSplits[0]!.userId as string;
+        sharedWithLabel = otherId === currentIdStr ? youDativeLabel : getName(otherId);
+      } else {
+        sharedWithLabel = personsLabel(expense.splits.length);
+      }
+
       items.push({
         id: expense.id,
         date: expense.createdAt,
@@ -128,6 +147,7 @@ export function useRecentActivity(currentUserId: UserId | undefined, youLabel: s
         paidByCurrentUser,
         paidByName: getName(expense.paidBy as string),
         myShare,
+        sharedWithLabel,
         context: 'friend',
       });
     }

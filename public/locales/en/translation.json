@@ -10,6 +10,7 @@
     "error_generic": "Something went wrong. Please try again.",
     "back": "Back",
     "you": "You",
+    "you_dative": "you",
     "close": "Close"
   },
   "auth": {
@@ -92,6 +93,10 @@
     "empty_title": "No expenses yet",
     "empty_description": "Add the first expense for this group.",
     "paid_by": "Paid by {{name}}",
+    "paid_by_label": "Paid by",
+    "with": "With",
+    "x_people": "{{count}} people",
+    "my_share": "Your share",
     "form": {
       "page_title": "Add expense",
       "description_label": "Description",
