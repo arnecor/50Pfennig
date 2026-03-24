@@ -16,37 +16,53 @@ export function BalanceCard({ youAreOwed, youOwe, className }: BalanceCardProps)
   const positive = !isNegative(total);
 
   return (
-    <div className={cn('text-center py-6', className)}>
+    <div className={cn('py-6', className)}>
       {/* Hero Total Balance */}
-      <p className="text-sm text-muted-foreground mb-2">{t('home.total')}</p>
-      <p
-        className={cn(
-          'text-4xl font-bold tracking-tight mb-4',
-          positive ? 'text-owed-to-you' : 'text-you-owe',
-        )}
-      >
-        {positive ? '+' : ''}
-        {formatMoney(total)}
-      </p>
+      <div className="text-center mb-5">
+        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+          {t('home.total')}
+        </p>
+        <p
+          className={cn(
+            'text-5xl font-bold tracking-tight',
+            positive ? 'text-owed-to-you' : 'text-you-owe',
+          )}
+        >
+          {positive ? '+' : ''}
+          {formatMoney(total)}
+        </p>
+      </div>
 
-      {/* Inline Breakdown */}
-      <div className="flex items-center justify-center gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-owed-to-you-muted flex items-center justify-center">
-            <ArrowDownLeft className="w-3 h-3 text-owed-to-you" />
+      {/* Two-column breakdown cards */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* You are owed */}
+        <div className="rounded-2xl bg-owed-to-you-muted px-4 py-3 flex flex-col gap-2">
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-full bg-owed-to-you/15 flex items-center justify-center shrink-0">
+              <ArrowDownLeft className="w-3 h-3 text-owed-to-you" />
+            </div>
+            <span className="text-xs font-medium text-owed-to-you leading-tight">
+              {t('home.you_are_owed')}
+            </span>
           </div>
-          <span className="text-muted-foreground">{t('home.you_are_owed')}</span>
-          <span className="font-semibold text-owed-to-you">{formatMoney(youAreOwed)}</span>
+          <p className="text-xl font-bold text-owed-to-you tracking-tight">
+            {formatMoney(youAreOwed)}
+          </p>
         </div>
 
-        <div className="w-px h-4 bg-border" />
-
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-you-owe-muted flex items-center justify-center">
-            <ArrowUpRight className="w-3 h-3 text-you-owe" />
+        {/* You owe */}
+        <div className="rounded-2xl bg-you-owe-muted px-4 py-3 flex flex-col gap-2">
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-full bg-you-owe/15 flex items-center justify-center shrink-0">
+              <ArrowUpRight className="w-3 h-3 text-you-owe" />
+            </div>
+            <span className="text-xs font-medium text-you-owe leading-tight">
+              {t('home.you_owe')}
+            </span>
           </div>
-          <span className="text-muted-foreground">{t('home.you_owe')}</span>
-          <span className="font-semibold text-you-owe">{formatMoney(youOwe)}</span>
+          <p className="text-xl font-bold text-you-owe tracking-tight">
+            {formatMoney(youOwe)}
+          </p>
         </div>
       </div>
     </div>
