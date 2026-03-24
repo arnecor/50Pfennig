@@ -136,8 +136,8 @@
   },
   "home": {
     "greeting": "Hallo, {{name}}!",
-    "you_are_owed": "Owed",
-    "you_owe": "Owe",
+    "you_are_owed": "Du bekommst",
+    "you_owe": "Du schuldest",
     "total": "Gesamt",
     "add_expense": "Ausgabe hinzufügen",
     "recent_activity": "Letzte Aktivitäten",
