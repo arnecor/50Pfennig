@@ -33,36 +33,32 @@ export function BalanceCard({ youAreOwed, youOwe, className }: BalanceCardProps)
         </p>
       </div>
 
-      {/* Two-column breakdown cards */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Two-column breakdown — amount on top, label below */}
+      <div className="grid grid-cols-2 divide-x divide-border">
         {/* You are owed */}
-        <div className="rounded-2xl bg-owed-to-you-muted px-4 py-3 flex flex-col gap-2">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-owed-to-you/15 flex items-center justify-center shrink-0">
-              <ArrowDownLeft className="w-3 h-3 text-owed-to-you" />
-            </div>
-            <span className="text-xs font-medium text-owed-to-you leading-tight">
-              {t('home.you_are_owed')}
+        <div className="flex flex-col items-center gap-1 pr-4">
+          <div className="flex items-baseline gap-1">
+            <ArrowDownLeft className="w-3.5 h-3.5 text-owed-to-you self-center shrink-0" />
+            <span className="text-xl font-bold text-owed-to-you tracking-tight">
+              {formatMoney(youAreOwed)}
             </span>
           </div>
-          <p className="text-xl font-bold text-owed-to-you tracking-tight">
-            {formatMoney(youAreOwed)}
-          </p>
+          <span className="text-xs text-muted-foreground text-center leading-tight">
+            {t('home.you_are_owed')}
+          </span>
         </div>
 
         {/* You owe */}
-        <div className="rounded-2xl bg-you-owe-muted px-4 py-3 flex flex-col gap-2">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-you-owe/15 flex items-center justify-center shrink-0">
-              <ArrowUpRight className="w-3 h-3 text-you-owe" />
-            </div>
-            <span className="text-xs font-medium text-you-owe leading-tight">
-              {t('home.you_owe')}
+        <div className="flex flex-col items-center gap-1 pl-4">
+          <div className="flex items-baseline gap-1">
+            <ArrowUpRight className="w-3.5 h-3.5 text-you-owe self-center shrink-0" />
+            <span className="text-xl font-bold text-you-owe tracking-tight">
+              {formatMoney(youOwe)}
             </span>
           </div>
-          <p className="text-xl font-bold text-you-owe tracking-tight">
-            {formatMoney(youOwe)}
-          </p>
+          <span className="text-xs text-muted-foreground text-center leading-tight">
+            {t('home.you_owe')}
+          </span>
         </div>
       </div>
     </div>
