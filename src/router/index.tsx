@@ -33,6 +33,7 @@ import {
 
 import AppShell from '../components/layout/AppShell';
 import AccountPage from '../pages/AccountPage';
+import ImprintPage from '../pages/ImprintPage';
 import AddFriendEmailPage from '../pages/AddFriendEmailPage';
 import AddFriendPage from '../pages/AddFriendPage';
 import AddFriendQRPage from '../pages/AddFriendQRPage';
@@ -224,6 +225,13 @@ const accountRoute = createRoute({
   component: AccountPage,
 });
 
+const imprintRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account/imprint',
+  beforeLoad: requireAuth,
+  component: ImprintPage,
+});
+
 // ---------------------------------------------------------------------------
 // Route tree + router instance
 // ---------------------------------------------------------------------------
@@ -248,6 +256,7 @@ const routeTree = rootRoute.addChildren([
   addFriendEmailRoute,
   friendDetailRoute,
   accountRoute,
+  imprintRoute,
 ]);
 
 export const router = createRouter({
