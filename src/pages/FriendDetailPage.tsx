@@ -255,7 +255,6 @@ export default function FriendDetailPage() {
                   const formattedDate = expense.createdAt.toLocaleDateString(dateLocale, {
                     day: '2-digit',
                     month: '2-digit',
-                    year: 'numeric',
                   });
 
                   return (
@@ -278,12 +277,15 @@ export default function FriendDetailPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
+                        <p className="truncate text-sm font-medium text-foreground">
                           {expense.description}
+                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                            ({formattedDate})
+                          </span>
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {t('expenses.paid_by_label')}: {paidByName} · {t('expenses.with')}:{' '}
-                          {sharedWithLabel} · {formattedDate}
+                          {sharedWithLabel}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">

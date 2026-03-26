@@ -39,6 +39,7 @@ type RowProps = {
   icon: React.ReactNode;
   iconBg: string;
   primary: string;
+  primarySuffix?: string;
   secondary: string;
   // Settlement-style: single amount
   amount?: Money;
@@ -54,6 +55,7 @@ function ActivityRow({
   icon,
   iconBg,
   primary,
+  primarySuffix,
   secondary,
   amount,
   showSign,
@@ -68,7 +70,12 @@ function ActivityRow({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{primary}</p>
+        <p className="truncate text-sm font-medium">
+          {primary}
+          {primarySuffix && (
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">{primarySuffix}</span>
+          )}
+        </p>
         <p className="truncate text-xs text-muted-foreground">{secondary}</p>
       </div>
       {totalAmount !== undefined ? (
@@ -104,7 +111,7 @@ export default function ActivityFeed({
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
   const formatDate = (date: Date) =>
-    date.toLocaleDateString(dateLocale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    date.toLocaleDateString(dateLocale, { day: '2-digit', month: '2-digit' });
 
   if (isLoading) {
     return (
@@ -138,7 +145,7 @@ export default function ActivityFeed({
               ? subtract(item.totalAmount, item.myShare)
               : negate(item.myShare);
 
-            const secondary = `${t('expenses.paid_by_label')}: ${item.paidByName} · ${t('expenses.with')}: ${item.sharedWithLabel} · ${formatDate(item.date)}`;
+            const secondary = `${t('expenses.paid_by_label')}: ${item.paidByName} · ${t('expenses.with')}: ${item.sharedWithLabel}`;
 
             return (
               <div
@@ -165,6 +172,7 @@ export default function ActivityFeed({
                   }
                   iconBg="bg-muted"
                   primary={item.description}
+                  primarySuffix={`(${formatDate(item.date)})`}
                   secondary={secondary}
                   totalAmount={item.totalAmount}
                   myShare={signedShare}
