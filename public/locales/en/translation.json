@@ -229,7 +229,20 @@
     "session_section_title": "Session",
     "support_link": "Help & Support",
     "feedback_link": "Send feedback",
-    "help_section_title": "Help"
+    "help_section_title": "Help",
+    "imprint_link": "About the App",
+    "imprint_title": "Imprint",
+    "imprint_section_app": "App",
+    "imprint_section_responsible": "Responsible",
+    "imprint_section_contact": "Contact",
+    "imprint_section_legal": "Legal",
+    "imprint_version_placeholder": "Version [PLACEHOLDER]",
+    "imprint_name_placeholder": "[Name / Company]",
+    "imprint_address_line1_placeholder": "[Street Address]",
+    "imprint_address_line2_placeholder": "[ZIP City]",
+    "imprint_country_placeholder": "[Country]",
+    "imprint_email_placeholder": "Email: [contact@example.com]",
+    "imprint_legal_placeholder": "[Legal notices, disclaimer, and other mandatory information go here.]"
   },
   "payment_detail": {
     "expense_title": "Expense Details",
