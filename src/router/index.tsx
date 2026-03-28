@@ -33,6 +33,8 @@ import {
 import { lazy } from 'react';
 
 import AppShell from '../components/layout/AppShell';
+import GroupsPage from '../pages/GroupsPage';
+import HomePage from '../pages/HomePage';
 import { requireAuth, requireGuest } from './guards';
 
 // ---------------------------------------------------------------------------
@@ -52,8 +54,6 @@ const FriendDetailPage = lazy(() => import('../pages/FriendDetailPage'));
 const FriendsPage = lazy(() => import('../pages/FriendsPage'));
 const GroupDetailPage = lazy(() => import('../pages/GroupDetailPage'));
 const GroupSettingsPage = lazy(() => import('../pages/GroupSettingsPage'));
-const GroupsPage = lazy(() => import('../pages/GroupsPage'));
-const HomePage = lazy(() => import('../pages/HomePage'));
 const ImprintPage = lazy(() => import('../pages/ImprintPage'));
 const LoginPage = lazy(() => import('../pages/LoginPage'));
 const SettlementDetailPage = lazy(() => import('../pages/SettlementDetailPage'));
