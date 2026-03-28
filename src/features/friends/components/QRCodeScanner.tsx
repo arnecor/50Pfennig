@@ -22,7 +22,7 @@ function extractTokenFromUrl(url: string): string | null {
     const parsed = new URL(url);
     const parts = parsed.pathname.split('/').filter(Boolean);
     const lastPart = parts[parts.length - 1];
-    if (lastPart && /^[a-f0-9]{32}$/.test(lastPart)) {
+    if (lastPart && /^[A-Z0-9]{6}$/.test(lastPart)) {
       return lastPart;
     }
     return null;

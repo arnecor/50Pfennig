@@ -127,8 +127,8 @@ Parse the `g:` prefix in the referrer token and route accordingly:
 ### `src/App.tsx`
 Deep link handler needs to match `com.arco.sharli://invite/g/{token}` in addition to `/f/{token}`:
 ```typescript
-const friendMatch = urlObj.pathname.match(/\/invite\/f\/([A-Z0-9]{6})$/);
-const groupMatch  = urlObj.pathname.match(/\/invite\/g\/([A-Z0-9]{6})$/);
+const friendMatch = urlObj.pathname.match(/\/f\/([A-Z0-9]{6})$/);
+const groupMatch  = urlObj.pathname.match(/\/g\/([A-Z0-9]{6})$/);
 ```
 
 ### New store: `src/store/pendingGroupInviteStore.ts`

@@ -86,7 +86,7 @@ export default function App() {
 
         // --- Invite deep link: com.arco.sharli://invite/f/{token} ---
         const inviteMatch =
-          urlObj.pathname.match(/\/invite\/f\/([A-Z0-9]{6})$/) ?? null;
+          urlObj.pathname.match(/\/f\/([A-Z0-9]{6})$/) ?? null;
 
         if (inviteMatch?.[1]) {
           const token = inviteMatch[1];
