@@ -73,7 +73,9 @@ function ActivityRow({
         <p className="truncate text-sm font-medium">
           {primary}
           {primarySuffix && (
-            <span className="ml-1.5 text-xs font-normal text-muted-foreground">{primarySuffix}</span>
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+              {primarySuffix}
+            </span>
           )}
         </p>
         <p className="truncate text-xs text-muted-foreground">{secondary}</p>

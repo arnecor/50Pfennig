@@ -26,7 +26,15 @@ import { useDeleteSettlement } from '@features/settlements/hooks/useDeleteSettle
 import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeftRight, Bell, Receipt, Trash2, TrendingDown, TrendingUp, UserMinus } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Bell,
+  Receipt,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  UserMinus,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 

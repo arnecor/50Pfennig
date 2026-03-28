@@ -33,7 +33,6 @@ import {
 
 import AppShell from '../components/layout/AppShell';
 import AccountPage from '../pages/AccountPage';
-import ImprintPage from '../pages/ImprintPage';
 import AddFriendEmailPage from '../pages/AddFriendEmailPage';
 import AddFriendPage from '../pages/AddFriendPage';
 import AddFriendQRPage from '../pages/AddFriendQRPage';
@@ -48,6 +47,7 @@ import GroupDetailPage from '../pages/GroupDetailPage';
 import GroupSettingsPage from '../pages/GroupSettingsPage';
 import GroupsPage from '../pages/GroupsPage';
 import HomePage from '../pages/HomePage';
+import ImprintPage from '../pages/ImprintPage';
 import LoginPage from '../pages/LoginPage';
 import SettlementDetailPage from '../pages/SettlementDetailPage';
 import SettlementsPage from '../pages/SettlementsPage';

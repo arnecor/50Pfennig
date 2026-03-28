@@ -228,6 +228,8 @@ export function useRecentActivity(
   }, [
     currentUserId,
     youLabel,
+    youDativeLabel,
+    personsLabel,
     groups,
     friends,
     expensesResults,
