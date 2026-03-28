@@ -10,6 +10,7 @@
     "error_generic": "Something went wrong. Please try again.",
     "back": "Back",
     "you": "You",
+    "you_dative": "you",
     "close": "Close"
   },
   "auth": {
@@ -92,6 +93,10 @@
     "empty_title": "No expenses yet",
     "empty_description": "Add the first expense for this group.",
     "paid_by": "Paid by {{name}}",
+    "paid_by_label": "Paid by",
+    "with": "With",
+    "x_people": "{{count}} people",
+    "my_share": "Your share",
     "form": {
       "page_title": "Add expense",
       "description_label": "Description",
@@ -224,7 +229,20 @@
     "session_section_title": "Session",
     "support_link": "Help & Support",
     "feedback_link": "Send feedback",
-    "help_section_title": "Help"
+    "help_section_title": "Help",
+    "imprint_link": "About the App",
+    "imprint_title": "Imprint",
+    "imprint_section_app": "App",
+    "imprint_section_responsible": "Responsible",
+    "imprint_section_contact": "Contact",
+    "imprint_section_legal": "Legal",
+    "imprint_version_placeholder": "Version [PLACEHOLDER]",
+    "imprint_name_placeholder": "[Name / Company]",
+    "imprint_address_line1_placeholder": "[Street Address]",
+    "imprint_address_line2_placeholder": "[ZIP City]",
+    "imprint_country_placeholder": "[Country]",
+    "imprint_email_placeholder": "Email: [contact@example.com]",
+    "imprint_legal_placeholder": "[Legal notices, disclaimer, and other mandatory information go here.]"
   },
   "payment_detail": {
     "expense_title": "Expense Details",

@@ -12,9 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from '@tanstack/react-router';
 import {
   Check,
   ChevronRight,
+  FileText,
   Globe,
   HelpCircle,
   LogOut,
@@ -87,6 +89,7 @@ function SettingsGroup({ children }: { children: React.ReactNode }) {
 export default function AccountPage() {
   const { t, i18n } = useTranslation();
   const { user, updateDisplayName, signOut } = useAuth();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentDisplayName: string =
@@ -251,6 +254,12 @@ export default function AccountPage() {
           onClick={() => window.open('https://vercel.com/help', '_blank')}
         >
           <MessageSquare className="h-4 w-4 opacity-40" />
+        </SettingsRow>
+        <SettingsRow
+          label={t('account.imprint_link')}
+          onClick={() => navigate({ to: '/account/imprint' })}
+        >
+          <FileText className="h-4 w-4 opacity-40" />
         </SettingsRow>
       </SettingsGroup>
 

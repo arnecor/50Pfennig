@@ -26,7 +26,15 @@ import { useDeleteSettlement } from '@features/settlements/hooks/useDeleteSettle
 import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeftRight, Bell, Receipt, Trash2, UserMinus } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Bell,
+  Receipt,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  UserMinus,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -233,7 +241,29 @@ export default function FriendDetailPage() {
                           ? (expense.splits.find((s) => s.userId === currentUserId)?.amount ?? ZERO)
                           : ZERO,
                       );
-                  const signedPositive = !isNegative(signedShare);
+
+                  const paidByStr = expense.paidBy as string;
+                  const otherSplits = expense.splits.filter(
+                    (s) => (s.userId as string) !== paidByStr,
+                  );
+                  let sharedWithLabel: string;
+                  if (expense.groupId) {
+                    sharedWithLabel = groupNameMap.get(expense.groupId) ?? t('groups.title');
+                  } else if (otherSplits.length === 1) {
+                    // biome-ignore lint/style/noNonNullAssertion: length === 1 guarantees element exists
+                    const otherId = otherSplits[0]!.userId as string;
+                    sharedWithLabel =
+                      otherId === (currentUserId as string)
+                        ? t('common.you_dative')
+                        : (friend?.displayName ?? '…');
+                  } else {
+                    sharedWithLabel = t('expenses.x_people', { count: expense.splits.length });
+                  }
+
+                  const formattedDate = expense.createdAt.toLocaleDateString(dateLocale, {
+                    day: '2-digit',
+                    month: '2-digit',
+                  });
 
                   return (
                     <button
@@ -247,37 +277,39 @@ export default function FriendDetailPage() {
                       }
                       className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
                     >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                        {paidByCurrentUser ? (
+                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
+                        <p className="truncate text-sm font-medium text-foreground">
                           {expense.description}
+                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                            ({formattedDate})
+                          </span>
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {paidByName}
-                          {' · '}
-                          {expense.groupId
-                            ? (groupNameMap.get(expense.groupId) ?? t('groups.title'))
-                            : t('friends.direct_expense')}
-                          {' · '}
-                          {expense.createdAt.toLocaleDateString(dateLocale, {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })}
+                          {t('expenses.paid_by_label')}: {paidByName} · {t('expenses.with')}:{' '}
+                          {sharedWithLabel}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p
-                          className={cn(
-                            'text-sm font-semibold tabular-nums',
-                            signedPositive ? 'text-owed-to-you' : 'text-you-owe',
-                          )}
-                        >
-                          {signedPositive ? '+' : ''}
-                          {formatMoney(signedShare)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t('friends.total')} {formatMoney(expense.totalAmount)}
-                        </p>
+                        <MoneyDisplay
+                          amount={expense.totalAmount}
+                          className="block text-sm font-semibold tabular-nums"
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          {t('expenses.my_share')}:{' '}
+                          <MoneyDisplay
+                            amount={signedShare}
+                            showSign
+                            colored
+                            className="text-xs tabular-nums"
+                          />
+                        </span>
                       </div>
                     </button>
                   );

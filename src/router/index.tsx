@@ -47,6 +47,7 @@ import GroupDetailPage from '../pages/GroupDetailPage';
 import GroupSettingsPage from '../pages/GroupSettingsPage';
 import GroupsPage from '../pages/GroupsPage';
 import HomePage from '../pages/HomePage';
+import ImprintPage from '../pages/ImprintPage';
 import LoginPage from '../pages/LoginPage';
 import SettlementDetailPage from '../pages/SettlementDetailPage';
 import SettlementsPage from '../pages/SettlementsPage';
@@ -224,6 +225,13 @@ const accountRoute = createRoute({
   component: AccountPage,
 });
 
+const imprintRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account/imprint',
+  beforeLoad: requireAuth,
+  component: ImprintPage,
+});
+
 // ---------------------------------------------------------------------------
 // Route tree + router instance
 // ---------------------------------------------------------------------------
@@ -248,6 +256,7 @@ const routeTree = rootRoute.addChildren([
   addFriendEmailRoute,
   friendDetailRoute,
   accountRoute,
+  imprintRoute,
 ]);
 
 export const router = createRouter({

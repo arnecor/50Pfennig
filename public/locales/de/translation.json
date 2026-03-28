@@ -11,6 +11,7 @@
     "error_generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "back": "Zurück",
     "you": "Du",
+    "you_dative": "dir",
     "close": "Schließen"
   },
   "auth": {
@@ -93,6 +94,10 @@
     "empty_title": "Noch keine Ausgaben",
     "empty_description": "Füge die erste Ausgabe dieser Gruppe hinzu.",
     "paid_by": "Bezahlt von {{name}}",
+    "paid_by_label": "Bezahlt von",
+    "with": "Mit",
+    "x_people": "{{count}} Personen",
+    "my_share": "Dein Anteil",
     "form": {
       "page_title": "Ausgabe hinzufügen",
       "description_label": "Beschreibung",
@@ -136,8 +141,8 @@
   },
   "home": {
     "greeting": "Hallo, {{name}}!",
-    "you_are_owed": "Owed",
-    "you_owe": "Owe",
+    "you_are_owed": "Du bekommst",
+    "you_owe": "Du schuldest",
     "total": "Gesamt",
     "add_expense": "Ausgabe hinzufügen",
     "recent_activity": "Letzte Aktivitäten",
@@ -225,7 +230,20 @@
     "session_section_title": "Sitzung",
     "support_link": "Hilfe und Support",
     "feedback_link": "Feedback geben",
-    "help_section_title": "Hilfe"
+    "help_section_title": "Hilfe",
+    "imprint_link": "Über die App",
+    "imprint_title": "Impressum",
+    "imprint_section_app": "App",
+    "imprint_section_responsible": "Verantwortlich",
+    "imprint_section_contact": "Kontakt",
+    "imprint_section_legal": "Rechtliches",
+    "imprint_version_placeholder": "Version [PLATZHALTER]",
+    "imprint_name_placeholder": "[Name / Firma]",
+    "imprint_address_line1_placeholder": "[Straße Hausnummer]",
+    "imprint_address_line2_placeholder": "[PLZ Ort]",
+    "imprint_country_placeholder": "[Land]",
+    "imprint_email_placeholder": "E-Mail: [kontakt@beispiel.de]",
+    "imprint_legal_placeholder": "[Rechtliche Hinweise, Haftungsausschluss und sonstige Pflichtangaben kommen hier hin.]"
   },
   "payment_detail": {
     "expense_title": "Ausgabe Details",

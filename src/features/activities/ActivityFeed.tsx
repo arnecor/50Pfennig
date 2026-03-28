@@ -10,7 +10,7 @@ import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { Button } from '@components/ui/button';
 import { negate, subtract } from '@domain/money';
 import type { Money } from '@domain/types';
-import { ArrowDownLeft, ArrowUpRight, Receipt, Users } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ActivityItem } from './types';
 
@@ -39,30 +39,65 @@ type RowProps = {
   icon: React.ReactNode;
   iconBg: string;
   primary: string;
+  primarySuffix?: string;
   secondary: string;
+  // Settlement-style: single amount
   amount?: Money;
   showSign?: boolean;
   colored?: boolean;
+  // Expense-style: two-line amount
+  totalAmount?: Money;
+  myShare?: Money;
+  myShareLabel?: string;
 };
 
-function ActivityRow({ icon, iconBg, primary, secondary, amount, showSign, colored }: RowProps) {
+function ActivityRow({
+  icon,
+  iconBg,
+  primary,
+  primarySuffix,
+  secondary,
+  amount,
+  showSign,
+  colored,
+  totalAmount,
+  myShare,
+  myShareLabel,
+}: RowProps) {
   return (
     <div className="flex items-center gap-3 py-3 px-4">
       <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{primary}</p>
+        <p className="truncate text-sm font-medium">
+          {primary}
+          {primarySuffix && (
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+              {primarySuffix}
+            </span>
+          )}
+        </p>
         <p className="truncate text-xs text-muted-foreground">{secondary}</p>
       </div>
-      {amount !== undefined && (
+      {totalAmount !== undefined ? (
+        <div className="shrink-0 text-right">
+          <MoneyDisplay amount={totalAmount} className="block text-sm font-semibold tabular-nums" />
+          {myShare !== undefined && (
+            <span className="text-xs text-muted-foreground">
+              {myShareLabel}{' '}
+              <MoneyDisplay amount={myShare} showSign colored className="text-xs tabular-nums" />
+            </span>
+          )}
+        </div>
+      ) : amount !== undefined ? (
         <MoneyDisplay
           amount={amount}
           {...(showSign && { showSign })}
           {...(colored && { colored })}
           className="shrink-0 text-sm font-semibold tabular-nums"
         />
-      )}
+      ) : null}
     </div>
   );
 }
@@ -78,7 +113,7 @@ export default function ActivityFeed({
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
 
   const formatDate = (date: Date) =>
-    date.toLocaleDateString(dateLocale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    date.toLocaleDateString(dateLocale, { day: '2-digit', month: '2-digit' });
 
   if (isLoading) {
     return (
@@ -112,9 +147,7 @@ export default function ActivityFeed({
               ? subtract(item.totalAmount, item.myShare)
               : negate(item.myShare);
 
-            const contextLabel = item.groupName ? item.groupName : t('friends.direct_expense');
-
-            const secondary = `${item.paidByName} · ${contextLabel} · ${formatDate(item.date)}`;
+            const secondary = `${t('expenses.paid_by_label')}: ${item.paidByName} · ${t('expenses.with')}: ${item.sharedWithLabel}`;
 
             return (
               <div
@@ -132,13 +165,20 @@ export default function ActivityFeed({
                 tabIndex={isClickable ? 0 : undefined}
               >
                 <ActivityRow
-                  icon={<Receipt className="h-4 w-4 text-primary" />}
-                  iconBg="bg-primary/10"
+                  icon={
+                    item.paidByCurrentUser ? (
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                    )
+                  }
+                  iconBg="bg-muted"
                   primary={item.description}
+                  primarySuffix={`(${formatDate(item.date)})`}
                   secondary={secondary}
-                  amount={signedShare}
-                  showSign
-                  colored
+                  totalAmount={item.totalAmount}
+                  myShare={signedShare}
+                  myShareLabel={`${t('expenses.my_share')}:`}
                 />
               </div>
             );

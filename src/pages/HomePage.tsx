@@ -36,7 +36,9 @@ export default function HomePage() {
     isLoading: activityLoading,
     hasMore,
     loadMore,
-  } = useRecentActivity(currentUserId, t('common.you'));
+  } = useRecentActivity(currentUserId, t('common.you'), t('common.you_dative'), (n) =>
+    t('expenses.x_people', { count: n }),
+  );
 
   const handleActivityClick = (item: ActivityItem) => {
     if (item.type === 'expense') {
