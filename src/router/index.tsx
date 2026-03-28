@@ -30,28 +30,34 @@ import {
   createRouter,
   redirect,
 } from '@tanstack/react-router';
+import { lazy } from 'react';
 
 import AppShell from '../components/layout/AppShell';
-import AccountPage from '../pages/AccountPage';
-import AddFriendEmailPage from '../pages/AddFriendEmailPage';
-import AddFriendPage from '../pages/AddFriendPage';
-import AddFriendQRPage from '../pages/AddFriendQRPage';
-import AddFriendScanPage from '../pages/AddFriendScanPage';
-import CheckEmailPage from '../pages/CheckEmailPage';
-import CreateGroupPage from '../pages/CreateGroupPage';
-import ExpenseDetailPage from '../pages/ExpenseDetailPage';
-import ExpenseFormPage from '../pages/ExpenseFormPage';
-import FriendDetailPage from '../pages/FriendDetailPage';
-import FriendsPage from '../pages/FriendsPage';
-import GroupDetailPage from '../pages/GroupDetailPage';
-import GroupSettingsPage from '../pages/GroupSettingsPage';
 import GroupsPage from '../pages/GroupsPage';
 import HomePage from '../pages/HomePage';
-import ImprintPage from '../pages/ImprintPage';
-import LoginPage from '../pages/LoginPage';
-import SettlementDetailPage from '../pages/SettlementDetailPage';
-import SettlementsPage from '../pages/SettlementsPage';
 import { requireAuth, requireGuest } from './guards';
+
+// ---------------------------------------------------------------------------
+// Lazy page imports — each page becomes its own async chunk
+// ---------------------------------------------------------------------------
+
+const AccountPage = lazy(() => import('../pages/AccountPage'));
+const AddFriendEmailPage = lazy(() => import('../pages/AddFriendEmailPage'));
+const AddFriendPage = lazy(() => import('../pages/AddFriendPage'));
+const AddFriendQRPage = lazy(() => import('../pages/AddFriendQRPage'));
+const AddFriendScanPage = lazy(() => import('../pages/AddFriendScanPage'));
+const CheckEmailPage = lazy(() => import('../pages/CheckEmailPage'));
+const CreateGroupPage = lazy(() => import('../pages/CreateGroupPage'));
+const ExpenseDetailPage = lazy(() => import('../pages/ExpenseDetailPage'));
+const ExpenseFormPage = lazy(() => import('../pages/ExpenseFormPage'));
+const FriendDetailPage = lazy(() => import('../pages/FriendDetailPage'));
+const FriendsPage = lazy(() => import('../pages/FriendsPage'));
+const GroupDetailPage = lazy(() => import('../pages/GroupDetailPage'));
+const GroupSettingsPage = lazy(() => import('../pages/GroupSettingsPage'));
+const ImprintPage = lazy(() => import('../pages/ImprintPage'));
+const LoginPage = lazy(() => import('../pages/LoginPage'));
+const SettlementDetailPage = lazy(() => import('../pages/SettlementDetailPage'));
+const SettlementsPage = lazy(() => import('../pages/SettlementsPage'));
 
 // ---------------------------------------------------------------------------
 // Root route — AppShell is the layout for every route
