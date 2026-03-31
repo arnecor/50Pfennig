@@ -28,7 +28,9 @@ import { useAuthStore } from './features/auth/authStore';
 import { type NotificationData, initPushNotifications } from './lib/capacitor/pushNotifications';
 import { initStatusBar } from './lib/capacitor/statusBar';
 import { checkInstallReferrer } from './lib/installReferrer';
+import { subscribeRealtime } from './lib/realtime/realtimeService';
 import { CACHE_MAX_AGE, idbPersister } from './lib/storage/queryPersister';
+import { initSyncService } from './lib/storage/syncService';
 import { supabase } from './lib/supabase/client';
 import { friendRepository } from './repositories';
 import { deletePushToken, upsertPushToken } from './repositories/supabase/pushTokenRepository';
@@ -56,7 +58,7 @@ export default function App() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 5, // 5 min — fresh data, background refetch after
+            staleTime: 1000 * 30, // 30 s — fallback freshness; realtime + app-resume handle the rest
             gcTime: CACHE_MAX_AGE,
           },
         },
@@ -66,6 +68,9 @@ export default function App() {
   const { setSession, setHydrated, isHydrated } = useAuthStore();
   // Track the current FCM token so we can delete it on sign-out.
   const currentPushToken = useRef<string | null>(null);
+  // Cleanup functions for the realtime channel and sync service listeners.
+  const cleanupRealtime = useRef<(() => void) | null>(null);
+  const cleanupSync = useRef<(() => void) | null>(null);
 
   // Initialise Android status bar style (icon colour + background) on startup.
   // Runs before auth hydration so it takes effect as early as possible.
@@ -152,7 +157,22 @@ export default function App() {
         void upsertPushToken(currentPushToken.current);
       }
 
+      // Start realtime + sync service as soon as a session is available.
+      // Guard with null-check so TOKEN_REFRESHED events don't re-subscribe.
+      if (session && cleanupRealtime.current === null) {
+        cleanupRealtime.current = subscribeRealtime(queryClient);
+        void initSyncService(queryClient).then((cleanup) => {
+          cleanupSync.current = cleanup;
+        });
+      }
+
       if (event === 'SIGNED_OUT') {
+        // Stop realtime subscriptions and lifecycle listeners.
+        cleanupRealtime.current?.();
+        cleanupRealtime.current = null;
+        cleanupSync.current?.();
+        cleanupSync.current = null;
+
         // Remove this device's push token so the user stops receiving
         // notifications after signing out.
         if (currentPushToken.current) {

@@ -15,18 +15,14 @@
  * Imported by: lib/storage/syncService.ts
  */
 
-// TODO: Install @capacitor/network, then implement:
-//
-// import { Network } from '@capacitor/network';
-//
-// export const getNetworkStatus = () => Network.getStatus();
-//
-// export const addNetworkListener = (
-//   callback: (connected: boolean) => void,
-// ) => {
-//   Network.addListener('networkStatusChange', ({ connected }) => {
-//     callback(connected);
-//   });
-// };
+import { Network } from '@capacitor/network';
 
-export {};
+export const getNetworkStatus = () => Network.getStatus();
+
+export const addNetworkListener = (
+  callback: (connected: boolean) => void,
+): Promise<{ remove: () => Promise<void> }> => {
+  return Network.addListener('networkStatusChange', ({ connected }) => {
+    callback(connected);
+  });
+};
