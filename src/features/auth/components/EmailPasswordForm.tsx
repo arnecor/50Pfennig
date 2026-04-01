@@ -3,7 +3,8 @@
  *
  * Traditional email + password sign-in / sign-up form.
  * Extracted from the original LoginForm.tsx.
- * Shown as a fallback when users toggle away from magic link mode.
+ * Shown as the default email auth method.
+ * In sign_up mode, a name field is shown above the email input.
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,6 +38,7 @@ export default function EmailPasswordForm({
   const { t } = useTranslation();
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in');
+  const [displayName, setDisplayName] = useState('');
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -51,11 +53,15 @@ export default function EmailPasswordForm({
 
   const onSubmit = async ({ email, password }: FormValues) => {
     setServerError(null);
+    if (mode === 'sign_up' && !displayName.trim()) {
+      setServerError(t('auth.error_name_required'));
+      return;
+    }
     try {
       if (mode === 'sign_in') {
         await signIn(email, password);
       } else {
-        await signUp(email, password);
+        await signUp(email, password, displayName.trim());
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
@@ -75,6 +81,24 @@ export default function EmailPasswordForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-3" noValidate>
+      {!isSignIn && (
+        <div className="space-y-1.5">
+          <Label htmlFor="pw-name" className="sr-only">
+            {t('auth.display_name')}
+          </Label>
+          <Input
+            id="pw-name"
+            type="text"
+            autoComplete="name"
+            placeholder={t('auth.display_name_placeholder')}
+            className="h-11"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">{t('auth.display_name_hint')}</p>
+        </div>
+      )}
+
       <div className="space-y-1.5">
         <Label htmlFor="pw-email" className="sr-only">
           {t('auth.email')}
@@ -122,6 +146,7 @@ export default function EmailPasswordForm({
         type="button"
         onClick={() => {
           setMode(isSignIn ? 'sign_up' : 'sign_in');
+          setDisplayName('');
           setServerError(null);
         }}
         className="w-full py-1 text-center text-sm text-muted-foreground transition-colors hover:text-foreground"

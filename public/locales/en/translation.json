@@ -47,7 +47,11 @@
     "error_google_sign_in": "Google sign-in failed. Please try again.",
     "error_magic_link": "Could not send link. Please try again.",
     "error_rate_limited": "Too many attempts. Please wait a moment.",
-    "signing_in": "Signing in…"
+    "signing_in": "Signing in…",
+    "display_name": "Name",
+    "display_name_placeholder": "What's your name?",
+    "display_name_hint": "This name will be shown to your friends.",
+    "error_name_required": "Please enter your name."
   },
   "groups": {
     "title": "Groups",

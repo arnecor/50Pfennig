@@ -26,7 +26,7 @@
     "sign_up_title": "Konto erstellen",
     "sign_up_subtitle": "Erstelle ein Konto, um loszulegen.",
     "email_placeholder": "meister.eder@beispiel.de",
-    "password_placeholder": "Mindestens 6 Zeichen",
+    "password_placeholder": "Passwort. Mindestens 6 Zeichen",
     "switch_to_sign_up": "Noch kein Konto? Registrieren",
     "switch_to_sign_in": "Bereits ein Konto? Anmelden",
     "error_invalid_credentials": "E-Mail oder Passwort ist falsch.",
@@ -48,7 +48,11 @@
     "error_google_sign_in": "Google-Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
     "error_magic_link": "Link konnte nicht gesendet werden. Bitte versuche es erneut.",
     "error_rate_limited": "Zu viele Versuche. Bitte warte einen Moment.",
-    "signing_in": "Anmeldung…"
+    "signing_in": "Anmeldung…",
+    "display_name": "Name",
+    "display_name_placeholder": "Wie heißt du?",
+    "display_name_hint": "Dieser Name wird deinen Freunden angezeigt.",
+    "error_name_required": "Bitte gib deinen Namen ein."
   },
   "groups": {
     "title": "Gruppen",

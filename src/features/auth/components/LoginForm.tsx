@@ -4,8 +4,8 @@
  * Composition component for the login/registration screen.
  * Full-bleed layout (no Card wrapper) with three auth methods:
  *   1. Google OAuth (most prominent)
- *   2. Magic link (default email method — passwordless)
- *   3. Email + password (progressive disclosure, toggled by user)
+ *   2. Email + password (default email method)
+ *   3. Magic link (passwordless, toggled by user)
  *
  * Email value is preserved when switching between magic link and password modes.
  */
@@ -20,7 +20,7 @@ const GOOGLE_LOGIN_ENABLED = import.meta.env.VITE_ENABLE_GOOGLE_LOGIN === 'true'
 
 export default function LoginForm() {
   const { t } = useTranslation();
-  const [authMethod, setAuthMethod] = useState<'magic_link' | 'password'>('magic_link');
+  const [authMethod, setAuthMethod] = useState<'magic_link' | 'password'>('password');
   const [email, setEmail] = useState('');
 
   return (
