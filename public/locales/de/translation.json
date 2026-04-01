@@ -64,9 +64,9 @@
     "all_friends_in_group": "Alle Freunde sind bereits in der Gruppe.",
     "no_friends_at_all": "Noch keine Freunde vorhanden.",
     "share_section": "Gruppe teilen",
-    "share_coming_soon": "Link- und QR-Code-Sharing kommt bald.",
-    "share_link": "Link teilen",
-    "share_qr": "QR-Code",
+    "share_group": "Gruppe teilen",
+    "share_invite_link": "Einladungslink generieren",
+    "invite_share_text": "Tritt unserer Gruppe «{{groupName}}» auf Sharli bei!",
     "create_title": "Neue Gruppe",
     "name_label": "Gruppenname",
     "name_error_required": "Name ist erforderlich.",
@@ -87,6 +87,14 @@
     "leave_blocked_hint": "Du kannst die Gruppe erst verlassen, wenn dein Guthaben ausgeglichen ist.",
     "event_member_joined": "{{name}} ist beigetreten",
     "event_member_left": "{{name}} hat die Gruppe verlassen"
+  },
+  "invites": {
+    "link_label": "Einladungslink",
+    "copy_link": "Kopieren",
+    "valid_days": "Der Link ist 7 Tage gültig.",
+    "share_link": "Teilen",
+    "show_qr": "QR-Code",
+    "qr_scan_hint": "Lass andere diesen Code scannen."
   },
   "expenses": {
     "title": "Ausgaben",

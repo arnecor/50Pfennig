@@ -6,16 +6,19 @@
  * Sections:
  *   1. "Freunde hinzufügen" — multi-select list of friends not yet in the group.
  *      Confirm button adds selected friends and closes the sheet.
- *   2. "Gruppe teilen" — placeholder buttons for link sharing and QR code
- *      (not yet implemented, shown disabled with a "coming soon" hint).
+ *   2. "Gruppe teilen" — invite link with copy, share, and inline QR code.
+ *      Token is created lazily on first render of this section.
  *
  * Uses the same fixed-overlay pattern as ParticipantPicker (no Dialog — not installed).
  */
 
+import InviteLinkPanel from '@components/InviteLinkPanel';
 import { Button } from '@components/ui/button';
-import type { Friend, Group, UserId } from '@domain/types';
-import { CheckSquare, Link2, QrCode, Square, UserPlus, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import type { Friend, Group, GroupId, UserId } from '@domain/types';
+import { useCreateGroupInvite } from '@features/groups/hooks/useCreateGroupInvite';
+import { getInviteUrl } from '@features/invites/utils/getInviteUrl';
+import { CheckSquare, Square, UserPlus, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // ---------------------------------------------------------------------------
@@ -42,6 +45,16 @@ export default function AddMemberOverlay({
   onClose,
 }: Props) {
   const { t } = useTranslation();
+  const createGroupInvite = useCreateGroupInvite();
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+
+  // Create invite token lazily on first mount of the share section
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect — mutation must run exactly once
+  useEffect(() => {
+    createGroupInvite
+      .mutateAsync(group.id as GroupId)
+      .then((invite) => setInviteUrl(getInviteUrl('group', invite.token)));
+  }, []);
 
   const existingMemberIds = useMemo(
     () => new Set(group.members.map((m) => m.userId)),
@@ -140,30 +153,16 @@ export default function AddMemberOverlay({
             )}
           </section>
 
-          {/* Section 2 — Share group (placeholders) */}
+          {/* Section 2 — Share group via invite link */}
           <section className="mb-4">
-            <p className="mb-2 mt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="mb-3 mt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t('groups.share_section')}
             </p>
-            <p className="mb-3 text-xs text-muted-foreground">{t('groups.share_coming_soon')}</p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm text-muted-foreground opacity-50 cursor-not-allowed"
-              >
-                <Link2 className="h-4 w-4" />
-                {t('groups.share_link')}
-              </button>
-              <button
-                type="button"
-                disabled
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm text-muted-foreground opacity-50 cursor-not-allowed"
-              >
-                <QrCode className="h-4 w-4" />
-                {t('groups.share_qr')}
-              </button>
-            </div>
+            <InviteLinkPanel
+              inviteUrl={inviteUrl}
+              isLoading={createGroupInvite.isPending}
+              shareText={t('groups.invite_share_text', { groupName: group.name })}
+            />
           </section>
         </div>
 
