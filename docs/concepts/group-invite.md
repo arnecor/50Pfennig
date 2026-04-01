@@ -110,7 +110,7 @@ where gi.token = $1
 - Group name as headline: `"Du wurdest zu {groupName} eingeladen"`
 - Inviter: `"Eingeladen von {inviterName}"`
 - Member count: `"{n} Mitglieder sind bereits dabei"`
-- Google Play / Apple App Store buttons (same Apple overlay as friend invite)
+- Google Play / Apple App Store buttons (same Apple overlay as friend invite, but the design is improved)
 - "Ich habe die App bereits" deep link: `com.arco.sharli://invite/g/{token}`
 
 **Play Store referrer**: `invite_token=g:{token}` — the `g:` prefix lets `installReferrer.ts` distinguish group invites from friend invites.
