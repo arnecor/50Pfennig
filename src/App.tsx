@@ -22,8 +22,7 @@ import { Capacitor } from '@capacitor/core';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RouterProvider } from '@tanstack/react-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import SplashScreen from './components/SplashScreen';
+import { useEffect, useRef, useState } from 'react';
 
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuthStore } from './features/auth/authStore';
@@ -263,30 +262,16 @@ export default function App() {
     });
   }, [isHydrated, queryClient]);
 
-  // Track whether the splash screen has finished its exit animation
-  const [splashDone, setSplashDone] = useState(false);
-  const handleSplashDone = useCallback(() => setSplashDone(true), []);
-
-  // Show splash until both: auth is hydrated AND the splash animation is done
-  const showSplash = !splashDone;
-
-  return (
-    <>
-      {/* Splash sits on top of everything until its exit animation completes */}
-      {showSplash && <SplashScreen exiting={isHydrated} onDone={handleSplashDone} />}
-
-      {/* Mount the real app tree immediately so queries/auth can warm up,
-          but it is visually hidden behind the splash screen */}
-      {isHydrated && (
-        <ErrorBoundary>
-          <PersistQueryClientProvider
-            client={queryClient}
-            persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
-          >
-            <RouterProvider router={router} context={{ queryClient }} />
-          </PersistQueryClientProvider>
-        </ErrorBoundary>
-      )}
-    </>
+  return isHydrated ? (
+    <ErrorBoundary>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
+      >
+        <RouterProvider router={router} context={{ queryClient }} />
+      </PersistQueryClientProvider>
+    </ErrorBoundary>
+  ) : (
+    <div className="h-full w-full bg-background" />
   );
 }
