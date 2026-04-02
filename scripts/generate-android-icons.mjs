@@ -6,10 +6,10 @@
  *   npm run icon -- path/to/new-icon.png  # custom source
  *
  * What this updates:
- *   - android/app/src/main/res/mipmap-*/ic_launcher.png         (square launcher icon, all densities)
- *   - android/app/src/main/res/mipmap-*/ic_launcher_round.png   (circular launcher icon, all densities)
- *   - android/app/src/main/res/mipmap-*/ic_launcher_background.png  (adaptive icon background layer)
- *   - android/app/src/main/res/mipmap-*/ic_launcher_foreground.png  (adaptive icon foreground layer, 80% scale)
+ *   - android/app/src/main/res/mipmap-* /ic_launcher.png         (square launcher icon, all densities)
+ *   - android/app/src/main/res/mipmap-* /ic_launcher_round.png   (circular launcher icon, all densities)
+ *   - android/app/src/main/res/mipmap-* /ic_launcher_background.png  (adaptive icon background layer)
+ *   - android/app/src/main/res/mipmap-* /ic_launcher_foreground.png  (adaptive icon foreground layer, 80% scale)
  *   - public/icon.png                                            (login screen mascot)
  *
  * After running: cd android && ./gradlew clean  (clears build cache)
@@ -24,7 +24,12 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const SOURCE = path.join(ROOT, 'design-input', process.argv[2] ?? 'raccon1.png');
+
+const args = process.argv.slice(2);
+const scaleArg = args.find((a) => a.startsWith('--scale='));
+const FOREGROUND_SCALE = scaleArg ? parseFloat(scaleArg.split('=')[1]) : 0.7;
+const sourceArg = args.find((a) => !a.startsWith('--'));
+const SOURCE = path.join(ROOT, 'design-input', sourceArg ?? 'raccon1.png');
 const RES = path.join(ROOT, 'android', 'app', 'src', 'main', 'res');
 
 // Sample background color from the source image (top-left pixel = brand blue)
@@ -97,8 +102,8 @@ async function generateBackground(destDir, size, brandBlue) {
 }
 
 async function generateForeground(destDir, size, brandBlue) {
-  // Scale raccoon to 80% of canvas, centered on brand-blue background
-  const innerSize = Math.round(size * 0.8);
+  // Scale raccoon to 70% of canvas, centered on brand-blue background
+  const innerSize = Math.round(size * FOREGROUND_SCALE);
   const offset = Math.round((size - innerSize) / 2);
 
   const raccoon = await sharp(SOURCE)
@@ -117,7 +122,7 @@ async function generateForeground(destDir, size, brandBlue) {
 }
 
 async function main() {
-  console.log('Generating Android icons from raccon1.png...\n');
+  console.log(`Generating Android icons from ${sourceArg ?? 'raccon1.png'} (scale: ${FOREGROUND_SCALE})...\n`);
 
   const brandBlue = await sampleBrandBlue();
   console.log(`  Sampled brand blue: rgb(${brandBlue.r}, ${brandBlue.g}, ${brandBlue.b})\n`);
