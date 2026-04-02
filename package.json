@@ -27,7 +27,8 @@
     "db:seed-test": "node --env-file=.env.development scripts/seed-test.js",
     "db:seed-val-users": "node --env-file=.env.development scripts/seed-val-users.js",
     "db:remove-val-users": "node --env-file=.env.development scripts/remove-val-users.js",
-    "generate-icons": "capacitor-assets generate --android"
+    "generate-icons": "capacitor-assets generate --android",
+    "icon": "node scripts/generate-android-icons.mjs"
   },
   "dependencies": {
     "@capacitor-mlkit/barcode-scanning": "^6.2.0",
