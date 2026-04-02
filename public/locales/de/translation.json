@@ -12,7 +12,9 @@
     "back": "Zurück",
     "you": "Du",
     "you_dative": "dir",
-    "close": "Schließen"
+    "close": "Schließen",
+    "today": "Heute",
+    "yesterday": "Gestern"
   },
   "auth": {
     "sign_in": "Anmelden",
@@ -109,7 +111,8 @@
     "paid_by_label": "Bezahlt von",
     "with": "Mit",
     "x_people": "{{count}} Personen",
-    "my_share": "Dein Anteil",
+    "my_share": "Du",
+    "paid_by_short": "Bezahlt",
     "form": {
       "page_title": "Ausgabe hinzufügen",
       "description_label": "Beschreibung",

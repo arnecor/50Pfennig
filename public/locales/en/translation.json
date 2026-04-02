@@ -11,7 +11,9 @@
     "back": "Back",
     "you": "You",
     "you_dative": "you",
-    "close": "Close"
+    "close": "Close",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "auth": {
     "sign_in": "Sign in",
@@ -108,7 +110,8 @@
     "paid_by_label": "Paid by",
     "with": "With",
     "x_people": "{{count}} people",
-    "my_share": "Your share",
+    "my_share": "You",
+    "paid_by_short": "Paid by",
     "form": {
       "page_title": "Add expense",
       "description_label": "Description",
