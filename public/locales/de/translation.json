@@ -44,7 +44,7 @@
     "magic_link_sending": "Wird gesendet…",
     "magic_link_hint": "Wir senden dir einen Anmelde-Link per E-Mail.",
     "use_password": "Mit Passwort anmelden",
-    "use_magic_link": "Magic-Link verwenden",
+    "use_magic_link": "Anmelde-Link verwenden",
     "check_email_magic_link_title": "E-Mail prüfen",
     "check_email_magic_link_message": "Wir haben dir einen Anmelde-Link an {{email}} gesendet. Tippe auf den Link in der E-Mail, um dich anzumelden.",
     "error_google_sign_in": "Google-Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
