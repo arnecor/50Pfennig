@@ -204,7 +204,7 @@ export default function GroupDetailPage() {
                   </p>
                 </div>
               </div>
-                      {/* Button for group settlements temporary deactivated until fixed and redesigned*/}
+              {/* Button for group settlements temporary deactivated until fixed and redesigned*/}
               {/*
               <button
                 type="button"
