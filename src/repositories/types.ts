@@ -23,6 +23,7 @@ import type {
   Group,
   GroupEvent,
   GroupId,
+  GroupInvite,
   GroupMember,
   Money,
   Settlement,
@@ -63,6 +64,19 @@ export interface IGroupRepository {
 
   /** All lifecycle events for a group (joins, leaves), newest first */
   getEvents(groupId: GroupId): Promise<GroupEvent[]>;
+
+  /**
+   * Create or return an existing active invite token for the group.
+   * Any group member may call this.
+   */
+  createGroupInvite(groupId: GroupId): Promise<GroupInvite>;
+
+  /**
+   * Accept a group invite token — adds the caller to the group and creates
+   * a friendship with the token creator.
+   * Returns the group ID so the caller can navigate to the group detail page.
+   */
+  acceptGroupInvite(token: string): Promise<GroupId>;
 }
 
 // ---------------------------------------------------------------------------

@@ -6,10 +6,26 @@
  * Imported by: repositories/index.ts (factory binding)
  */
 
-import type { Group, GroupEvent, GroupId, GroupMember, UserId } from '../../domain/types';
+import type {
+  Group,
+  GroupEvent,
+  GroupId,
+  GroupInvite,
+  GroupMember,
+  UserId,
+} from '../../domain/types';
 import { supabase } from '../../lib/supabase/client';
-import { mapGroup, mapGroupEvent, mapGroupMember } from '../../lib/supabase/mappers';
-import type { GroupEventRow, GroupMemberWithProfile } from '../../lib/supabase/mappers';
+import {
+  mapGroup,
+  mapGroupEvent,
+  mapGroupInvite,
+  mapGroupMember,
+} from '../../lib/supabase/mappers';
+import type {
+  GroupEventRow,
+  GroupInviteRow,
+  GroupMemberWithProfile,
+} from '../../lib/supabase/mappers';
 import type { CreateGroupInput, IGroupRepository } from '../types';
 
 /** Select string that embeds the profiles join for display names */
@@ -107,5 +123,25 @@ export class SupabaseGroupRepository implements IGroupRepository {
 
     if (error) throw error;
     return ((data as unknown[]) ?? []).map((row) => mapGroupEvent(row as GroupEventRow));
+  }
+
+  async createGroupInvite(groupId: GroupId): Promise<GroupInvite> {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types
+    const { data, error } = await (supabase.rpc as any)('create_group_invite', {
+      p_group_id: groupId,
+    });
+
+    if (error) throw error;
+    return mapGroupInvite(data as GroupInviteRow);
+  }
+
+  async acceptGroupInvite(token: string): Promise<GroupId> {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types
+    const { data, error } = await (supabase.rpc as any)('accept_group_invite', {
+      p_token: token,
+    });
+
+    if (error) throw error;
+    return data as GroupId;
   }
 }

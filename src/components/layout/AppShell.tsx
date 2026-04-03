@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
-import { Link, Outlet, useRouterState } from '@tanstack/react-router';
+import { Link, Outlet, useRouter, useRouterState } from '@tanstack/react-router';
 import { Home, Settings, UserPlus, Users } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const navItems = [
@@ -12,9 +13,19 @@ const navItems = [
 
 export default function AppShell() {
   const { t } = useTranslation();
+  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const showNav = pathname !== '/login' && !pathname.startsWith('/auth/');
+
+  // Preload all tab routes on mount so lazy chunks are ready before the user
+  // taps. On Capacitor, defaultPreload:'intent' fires on mouseenter (not
+  // touchstart), so we trigger it manually here and on touch below.
+  useEffect(() => {
+    for (const { to } of navItems) {
+      router.preloadRoute({ to });
+    }
+  }, [router]);
 
   return (
     <div className="flex flex-col min-h-dvh bg-background text-foreground safe-top">
@@ -31,6 +42,7 @@ export default function AppShell() {
                 <Link
                   key={to}
                   to={to}
+                  onTouchStart={() => router.preloadRoute({ to })}
                   className={cn(
                     'flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all',
                     isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',

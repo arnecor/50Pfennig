@@ -11,7 +11,9 @@
     "back": "Back",
     "you": "You",
     "you_dative": "you",
-    "close": "Close"
+    "close": "Close",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "auth": {
     "sign_in": "Sign in",
@@ -47,7 +49,11 @@
     "error_google_sign_in": "Google sign-in failed. Please try again.",
     "error_magic_link": "Could not send link. Please try again.",
     "error_rate_limited": "Too many attempts. Please wait a moment.",
-    "signing_in": "Signing in…"
+    "signing_in": "Signing in…",
+    "display_name": "Name",
+    "display_name_placeholder": "What's your name?",
+    "display_name_hint": "This name will be shown to your friends.",
+    "error_name_required": "Please enter your name."
   },
   "groups": {
     "title": "Groups",
@@ -63,9 +69,9 @@
     "all_friends_in_group": "All your friends are already in this group.",
     "no_friends_at_all": "No friends yet.",
     "share_section": "Share group",
-    "share_coming_soon": "Link and QR code sharing coming soon.",
-    "share_link": "Share link",
-    "share_qr": "QR code",
+    "share_group": "Share group",
+    "share_invite_link": "Generate invite link",
+    "invite_share_text": "Join our group «{{groupName}}» on Sharli!",
     "create_title": "New group",
     "name_label": "Group name",
     "name_error_required": "Name is required.",
@@ -87,6 +93,14 @@
     "event_member_joined": "{{name}} joined",
     "event_member_left": "{{name}} left the group"
   },
+  "invites": {
+    "link_label": "Invite link",
+    "copy_link": "Copy",
+    "valid_days": "The link is valid for 7 days.",
+    "share_link": "Share",
+    "show_qr": "QR code",
+    "qr_scan_hint": "Let others scan this code."
+  },
   "expenses": {
     "title": "Expenses",
     "add": "Add expense",
@@ -96,7 +110,8 @@
     "paid_by_label": "Paid by",
     "with": "With",
     "x_people": "{{count}} people",
-    "my_share": "Your share",
+    "my_share": "You",
+    "paid_by_short": "Paid by",
     "form": {
       "page_title": "Add expense",
       "description_label": "Description",

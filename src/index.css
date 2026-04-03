@@ -251,34 +251,6 @@
   @apply text-destructive font-semibold;
 }
 
-/* Splash screen animations */
-@keyframes splash-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes splash-out {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1.02);
-  }
-}
-.splash-enter {
-  animation: splash-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.splash-exit {
-  animation: splash-out 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
 /* QR scanner: make WebView transparent so the native camera layer shows through */
 html.barcode-scanner-active,
 html.barcode-scanner-active body,

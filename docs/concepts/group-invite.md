@@ -110,7 +110,7 @@ where gi.token = $1
 - Group name as headline: `"Du wurdest zu {groupName} eingeladen"`
 - Inviter: `"Eingeladen von {inviterName}"`
 - Member count: `"{n} Mitglieder sind bereits dabei"`
-- Google Play / Apple App Store buttons (same Apple overlay as friend invite)
+- Google Play / Apple App Store buttons (same Apple overlay as friend invite, but the design is improved)
 - "Ich habe die App bereits" deep link: `com.arco.sharli://invite/g/{token}`
 
 **Play Store referrer**: `invite_token=g:{token}` — the `g:` prefix lets `installReferrer.ts` distinguish group invites from friend invites.
@@ -124,12 +124,26 @@ Parse the `g:` prefix in the referrer token and route accordingly:
 - `invite_token=f:{token}` → pending friend invite
 - `invite_token=g:{token}` → pending group invite (new store: `pendingGroupInviteStore`)
 
-### `src/App.tsx`
-Deep link handler needs to match `com.arco.sharli://invite/g/{token}` in addition to `/f/{token}`:
+### `src/App.tsx` (thin coordinator only)
+`App.tsx` should only forward incoming URLs/referrer payloads into feature-level invite handlers.
+Do **not** put parsing + acceptance business logic directly in `App.tsx`.
+
+### New parser utility: `src/features/invites/lib/parseInviteToken.ts`
+Central parser for both deep links and referrer values:
 ```typescript
-const friendMatch = urlObj.pathname.match(/\/f\/([A-Z0-9]{6})$/);
-const groupMatch  = urlObj.pathname.match(/\/g\/([A-Z0-9]{6})$/);
+parseInviteToken("com.arco.sharli://invite/g/G4RK2P")
+// => { type: "group", token: "G4RK2P" }
+
+parseInviteToken("invite_token=f:AB12CD")
+// => { type: "friend", token: "AB12CD" }
 ```
+
+### New orchestration hook: `src/features/invites/hooks/usePendingInviteAcceptance.ts`
+Encapsulates acceptance flow after auth:
+- Reads pending invite token from stores
+- Routes to friend/group acceptance hook
+- Clears pending token after successful acceptance
+- Performs navigation (group detail / friend context)
 
 ### New store: `src/store/pendingGroupInviteStore.ts`
 Same pattern as `pendingInviteStore` (for friend invites). Holds token until user is authenticated.
@@ -159,6 +173,17 @@ Add:
 - `group_invites` SELECT: members of the group can see existing tokens (to display/copy)
 - `group_invites` UPDATE (revoke): only the creator or group admin
 - `accept_group_invite` RPC: callable by any authenticated user (token is the authorization)
+
+---
+
+## Acceptance Criteria
+
+- Accepting the same token twice by the same user is idempotent and returns the same `group_id`.
+- Concurrent accepts from multiple users do not create duplicate `group_members` rows.
+- Revoked tokens and expired tokens cannot add members.
+- Friendship creation during acceptance must not create duplicate `(A,B)` / `(B,A)` pairs.
+- Non-members cannot read invite tokens of groups they do not belong to.
+- `App.tsx` remains a thin coordinator; invite parsing and acceptance orchestration live in `features/invites/*`.
 
 ---
 

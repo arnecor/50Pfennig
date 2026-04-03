@@ -154,6 +154,20 @@ export type GroupEvent = {
   readonly createdAt: Date;
 };
 
+/**
+ * A shareable invite token scoped to a specific group.
+ * Multi-use: any number of users can accept the same token until expiry/revocation.
+ */
+export type GroupInvite = {
+  readonly id: string;
+  readonly token: string;
+  readonly groupId: GroupId;
+  readonly createdBy: UserId;
+  readonly expiresAt: Date;
+  readonly createdAt: Date;
+  readonly revokedAt?: Date;
+};
+
 // ---------------------------------------------------------------------------
 // Balance types — always derived, never stored (see ADR-0009)
 // ---------------------------------------------------------------------------
