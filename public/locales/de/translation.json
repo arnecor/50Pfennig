@@ -251,14 +251,13 @@
     "imprint_section_app": "App",
     "imprint_section_responsible": "Verantwortlich",
     "imprint_section_contact": "Kontakt",
-    "imprint_section_legal": "Rechtliches",
-    "imprint_version_placeholder": "Version [PLATZHALTER]",
-    "imprint_name_placeholder": "[Name / Firma]",
-    "imprint_address_line1_placeholder": "[Straße Hausnummer]",
-    "imprint_address_line2_placeholder": "[PLZ Ort]",
-    "imprint_country_placeholder": "[Land]",
-    "imprint_email_placeholder": "E-Mail: [kontakt@beispiel.de]",
-    "imprint_legal_placeholder": "[Rechtliche Hinweise, Haftungsausschluss und sonstige Pflichtangaben kommen hier hin.]"
+    "imprint_section_privacy": "Datenschutzerklärung",
+    "imprint_version_placeholder": "Version 0.1.1",
+    "imprint_name_placeholder": "Arne Cornils",
+    "imprint_address_line1_placeholder": "Henriettenstr. 23",
+    "imprint_address_line2_placeholder": "20259 Hamburg",
+    "imprint_country_placeholder": "Deutschland",
+    "imprint_email_placeholder": "info@sharli.app"
   },
   "payment_detail": {
     "expense_title": "Ausgabe Details",
