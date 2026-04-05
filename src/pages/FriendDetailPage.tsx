@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import EmptyState from '@components/shared/EmptyState';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
+import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
 import { Button } from '@components/ui/button';
 import { computeBilateralBalance } from '@domain/balance';
 import { abs, add, formatMoney, isNegative, isPositive, negate, subtract } from '@domain/money';
@@ -25,15 +26,7 @@ import { useDeleteSettlement } from '@features/settlements/hooks/useDeleteSettle
 import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import {
-  ArrowLeftRight,
-  Bell,
-  Receipt,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  UserMinus,
-} from 'lucide-react';
+import { ArrowLeftRight, Bell, Receipt, Trash2, UserMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -274,48 +267,20 @@ export default function FriendDetailPage() {
                             );
 
                         return (
-                          <button
+                          <UnifiedExpenseItem
                             key={`expense-${String(expense.id)}`}
-                            type="button"
+                            description={expense.description}
+                            paidByName={paidByName}
+                            totalAmount={expense.totalAmount}
+                            shareAmount={signedShare}
+                            paidByCurrentUser={paidByCurrentUser}
                             onClick={() =>
                               navigate({
                                 to: '/expenses/$expenseId',
                                 params: { expenseId: String(expense.id) },
                               })
                             }
-                            className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
-                          >
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                              {paidByCurrentUser ? (
-                                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">
-                                {expense.description}
-                              </p>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {t('expenses.paid_by_short')}: {paidByName}
-                              </p>
-                            </div>
-                            <div className="shrink-0 text-right">
-                              <MoneyDisplay
-                                amount={expense.totalAmount}
-                                className="block text-sm font-semibold tabular-nums"
-                              />
-                              <span className="text-xs text-muted-foreground">
-                                {t('expenses.my_share')}:{' '}
-                                <MoneyDisplay
-                                  amount={signedShare}
-                                  showSign
-                                  colored
-                                  className="text-xs tabular-nums"
-                                />
-                              </span>
-                            </div>
-                          </button>
+                          />
                         );
                       }
 

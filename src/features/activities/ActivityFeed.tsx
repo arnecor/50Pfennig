@@ -8,10 +8,11 @@
  */
 
 import MoneyDisplay from '@components/shared/MoneyDisplay';
+import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
 import { Button } from '@components/ui/button';
 import { negate, subtract } from '@domain/money';
 import type { Money } from '@domain/types';
-import { ArrowDownLeft, ArrowUpRight, TrendingDown, TrendingUp, Users } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ActivityItem } from './types';
 
@@ -25,7 +26,7 @@ type Props = {
 
 function ActivitySkeleton() {
   return (
-    <div className="flex items-center gap-3 py-3 px-4">
+    <div className="flex items-center gap-3 py-3 px-1">
       <div className="h-8 w-8 animate-pulse rounded-full bg-muted shrink-0" />
       <div className="flex-1 space-y-1.5">
         <div className="h-3.5 w-36 animate-pulse rounded bg-muted" />
@@ -41,30 +42,14 @@ type RowProps = {
   iconBg: string;
   primary: string;
   secondary: string;
-  // Settlement-style: single amount
   amount?: Money;
   showSign?: boolean;
   colored?: boolean;
-  // Expense-style: two-line amount
-  totalAmount?: Money;
-  myShare?: Money;
-  myShareLabel?: string;
 };
 
-function ActivityRow({
-  icon,
-  iconBg,
-  primary,
-  secondary,
-  amount,
-  showSign,
-  colored,
-  totalAmount,
-  myShare,
-  myShareLabel,
-}: RowProps) {
+function ActivityRow({ icon, iconBg, primary, secondary, amount, showSign, colored }: RowProps) {
   return (
-    <div className="flex items-center gap-3 py-3 px-4">
+    <div className="flex items-center gap-3 py-3 px-1 border-b border-border last:border-0">
       <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
         {icon}
       </div>
@@ -72,24 +57,14 @@ function ActivityRow({
         <p className="truncate text-sm font-medium">{primary}</p>
         <p className="truncate text-xs text-muted-foreground">{secondary}</p>
       </div>
-      {totalAmount !== undefined ? (
-        <div className="shrink-0 text-right">
-          <MoneyDisplay amount={totalAmount} className="block text-sm font-semibold tabular-nums" />
-          {myShare !== undefined && (
-            <span className="text-xs text-muted-foreground">
-              {myShareLabel}{' '}
-              <MoneyDisplay amount={myShare} showSign colored className="text-xs tabular-nums" />
-            </span>
-          )}
-        </div>
-      ) : amount !== undefined ? (
+      {amount !== undefined && (
         <MoneyDisplay
           amount={amount}
           {...(showSign && { showSign })}
           {...(colored && { colored })}
           className="shrink-0 text-sm font-semibold tabular-nums"
         />
-      ) : null}
+      )}
     </div>
   );
 }
@@ -148,7 +123,7 @@ export default function ActivityFeed({
 
   if (isLoading) {
     return (
-      <div className="divide-y rounded-xl border bg-card overflow-hidden">
+      <div className="rounded-2xl border border-border overflow-hidden px-4">
         <ActivitySkeleton />
         <ActivitySkeleton />
         <ActivitySkeleton />
@@ -173,52 +148,24 @@ export default function ActivityFeed({
           >
             {group.label}
           </p>
-          <div className="divide-y rounded-xl border bg-card overflow-hidden">
+          <div className="rounded-2xl border border-border overflow-hidden px-4">
             {group.items.map((item) => {
-              const isClickable =
-                onItemClick && (item.type === 'expense' || item.type === 'settlement');
-              const wrapperClass = isClickable
-                ? 'cursor-pointer hover:bg-muted/50 transition-colors'
-                : '';
-
               if (item.type === 'expense') {
-                const signedShare: Money = item.paidByCurrentUser
+                const signedShare = item.paidByCurrentUser
                   ? subtract(item.totalAmount, item.myShare)
                   : negate(item.myShare);
 
-                const secondary = `${t('expenses.paid_by_short')}: ${item.paidByName}`;
-
                 return (
-                  <div
+                  <UnifiedExpenseItem
                     key={item.id}
-                    className={wrapperClass}
-                    onClick={isClickable ? () => onItemClick(item) : undefined}
-                    onKeyDown={
-                      isClickable
-                        ? (e) => {
-                            if (e.key === 'Enter' || e.key === ' ') onItemClick(item);
-                          }
-                        : undefined
-                    }
-                    role={isClickable ? 'button' : undefined}
-                    tabIndex={isClickable ? 0 : undefined}
-                  >
-                    <ActivityRow
-                      icon={
-                        item.paidByCurrentUser ? (
-                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                        )
-                      }
-                      iconBg="bg-muted"
-                      primary={item.description}
-                      secondary={secondary}
-                      totalAmount={item.totalAmount}
-                      myShare={signedShare}
-                      myShareLabel={`${t('expenses.my_share')}:`}
-                    />
-                  </div>
+                    description={item.description}
+                    paidByName={item.paidByName}
+                    totalAmount={item.totalAmount}
+                    shareAmount={signedShare}
+                    paidByCurrentUser={item.paidByCurrentUser}
+                    {...(item.groupName !== undefined && { groupName: item.groupName })}
+                    {...(onItemClick && { onClick: () => onItemClick(item) })}
+                  />
                 );
               }
 
@@ -228,23 +175,24 @@ export default function ActivityFeed({
                   : t('home.activity_paid_back_to_you', { name: item.otherPartyName });
 
                 const secondary = item.groupName ?? t('friends.direct_expense');
-
                 const displayAmount: Money = item.isMePaying ? negate(item.amount) : item.amount;
 
                 return (
                   <div
                     key={item.id}
-                    className={wrapperClass}
-                    onClick={isClickable ? () => onItemClick(item) : undefined}
+                    className={
+                      onItemClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''
+                    }
+                    onClick={onItemClick ? () => onItemClick(item) : undefined}
                     onKeyDown={
-                      isClickable
+                      onItemClick
                         ? (e) => {
                             if (e.key === 'Enter' || e.key === ' ') onItemClick(item);
                           }
                         : undefined
                     }
-                    role={isClickable ? 'button' : undefined}
-                    tabIndex={isClickable ? 0 : undefined}
+                    role={onItemClick ? 'button' : undefined}
+                    tabIndex={onItemClick ? 0 : undefined}
                   >
                     <ActivityRow
                       icon={
