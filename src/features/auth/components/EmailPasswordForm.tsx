@@ -82,14 +82,9 @@ export default function EmailPasswordForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4" noValidate>
       {/* Form heading — tells users exactly what they're doing */}
-      <div className="space-y-0.5">
-        <h2 className="text-lg font-semibold text-foreground">
-          {t(isSignIn ? 'auth.sign_in_title' : 'auth.sign_up_title')}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {t(isSignIn ? 'auth.sign_in_subtitle' : 'auth.sign_up_subtitle')}
-        </p>
-      </div>
+      <h2 className="text-lg font-semibold text-foreground">
+        {t(isSignIn ? 'auth.sign_in_title' : 'auth.sign_up_title')}
+      </h2>
 
       {!isSignIn && (
         <div className="space-y-1.5">

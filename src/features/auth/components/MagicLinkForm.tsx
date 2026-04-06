@@ -60,10 +60,7 @@ export default function MagicLinkForm({ defaultEmail, onSwitchToPassword }: Magi
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4" noValidate>
       {/* Form heading */}
-      <div className="space-y-0.5">
-        <h2 className="text-lg font-semibold text-foreground">{t('auth.sign_in_title')}</h2>
-        <p className="text-sm text-muted-foreground">{t('auth.magic_link_hint')}</p>
-      </div>
+      <h2 className="text-lg font-semibold text-foreground">{t('auth.sign_in_title')}</h2>
 
       <div className="space-y-1.5">
         <Label htmlFor="magic-email">{t('auth.email')}</Label>
