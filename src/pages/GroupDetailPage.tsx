@@ -239,18 +239,15 @@ export default function GroupDetailPage() {
                   </p>
                 </div>
               </div>
-              {/* Button for group settlements temporary deactivated until fixed and redesigned*/}
-              {/*
               <button
                 type="button"
                 onClick={() =>
-                  navigate({ to: '/groups/$groupId/settlements', params: { groupId } })
+                  navigate({ to: '/groups/$groupId/balances', params: { groupId } })
                 }
-                className="mt-3 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+                className="mt-3 text-sm text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
               >
-                {t('settlements.view_settlements')} →
+                {t('balances.who_owes_whom_link')} →
               </button>
-              */}
             </div>
 
             {/* Activity list grouped by date */}
