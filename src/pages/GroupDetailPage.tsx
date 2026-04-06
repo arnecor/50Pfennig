@@ -14,7 +14,7 @@ import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
 import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
-import { Button } from '@components/ui/button';
+import { Button } from '@/components/ui/button';
 import { calculateGroupBalances } from '@domain/balance';
 import { add, formatMoney, isPositive, isZero, negate } from '@domain/money';
 import {
