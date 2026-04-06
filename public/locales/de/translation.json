@@ -191,6 +191,8 @@
     "net_balance": "Gesamtbilanz",
     "friend_owes_you": "{{name}} schuldet dir",
     "you_owe_friend": "Du schuldest {{name}}",
+    "group_breakdown": "Gruppenausgaben",
+    "direct_expenses": "Ausgaben außerhalb von Gruppen",
     "your_share": "Dein Anteil",
     "participant_count": "{{count}} Pers.",
     "method_share_link": "Einladungslink teilen",

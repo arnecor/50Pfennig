@@ -3,16 +3,30 @@
  *
  * Route: /friends
  *
- * Friends overview — lists all accepted friends with per-friend direct balance,
+ * Friends overview — lists all accepted friends with per-friend balance,
  * ordered by most recent shared friend expense. Tapping a friend navigates to
  * the friend detail page.
+ *
+ * Balance computation (per friend):
+ *   1. For each shared group: calculateGroupBalances → simplifyDebts →
+ *      extractSimplifiedDebt to get the simplified bilateral debt in that group.
+ *   2. For direct (non-group) expenses: computeBilateralBalance on friend-only
+ *      expenses and friend-only settlements.
+ *   This matches the group view's simplified perspective instead of using the
+ *   raw bilateral calculation that ignores third-party payers.
  */
 
 import EmptyState from '@components/shared/EmptyState';
 import { FriendCard } from '@components/shared/FriendCard';
 import { PageHeader } from '@components/shared/PageHeader';
-import { computeBilateralBalance } from '@domain/balance';
-import type { Expense, UserId } from '@domain/types';
+import {
+  calculateGroupBalances,
+  computeBilateralBalance,
+  extractSimplifiedDebt,
+  simplifyDebts,
+} from '@domain/balance';
+import { add } from '@domain/money';
+import type { UserId } from '@domain/types';
 import { ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import {
@@ -21,7 +35,10 @@ import {
 } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { useGroups } from '@features/groups/hooks/useGroups';
-import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
+import {
+  friendSettlementsQueryOptions,
+  settlementsQueryOptions,
+} from '@features/settlements/settlementQueries';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { UserPlus } from 'lucide-react';
@@ -49,49 +66,65 @@ export default function FriendsPage() {
   const { data: friendExpenses = [], isLoading: friendExpensesLoading } = useQuery(
     friendExpensesQueryOptions(),
   );
+  const { data: allFriendSettlements = [], isLoading: friendSettlementsLoading } = useQuery(
+    friendSettlementsQueryOptions(),
+  );
   const { data: groups = [], isLoading: groupsLoading } = useGroups();
   const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
 
   const groupExpensesResults = useQueries({
     queries: groups.map((g) => expensesQueryOptions(g.id)),
   });
-  const sharedSettlementsResults = useQueries({
-    queries: friends.map((f) => sharedSettlementsQueryOptions(f.userId)),
+  const groupSettlementsResults = useQueries({
+    queries: groups.map((g) => settlementsQueryOptions(g.id)),
   });
 
   const isLoading =
     friendsLoading ||
     friendExpensesLoading ||
+    friendSettlementsLoading ||
     groupsLoading ||
     groupExpensesResults.some((r) => r.isLoading) ||
-    sharedSettlementsResults.some((r) => r.isLoading);
-
-  const allExpenses = useMemo(() => {
-    const result: Expense[] = [...friendExpenses];
-    for (const r of groupExpensesResults) {
-      if (r.data) result.push(...r.data);
-    }
-    return result;
-  }, [friendExpenses, groupExpensesResults]);
+    groupSettlementsResults.some((r) => r.isLoading);
 
   const friendsWithData = useMemo(() => {
     if (!currentUserId) return [];
+
     return friends
-      .map((friend, i) => {
+      .map((friend) => {
         const friendIdStr = friend.userId as string;
-        const shared = allExpenses.filter(
+        let balance = ZERO;
+
+        // Group contributions: use simplified group debts
+        for (let i = 0; i < groups.length; i++) {
+          // biome-ignore lint/style/noNonNullAssertion: loop bound guarantees i is in range
+          const group = groups[i]!;
+          const isMember = group.members.some((m) => (m.userId as string) === friendIdStr);
+          if (!isMember) continue;
+
+          const groupExpenses = groupExpensesResults[i]?.data ?? [];
+          const groupSettlements = groupSettlementsResults[i]?.data ?? [];
+          const balanceMap = calculateGroupBalances(groupExpenses, groupSettlements, group.members);
+          const instructions = simplifyDebts(balanceMap);
+          balance = add(balance, extractSimplifiedDebt(instructions, currentUserId, friend.userId));
+        }
+
+        // Direct contributions: bilateral on friend-only data
+        const directExpenses = friendExpenses.filter(
           (e) =>
             (e.paidBy as string) === friendIdStr ||
             e.splits.some((s) => (s.userId as string) === friendIdStr),
         );
-        const friendSettlements = sharedSettlementsResults[i]?.data ?? [];
-        const balance = computeBilateralBalance(
-          shared,
-          friendSettlements,
-          currentUserId,
-          friend.userId,
+        const directSettlements = allFriendSettlements.filter(
+          (s) => (s.fromUserId as string) === friendIdStr || (s.toUserId as string) === friendIdStr,
         );
-        const lastExpenseDate = shared[0]?.createdAt;
+        balance = add(
+          balance,
+          computeBilateralBalance(directExpenses, directSettlements, currentUserId, friend.userId),
+        );
+
+        // Use last direct expense date for sorting (group expenses not relevant here)
+        const lastExpenseDate = directExpenses[0]?.createdAt;
         return { friend, balance, lastExpenseDate };
       })
       .sort((a, b) => {
@@ -100,7 +133,15 @@ export default function FriendsPage() {
         if (!b.lastExpenseDate) return -1;
         return b.lastExpenseDate.getTime() - a.lastExpenseDate.getTime();
       });
-  }, [friends, allExpenses, sharedSettlementsResults, currentUserId]);
+  }, [
+    friends,
+    groups,
+    groupExpensesResults,
+    groupSettlementsResults,
+    friendExpenses,
+    allFriendSettlements,
+    currentUserId,
+  ]);
 
   const handleAddFriend = () => navigate({ to: '/friends/add' });
 

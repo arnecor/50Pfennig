@@ -7,25 +7,19 @@
  * The amount is pre-filled with the absolute net bilateral balance.
  *
  * Cross-context allocation (ADR-0012):
- *   Per-group bilateral balances are derived from sharedExpenses and
- *   sharedSettlements using computeBilateralBalance() — no extra queries.
+ *   contextDebts are passed in from the parent (FriendDetailPage), which
+ *   computes them from simplified group debts + direct bilateral balance.
  *   allocateSettlement() distributes the payment across all contexts.
- *
- * Bilateral balance formula per context:
- *   +sum(friend.split for expenses I paid in that context)
- *   -sum(my.split for expenses friend paid in that context)
- *   ±settlement adjustments
  */
 
 import { UserAvatar } from '@components/shared/UserAvatar';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
-import { computeBilateralBalance } from '@domain/balance';
 import { abs, add, isNegative, negate } from '@domain/money';
 import type { ContextDebt } from '@domain/settlement';
 import { allocateSettlement } from '@domain/settlement';
-import type { Expense, Friend, GroupId, Money, Settlement, UserId } from '@domain/types';
+import type { Friend, Money, UserId } from '@domain/types';
 import { ZERO, money } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
@@ -40,10 +34,10 @@ import { useTranslation } from 'react-i18next';
 type Props = {
   friend: Friend;
   currentUserId: UserId;
-  /** All expenses shared between currentUser and friend (group + direct). */
-  sharedExpenses: Expense[];
-  /** All settlements between currentUser and friend (any groupId). */
-  sharedSettlements: Settlement[];
+  /** Per-context debts between currentUser and friend, already computed by parent.
+   *  Positive = friend owes currentUser in that context.
+   *  Negative = currentUser owes friend in that context. */
+  contextDebts: ContextDebt[];
   onClose: () => void;
 };
 
@@ -71,8 +65,7 @@ function centsToInputString(cents: Money): string {
 export default function RecordFriendSettlementSheet({
   friend,
   currentUserId,
-  sharedExpenses,
-  sharedSettlements,
+  contextDebts,
   onClose,
 }: Props) {
   const { t } = useTranslation();
@@ -80,31 +73,6 @@ export default function RecordFriendSettlementSheet({
   const currentUserDisplayName = useAuthStore(
     (s) => s.session?.user.user_metadata?.display_name as string | undefined,
   );
-
-  // Compute per-context bilateral balance from already-loaded data
-  const contextDebts = useMemo((): ContextDebt[] => {
-    const uniqueContexts = new Set<string>([
-      ...sharedExpenses.map((e) => String(e.groupId)),
-      ...sharedSettlements.map((s) => String(s.groupId)),
-    ]);
-
-    const debts: ContextDebt[] = [];
-    for (const ctxKey of uniqueContexts) {
-      const groupId = ctxKey === 'null' ? null : (ctxKey as GroupId);
-      const ctxExpenses = sharedExpenses.filter((e) => String(e.groupId) === ctxKey);
-      const ctxSettlements = sharedSettlements.filter((s) => String(s.groupId) === ctxKey);
-      const balance = computeBilateralBalance(
-        ctxExpenses,
-        ctxSettlements,
-        currentUserId,
-        friend.userId,
-      );
-      if (balance !== ZERO) {
-        debts.push({ groupId, amount: balance });
-      }
-    }
-    return debts;
-  }, [sharedExpenses, sharedSettlements, currentUserId, friend.userId]);
 
   // Net bilateral balance (positive = friend owes me)
   const netBilateral = useMemo(

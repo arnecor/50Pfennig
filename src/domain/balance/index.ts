@@ -187,6 +187,47 @@ export const computeBilateralBalance = (
 };
 
 /**
+ * Extracts the net simplified debt between two specific users from a set of
+ * already-computed DebtInstructions (output of simplifyDebts).
+ *
+ * Used to derive what a specific friend owes the current user within a single
+ * group context, after the greedy simplification has been applied.
+ *
+ * Result:
+ *   positive → friend owes me money (instruction goes friend → me)
+ *   negative → I owe friend money   (instruction goes me → friend)
+ *   zero     → no direct instruction exists between the pair in this context
+ *
+ * Sign convention matches computeBilateralBalance.
+ */
+export const extractSimplifiedDebt = (
+  instructions: readonly DebtInstruction[],
+  meId: UserId,
+  friendId: UserId,
+): Money => {
+  let balance: Money = ZERO;
+
+  for (const inst of instructions) {
+    if (
+      (inst.fromUserId as string) === (friendId as string) &&
+      (inst.toUserId as string) === (meId as string)
+    ) {
+      // Friend pays me — friend's debt to me increases
+      balance = add(balance, inst.amount);
+    } else if (
+      (inst.fromUserId as string) === (meId as string) &&
+      (inst.toUserId as string) === (friendId as string)
+    ) {
+      // I pay friend — my debt to friend increases
+      balance = subtract(balance, inst.amount);
+    }
+    // Instructions not involving both users are ignored
+  }
+
+  return balance;
+};
+
+/**
  * Reduces a BalanceMap to the minimum number of payment instructions
  * needed to settle all debts.
  *

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ZERO, money } from '../money';
 import type {
   BalanceMap,
+  DebtInstruction,
   Expense,
   ExpenseId,
   GroupId,
@@ -10,7 +11,7 @@ import type {
   SettlementId,
   UserId,
 } from '../types';
-import { calculateGroupBalances, simplifyDebts } from './index';
+import { calculateGroupBalances, extractSimplifiedDebt, simplifyDebts } from './index';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -285,5 +286,58 @@ describe('simplifyDebts', () => {
     expect(carolPays?.amount).toBe(money(2000));
     expect(bobPays?.toUserId).toBe(alice);
     expect(bobPays?.amount).toBe(money(1000));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// extractSimplifiedDebt
+// ---------------------------------------------------------------------------
+
+describe('extractSimplifiedDebt', () => {
+  const inst = (from: UserId, to: UserId, amount: number): DebtInstruction => ({
+    fromUserId: from,
+    toUserId: to,
+    amount: money(amount),
+  });
+
+  it('returns ZERO when no instructions exist', () => {
+    expect(extractSimplifiedDebt([], alice, bob)).toBe(ZERO);
+  });
+
+  it('returns ZERO when no instructions involve both users', () => {
+    const instructions = [inst(carol, alice, 1000), inst(carol, bob, 500)];
+    expect(extractSimplifiedDebt(instructions, alice, bob)).toBe(ZERO);
+  });
+
+  it('returns positive when friend owes me (friend → me)', () => {
+    const instructions = [inst(bob, alice, 1500)];
+    expect(extractSimplifiedDebt(instructions, alice, bob)).toBe(money(1500));
+  });
+
+  it('returns negative when I owe friend (me → friend)', () => {
+    const instructions = [inst(alice, bob, 800)];
+    expect(extractSimplifiedDebt(instructions, alice, bob)).toBe(money(-800));
+  });
+
+  it('sums multiple instructions between the pair', () => {
+    // Unusual but possible after rounding: two instructions in same direction
+    const instructions = [inst(bob, alice, 1000), inst(bob, alice, 500)];
+    expect(extractSimplifiedDebt(instructions, alice, bob)).toBe(money(1500));
+  });
+
+  it('ignores instructions not involving both users', () => {
+    const instructions = [
+      inst(carol, alice, 2000), // carol → alice, not bob
+      inst(bob, alice, 1000), // bob → alice (relevant)
+    ];
+    expect(extractSimplifiedDebt(instructions, alice, bob)).toBe(money(1000));
+  });
+
+  it('is symmetric: result for (alice, bob) is negation of (bob, alice)', () => {
+    const instructions = [inst(bob, alice, 1200)];
+    const fromAlice = extractSimplifiedDebt(instructions, alice, bob);
+    const fromBob = extractSimplifiedDebt(instructions, bob, alice);
+    expect(fromAlice).toBe(money(1200));
+    expect(fromBob).toBe(money(-1200));
   });
 });
