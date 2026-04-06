@@ -12,12 +12,12 @@ import { negate } from '@domain/money';
 import { type ExpenseId, type Money, type UserId, ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { expenseByIdQueryOptions } from '@features/expenses/expenseQueries';
+import { useDeleteExpense } from '@features/expenses/hooks/useDeleteExpense';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { groupDetailQueryOptions } from '@features/groups/groupQueries';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { useDeleteExpense } from '@features/expenses/hooks/useDeleteExpense';
 import { ArrowDownLeft, ArrowUpRight, Trash2, Users } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -108,7 +108,8 @@ export default function ExpenseDetailPage() {
   const paidByName = resolveName(expense.paidBy as string);
   const createdByName = resolveName(expense.createdBy as string);
   const showCreatedBy = (expense.createdBy as string) !== (expense.paidBy as string);
-  const isCreator = currentUserId != null && (expense.createdBy as string) === (currentUserId as string);
+  const isCreator =
+    currentUserId != null && (expense.createdBy as string) === (currentUserId as string);
 
   const handleDelete = () => {
     if (!window.confirm(t('expenses.delete_confirm'))) return;
