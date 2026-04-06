@@ -274,6 +274,14 @@
     "note_section": "Notiz",
     "recorded_by": "Erfasst von"
   },
+  "balances": {
+    "page_title": "Wer schuldet wem?",
+    "who_owes_whom_link": "Wer schuldet wem?",
+    "settle": "Ausgleichen",
+    "settled_title": "Alles ausgeglichen!",
+    "settled_description": "Es gibt keine offenen Schulden in dieser Gruppe.",
+    "suggestion_heading": "So gleicht ihr aus"
+  },
   "settlements": {
     "title": "Zahlungen",
     "record": "Zahlung erfassen",

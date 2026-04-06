@@ -42,6 +42,7 @@ import { requireAuth, requireGuest } from './guards';
 // ---------------------------------------------------------------------------
 
 const AccountPage = lazy(() => import('../pages/AccountPage'));
+const BalancesPage = lazy(() => import('../pages/BalancesPage'));
 const AddFriendEmailPage = lazy(() => import('../pages/AddFriendEmailPage'));
 const AddFriendPage = lazy(() => import('../pages/AddFriendPage'));
 const AddFriendQRPage = lazy(() => import('../pages/AddFriendQRPage'));
@@ -138,6 +139,13 @@ const groupSettingsRoute = createRoute({
   path: '/groups/$groupId/settings',
   beforeLoad: requireAuth,
   component: GroupSettingsPage,
+});
+
+const balancesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/groups/$groupId/balances',
+  beforeLoad: requireAuth,
+  component: BalancesPage,
 });
 
 // Edit route stays group-scoped (existing expenses already have a groupId).
@@ -250,6 +258,7 @@ const routeTree = rootRoute.addChildren([
   groupCreateRoute,
   groupDetailRoute,
   groupSettingsRoute,
+  balancesRoute,
   expenseNewRoute,
   expenseDetailRoute,
   expenseEditRoute,

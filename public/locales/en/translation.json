@@ -273,6 +273,14 @@
     "note_section": "Note",
     "recorded_by": "Recorded by"
   },
+  "balances": {
+    "page_title": "Who owes whom?",
+    "who_owes_whom_link": "Who owes whom?",
+    "settle": "Settle",
+    "settled_title": "All settled up!",
+    "settled_description": "There are no outstanding debts in this group.",
+    "suggestion_heading": "How to settle up"
+  },
   "settlements": {
     "title": "Settlements",
     "record": "Record payment",

@@ -90,7 +90,7 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
     const { data: batchId, error } = await supabase.rpc('create_settlement_batch', {
       p_from_user_id: input.fromUserId,
       p_to_user_id: input.toUserId,
-      p_note: input.note ?? null,
+      p_note: (input.note ?? null) as string,
       p_allocations: allocations as unknown as Json,
     });
 
