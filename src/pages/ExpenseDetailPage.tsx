@@ -17,7 +17,8 @@ import { groupDetailQueryOptions } from '@features/groups/groupQueries';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { ArrowDownLeft, ArrowUpRight, Users } from 'lucide-react';
+import { useDeleteExpense } from '@features/expenses/hooks/useDeleteExpense';
+import { ArrowDownLeft, ArrowUpRight, Trash2, Users } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -26,6 +27,7 @@ export default function ExpenseDetailPage() {
   const { expenseId } = useParams({ strict: false }) as { expenseId: string };
 
   const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
+  const deleteExpense = useDeleteExpense();
 
   const { data: expense, isLoading } = useQuery(expenseByIdQueryOptions(expenseId as ExpenseId));
 
@@ -106,6 +108,14 @@ export default function ExpenseDetailPage() {
   const paidByName = resolveName(expense.paidBy as string);
   const createdByName = resolveName(expense.createdBy as string);
   const showCreatedBy = (expense.createdBy as string) !== (expense.paidBy as string);
+  const isCreator = currentUserId != null && (expense.createdBy as string) === (currentUserId as string);
+
+  const handleDelete = () => {
+    if (!window.confirm(t('expenses.delete_confirm'))) return;
+    deleteExpense.mutate(expense, {
+      onSuccess: () => window.history.back(),
+    });
+  };
   const sharePositive = myShare !== null && myShare >= 0;
 
   return (
@@ -248,6 +258,19 @@ export default function ExpenseDetailPage() {
             <p className="text-xs text-muted-foreground">{t('payment_detail.recorded_by')}</p>
             <p className="mt-0.5 text-sm font-medium">{createdByName}</p>
           </div>
+        )}
+
+        {/* Delete — only visible to creator */}
+        {isCreator && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleteExpense.isPending}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4" />
+            {t('expenses.delete_button')}
+          </button>
         )}
       </div>
     </div>
