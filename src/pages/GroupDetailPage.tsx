@@ -241,9 +241,7 @@ export default function GroupDetailPage() {
               </div>
               <button
                 type="button"
-                onClick={() =>
-                  navigate({ to: '/groups/$groupId/balances', params: { groupId } })
-                }
+                onClick={() => navigate({ to: '/groups/$groupId/balances', params: { groupId } })}
                 className="mt-3 text-sm text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
               >
                 {t('balances.who_owes_whom_link')} →

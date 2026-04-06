@@ -35,8 +35,7 @@ export default function BalancesPage() {
   const memberName = (id: UserId) => {
     if ((id as string) === (currentUserId as string)) return t('common.you');
     return (
-      group?.members.find((m) => (m.userId as string) === (id as string))?.displayName ??
-      String(id)
+      group?.members.find((m) => (m.userId as string) === (id as string))?.displayName ?? String(id)
     );
   };
 
