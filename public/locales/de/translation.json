@@ -146,7 +146,9 @@
       "picker_search": "Suchen…",
       "picker_confirm": "Übernehmen",
       "picker_no_results": "Keine Ergebnisse"
-    }
+    },
+    "delete_button": "Ausgabe löschen",
+    "delete_confirm": "Möchtest du diese Ausgabe wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "nav": {
     "home": "Start",
