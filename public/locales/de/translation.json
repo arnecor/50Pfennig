@@ -54,7 +54,8 @@
     "display_name": "Name",
     "display_name_placeholder": "Wie heißt du?",
     "display_name_hint": "Dieser Name wird deinen Freunden angezeigt.",
-    "error_name_required": "Bitte gib deinen Namen ein."
+    "error_name_required": "Bitte gib deinen Namen ein.",
+    "password_min_hint": "Mindestens 6 Zeichen."
   },
   "groups": {
     "title": "Gruppen",
@@ -273,6 +274,14 @@
     "transaction_section": "Transaktion",
     "note_section": "Notiz",
     "recorded_by": "Erfasst von"
+  },
+  "balances": {
+    "page_title": "Wer schuldet wem?",
+    "who_owes_whom_link": "Wer schuldet wem?",
+    "settle": "Ausgleichen",
+    "settled_title": "Alles ausgeglichen!",
+    "settled_description": "Es gibt keine offenen Schulden in dieser Gruppe.",
+    "suggestion_heading": "So gleicht ihr aus"
   },
   "settlements": {
     "title": "Zahlungen",

@@ -53,7 +53,8 @@
     "display_name": "Name",
     "display_name_placeholder": "What's your name?",
     "display_name_hint": "This name will be shown to your friends.",
-    "error_name_required": "Please enter your name."
+    "error_name_required": "Please enter your name.",
+    "password_min_hint": "At least 6 characters."
   },
   "groups": {
     "title": "Groups",
@@ -272,6 +273,14 @@
     "transaction_section": "Transaction",
     "note_section": "Note",
     "recorded_by": "Recorded by"
+  },
+  "balances": {
+    "page_title": "Who owes whom?",
+    "who_owes_whom_link": "Who owes whom?",
+    "settle": "Settle",
+    "settled_title": "All settled up!",
+    "settled_description": "There are no outstanding debts in this group.",
+    "suggestion_heading": "How to settle up"
   },
   "settlements": {
     "title": "Settlements",

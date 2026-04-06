@@ -14,6 +14,7 @@ import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
 import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
+import { Button } from '@/components/ui/button';
 import { calculateGroupBalances } from '@domain/balance';
 import { add, formatMoney, isPositive, isZero, negate } from '@domain/money';
 import {
@@ -239,18 +240,15 @@ export default function GroupDetailPage() {
                   </p>
                 </div>
               </div>
-              {/* Button for group settlements temporary deactivated until fixed and redesigned*/}
-              {/*
-              <button
-                type="button"
-                onClick={() =>
-                  navigate({ to: '/groups/$groupId/settlements', params: { groupId } })
-                }
-                className="mt-3 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate({ to: '/groups/$groupId/balances', params: { groupId } })}
+                className="mt-4 w-full"
               >
-                {t('settlements.view_settlements')} →
-              </button>
-              */}
+                <ArrowLeftRight className="w-4 h-4" />
+                {t('balances.who_owes_whom_link')}
+              </Button>
             </div>
 
             {/* Activity list grouped by date */}

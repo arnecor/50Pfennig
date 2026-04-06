@@ -1,37 +1,44 @@
 <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Rounded square background -->
-  <rect width="512" height="512" rx="112" fill="#4a5568"/>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#1577B0"/>
 
-  <!-- Body -->
-  <ellipse cx="256" cy="320" rx="130" ry="118" fill="white" fill-opacity="0.18"/>
+  <!-- Left ear (outer) -->
+  <path d="M145 215 L162 95 L235 178 Z" fill="white"/>
+  <!-- Left ear (inner shadow) -->
+  <path d="M163 205 L174 115 L222 174 Z" fill="#1577B0" fill-opacity="0.45"/>
 
-  <!-- Head -->
-  <circle cx="256" cy="210" r="118" fill="white" fill-opacity="0.25"/>
+  <!-- Right ear (outer) -->
+  <path d="M367 215 L350 95 L277 178 Z" fill="white"/>
+  <!-- Right ear (inner shadow) -->
+  <path d="M349 205 L338 115 L290 174 Z" fill="#1577B0" fill-opacity="0.45"/>
 
-  <!-- Eye whites -->
-  <circle cx="216" cy="200" r="40" fill="white" fill-opacity="0.90"/>
-  <circle cx="296" cy="200" r="40" fill="white" fill-opacity="0.90"/>
+  <!-- Main face circle -->
+  <circle cx="256" cy="295" r="168" fill="white"/>
 
-  <!-- Pupils -->
-  <circle cx="220" cy="200" r="22" fill="#2d3748"/>
-  <circle cx="300" cy="200" r="22" fill="#2d3748"/>
+  <!-- Raccoon eye mask patches -->
+  <ellipse cx="195" cy="272" rx="68" ry="54" fill="#1a3a55" fill-opacity="0.18"/>
+  <ellipse cx="317" cy="272" rx="68" ry="54" fill="#1a3a55" fill-opacity="0.18"/>
 
-  <!-- Eye shine -->
-  <circle cx="228" cy="192" r="7" fill="white" fill-opacity="0.70"/>
-  <circle cx="308" cy="192" r="7" fill="white" fill-opacity="0.70"/>
+  <!-- Chin / lower face lighter area -->
+  <ellipse cx="256" cy="368" rx="100" ry="78" fill="white"/>
 
-  <!-- Beak -->
-  <path d="M256 228 L236 258 L276 258 Z" fill="#d4956a"/>
+  <!-- Glasses left ring -->
+  <circle cx="192" cy="278" r="54" stroke="#D44422" stroke-width="16" fill="none"/>
+  <!-- Glasses right ring -->
+  <circle cx="320" cy="278" r="54" stroke="#D44422" stroke-width="16" fill="none"/>
+  <!-- Glasses bridge -->
+  <line x1="246" y1="278" x2="266" y2="278" stroke="#D44422" stroke-width="16" stroke-linecap="round"/>
+  <!-- Glasses left temple arm -->
+  <line x1="138" y1="268" x2="138" y2="264" stroke="#D44422" stroke-width="16" stroke-linecap="round"/>
 
-  <!-- Ear tufts -->
-  <path d="M148 128 L178 168 L158 178 Z" fill="white" fill-opacity="0.30"/>
-  <path d="M364 128 L334 168 L354 178 Z" fill="white" fill-opacity="0.30"/>
+  <!-- Left eye (happy squint arc) -->
+  <path d="M163 272 Q192 254 221 272" stroke="#1a2e45" stroke-width="13" stroke-linecap="round" fill="none"/>
+  <!-- Right eye (happy squint arc) -->
+  <path d="M291 272 Q320 254 349 272" stroke="#1a2e45" stroke-width="13" stroke-linecap="round" fill="none"/>
 
-  <!-- Wings -->
-  <ellipse cx="132" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.15"/>
-  <ellipse cx="380" cy="318" rx="48" ry="72" fill="white" fill-opacity="0.15"/>
+  <!-- Nose -->
+  <ellipse cx="256" cy="323" rx="18" ry="13" fill="#1a2e45" fill-opacity="0.55"/>
 
-  <!-- Feet -->
-  <ellipse cx="224" cy="432" rx="26" ry="12" fill="#d4956a"/>
-  <ellipse cx="288" cy="432" rx="26" ry="12" fill="#d4956a"/>
+  <!-- Smile -->
+  <path d="M232 348 Q256 370 280 348" stroke="#1a2e45" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.5"/>
 </svg>

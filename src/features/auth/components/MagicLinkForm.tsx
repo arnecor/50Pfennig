@@ -58,17 +58,18 @@ export default function MagicLinkForm({ defaultEmail, onSwitchToPassword }: Magi
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-3" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4" noValidate>
+      {/* Form heading */}
+      <h2 className="text-lg font-semibold text-foreground">{t('auth.sign_in_title')}</h2>
+
       <div className="space-y-1.5">
-        <Label htmlFor="magic-email" className="sr-only">
-          {t('auth.email')}
-        </Label>
+        <Label htmlFor="magic-email">{t('auth.email')}</Label>
         <Input
           id="magic-email"
           type="email"
           autoComplete="email"
           placeholder={t('auth.email_placeholder')}
-          className="h-11"
+          className="h-11 bg-card"
           {...register('email')}
         />
         {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
@@ -85,17 +86,21 @@ export default function MagicLinkForm({ defaultEmail, onSwitchToPassword }: Magi
         )}
       </Button>
 
-      {serverError && <p className="text-center text-xs text-destructive">{serverError}</p>}
+      {serverError && (
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-center text-xs text-destructive">
+          {serverError}
+        </p>
+      )}
 
-      <p className="text-center text-xs text-muted-foreground">{t('auth.magic_link_hint')}</p>
-
-      <button
-        type="button"
-        onClick={() => onSwitchToPassword(getValues('email'))}
-        className="mt-2 w-full py-2 text-center text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-      >
-        {t('auth.use_password')}
-      </button>
+      <div className="space-y-2 pt-1">
+        <button
+          type="button"
+          onClick={() => onSwitchToPassword(getValues('email'))}
+          className="w-full rounded-md py-2 text-center text-sm font-medium text-primary underline-offset-4 transition-colors hover:underline"
+        >
+          {t('auth.use_password')}
+        </button>
+      </div>
     </form>
   );
 }

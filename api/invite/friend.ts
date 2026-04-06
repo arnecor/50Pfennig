@@ -9,7 +9,7 @@
  *   - Renders a branded HTML landing page with the inviter's name
  *   - Google Play button: includes referrer param for deferred deep link
  *   - Apple App Store button: shows an overlay (iOS app not yet available)
- *   - "Already have the app" link: opens com.arco.sharli://invite/f/{token}
+ *   - "Already have the app" button: opens com.arco.sharli://invite/f/{token}
  *
  * Environment variables (set in Vercel dashboard):
  *   SUPABASE_URL
@@ -69,6 +69,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? `Sharli — Einladung von ${escapeHtml(inviterName)}`
     : 'Sharli — Einladung';
 
+  const playStoreIcon = `<svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path fill="#EA4335" d="M6,3 L18,24 L6,45 Z"/>
+    <path fill="#4285F4" d="M6,3 L18,24 L24,13.5 Z"/>
+    <path fill="#34A853" d="M6,45 L18,24 L24,34.5 Z"/>
+    <path fill="#FBBC04" d="M24,13.5 L18,24 L24,34.5 L42,24 Z"/>
+  </svg>`;
+
+  const appleIcon = `<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04l-.08.27ZM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/>
+  </svg>`;
+
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -106,32 +117,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       text-align: center;
     }
 
-    .logo-wrap {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 3.5rem;
-      height: 3.5rem;
-      background: oklch(0.45 0.03 250);
-      border-radius: 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .logo-text {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: oklch(0.98 0.005 240);
-      letter-spacing: -0.02em;
+    .logo-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 1.125rem;
+      display: block;
+      margin: 0 auto 0.625rem;
     }
 
     .app-name {
-      font-size: 1rem;
-      font-weight: 700;
-      color: oklch(0.5 0.02 250);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: oklch(0.35 0.025 250);
+      letter-spacing: -0.01em;
+      margin-bottom: 0.2rem;
+    }
+
+    .app-slogan {
+      font-size: 0.82rem;
+      color: oklch(0.55 0.018 250);
+      line-height: 1.4;
       margin-bottom: 1.75rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      font-size: 0.75rem;
     }
 
     .invite-heading {
@@ -157,23 +163,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     .store-buttons {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 0.625rem;
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.75rem;
     }
 
     .btn {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0.625rem;
+      gap: 0.35rem;
       width: 100%;
-      padding: 0.875rem 1.25rem;
+      padding: 0.875rem 0.5rem;
       border-radius: 0.75rem;
       font-family: inherit;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.82rem;
+      line-height: 1.2;
       cursor: pointer;
       text-decoration: none;
       border: none;
@@ -195,15 +203,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .btn-secondary:hover { background: oklch(0.94 0.008 250); }
 
-    .already-link {
+    .btn-ghost {
       display: block;
-      color: oklch(0.5 0.02 250);
-      font-size: 0.85rem;
+      width: 100%;
+      padding: 0.875rem 1.25rem;
+      border-radius: 0.75rem;
+      font-family: inherit;
       font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
       text-decoration: none;
+      background: transparent;
+      color: oklch(0.45 0.025 250);
+      border: 1.5px solid oklch(0.88 0.008 250);
       margin-bottom: 1.25rem;
+      text-align: center;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .already-link:hover { color: oklch(0.45 0.03 250); text-decoration: underline; }
+    .btn-ghost:hover { background: oklch(0.96 0.005 250); }
+    .btn-ghost:active { transform: scale(0.98); }
 
     .hint {
       color: oklch(0.6 0.015 250);
@@ -280,47 +299,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </head>
 <body>
   <div class="card">
-    <div class="logo-wrap">
-      <span class="logo-text">50</span>
-    </div>
+    <img src="/icon.png" alt="Sharli" class="logo-img">
     <p class="app-name">Sharli</p>
+    <p class="app-slogan">Ausgaben teilen – einfach und fair.</p>
 
     ${isValid ? `
       <h1 class="invite-heading">${escapeHtml(inviterName)} hat dich eingeladen!</h1>
-      <p class="invite-subtitle">Teile Ausgaben einfach und fair mit Freunden und Gruppen.</p>
+      <p class="invite-subtitle">Lade die App herunter und akzeptiere die Einladung.</p>
 
       <div class="store-buttons">
         <a href="${escapeHtml(playStoreUrl)}" class="btn btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M3.18 23.76c.3.17.64.24.99.2L15.95 12 12.07 8.12 3.18 23.76Zm16.4-12.85-3.07-1.76L13 12l3.5 3.5 3.08-1.77a1.5 1.5 0 0 0 0-2.82ZM3.07.25a1.25 1.25 0 0 0-.64 1.1v21.3c0 .46.24.87.64 1.1l.1.06 11.93-11.93v-.29L3.17.19l-.1.06Z"/>
-          </svg>
-          Im Play Store laden
+          ${playStoreIcon}
+          <span>Google Play</span>
         </a>
         <button class="btn btn-secondary" onclick="document.getElementById('apple-overlay').classList.add('active')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04l-.08.27ZM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/>
-          </svg>
-          Im App Store laden
+          ${appleIcon}
+          <span>App Store</span>
         </button>
       </div>
 
-      <a href="${escapeHtml(deepLink)}" class="already-link">Ich habe die App bereits</a>
+      <a href="${escapeHtml(deepLink)}" class="btn-ghost">Ich habe die App bereits</a>
       <p class="hint">Nach der Installation wird die Freundschaft automatisch hergestellt.</p>
     ` : `
       <p class="error-msg">${escapeHtml(errorMessage)}</p>
       <p class="invite-subtitle">Bitte deinen Freund, dir eine neue Einladung zu senden.</p>
       <div class="store-buttons">
         <a href="${escapeHtml(playStoreGeneric)}" class="btn btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M3.18 23.76c.3.17.64.24.99.2L15.95 12 12.07 8.12 3.18 23.76Zm16.4-12.85-3.07-1.76L13 12l3.5 3.5 3.08-1.77a1.5 1.5 0 0 0 0-2.82ZM3.07.25a1.25 1.25 0 0 0-.64 1.1v21.3c0 .46.24.87.64 1.1l.1.06 11.93-11.93v-.29L3.17.19l-.1.06Z"/>
-          </svg>
-          App im Play Store ansehen
+          ${playStoreIcon}
+          <span>Google Play</span>
         </a>
         <button class="btn btn-secondary" onclick="document.getElementById('apple-overlay').classList.add('active')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04l-.08.27ZM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/>
-          </svg>
-          Im App Store laden
+          ${appleIcon}
+          <span>App Store</span>
         </button>
       </div>
     `}
