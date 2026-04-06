@@ -26,6 +26,7 @@ import {
   type Group,
   type GroupEvent,
   type GroupId,
+  type GroupInvite,
   type GroupMember,
   type Settlement,
   type SettlementId,
@@ -143,6 +144,27 @@ export const mapGroupEvent = (row: GroupEventRow): GroupEvent => ({
   displayName: row.profiles?.display_name ?? '',
   metadata: row.metadata ?? {},
   createdAt: new Date(row.created_at),
+});
+
+/** Shape returned by group_invites queries (table not yet in generated types) */
+export type GroupInviteRow = {
+  id: string;
+  token: string;
+  group_id: string;
+  created_by: string;
+  expires_at: string;
+  revoked_at: string | null;
+  created_at: string;
+};
+
+export const mapGroupInvite = (row: GroupInviteRow): GroupInvite => ({
+  id: row.id,
+  token: row.token,
+  groupId: row.group_id as GroupId,
+  createdBy: row.created_by as UserId,
+  expiresAt: new Date(row.expires_at),
+  createdAt: new Date(row.created_at),
+  ...(row.revoked_at != null ? { revokedAt: new Date(row.revoked_at) } : {}),
 });
 
 // ---------------------------------------------------------------------------

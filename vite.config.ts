@@ -31,5 +31,35 @@ export default defineConfig({
   // Capacitor requires the output to be in `dist/`
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/@tanstack/')) {
+            return 'vendor-tanstack';
+          }
+          if (id.includes('node_modules/@supabase/')) {
+            return 'vendor-supabase';
+          }
+          if (id.includes('node_modules/@capacitor') || id.includes('node_modules/@capacitor-mlkit/')) {
+            return 'vendor-capacitor';
+          }
+          if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) {
+            return 'vendor-i18n';
+          }
+          if (
+            id.includes('node_modules/zod/') ||
+            id.includes('node_modules/date-fns/') ||
+            id.includes('node_modules/idb-keyval/') ||
+            id.includes('node_modules/lucide-react/') ||
+            id.includes('node_modules/qrcode/')
+          ) {
+            return 'vendor-misc';
+          }
+        },
+      },
+    },
   },
 });

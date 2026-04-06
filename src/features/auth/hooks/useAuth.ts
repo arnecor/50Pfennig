@@ -35,11 +35,14 @@ export const useAuth = () => {
   );
 
   const signUp = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, displayName?: string) => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: 'com.arco.sharli://auth/callback' },
+        options: {
+          emailRedirectTo: 'com.arco.sharli://auth/callback',
+          ...(displayName ? { data: { display_name: displayName } } : {}),
+        },
       });
       if (error) throw error;
       await router.navigate({

@@ -11,30 +11,22 @@ import { cn } from '@/lib/utils';
 import EmptyState from '@components/shared/EmptyState';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
+import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
 import { Button } from '@components/ui/button';
 import { computeBilateralBalance } from '@domain/balance';
 import { abs, add, formatMoney, isNegative, isPositive, negate, subtract } from '@domain/money';
-import { type GroupId, type Money, type Settlement, type UserId, ZERO } from '@domain/types';
+import { type Money, type Settlement, type UserId, ZERO } from '@domain/types';
 import type { Expense } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { sharedExpensesQueryOptions } from '@features/expenses/expenseQueries';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import { useRemoveFriend } from '@features/friends/hooks/useRemoveFriend';
-import { useGroups } from '@features/groups/hooks/useGroups';
 import RecordFriendSettlementSheet from '@features/settlements/components/RecordFriendSettlementSheet';
 import { useDeleteSettlement } from '@features/settlements/hooks/useDeleteSettlement';
 import { sharedSettlementsQueryOptions } from '@features/settlements/settlementQueries';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import {
-  ArrowLeftRight,
-  Bell,
-  Receipt,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  UserMinus,
-} from 'lucide-react';
+import { ArrowLeftRight, Bell, Receipt, Trash2, UserMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -71,7 +63,6 @@ export default function FriendDetailPage() {
   const { data: friends = [] } = useFriends();
   const friend = friends.find((f) => (f.userId as string) === friendId);
 
-  const { data: groups = [] } = useGroups();
   const { data: sharedExpenses = [], isLoading } = useQuery(
     sharedExpensesQueryOptions(friendId as UserId),
   );
@@ -82,11 +73,6 @@ export default function FriendDetailPage() {
   const removeFriend = useRemoveFriend();
   const deleteSettlement = useDeleteSettlement();
   const [showSettleSheet, setShowSettleSheet] = useState(false);
-
-  const groupNameMap = useMemo(
-    () => new Map<GroupId, string>(groups.map((g) => [g.id, g.name])),
-    [groups],
-  );
 
   const netBalance = useMemo(() => {
     if (!currentUserId || !friend) return ZERO;
@@ -222,154 +208,141 @@ export default function FriendDetailPage() {
               )}
             </div>
 
-            {/* Activity list */}
-            <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
-              {feedItems.map((item, idx) => {
-                if (item.kind === 'expense') {
-                  const expense = item.data;
-                  const paidByCurrentUser =
-                    (expense.paidBy as string) === (currentUserId as string);
-                  const paidByName = paidByCurrentUser
-                    ? t('common.you')
-                    : (friend?.displayName ?? '…');
-                  const signedShare = paidByCurrentUser
-                    ? (expense.splits.find(
-                        (s) => (s.userId as string) === (friend?.userId as string),
-                      )?.amount ?? ZERO)
-                    : negate(
-                        currentUserId
-                          ? (expense.splits.find((s) => s.userId === currentUserId)?.amount ?? ZERO)
-                          : ZERO,
-                      );
+            {/* Activity list grouped by date */}
+            {(() => {
+              const now = new Date();
+              const yesterday = new Date(now);
+              yesterday.setDate(now.getDate() - 1);
 
-                  const paidByStr = expense.paidBy as string;
-                  const otherSplits = expense.splits.filter(
-                    (s) => (s.userId as string) !== paidByStr,
-                  );
-                  let sharedWithLabel: string;
-                  if (expense.groupId) {
-                    sharedWithLabel = groupNameMap.get(expense.groupId) ?? t('groups.title');
-                  } else if (otherSplits.length === 1) {
-                    // biome-ignore lint/style/noNonNullAssertion: length === 1 guarantees element exists
-                    const otherId = otherSplits[0]!.userId as string;
-                    sharedWithLabel =
-                      otherId === (currentUserId as string)
-                        ? t('common.you_dative')
-                        : (friend?.displayName ?? '…');
-                  } else {
-                    sharedWithLabel = t('expenses.x_people', { count: expense.splits.length });
-                  }
+              const isSameDay = (a: Date, b: Date) =>
+                a.getFullYear() === b.getFullYear() &&
+                a.getMonth() === b.getMonth() &&
+                a.getDate() === b.getDate();
 
-                  const formattedDate = expense.createdAt.toLocaleDateString(dateLocale, {
-                    day: '2-digit',
-                    month: '2-digit',
-                  });
+              const getDateLabel = (date: Date) => {
+                if (isSameDay(date, now)) return t('common.today');
+                if (isSameDay(date, yesterday)) return t('common.yesterday');
+                return date.toLocaleDateString(dateLocale, { day: 'numeric', month: 'long' });
+              };
 
-                  return (
-                    <button
-                      key={`expense-${String(expense.id)}`}
-                      type="button"
-                      onClick={() =>
-                        navigate({
-                          to: '/expenses/$expenseId',
-                          params: { expenseId: String(expense.id) },
-                        })
-                      }
-                      className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
-                    >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                        {paidByCurrentUser ? (
-                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
-                          {expense.description}
-                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                            ({formattedDate})
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {t('expenses.paid_by_label')}: {paidByName} · {t('expenses.with')}:{' '}
-                          {sharedWithLabel}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <MoneyDisplay
-                          amount={expense.totalAmount}
-                          className="block text-sm font-semibold tabular-nums"
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          {t('expenses.my_share')}:{' '}
-                          <MoneyDisplay
-                            amount={signedShare}
-                            showSign
-                            colored
-                            className="text-xs tabular-nums"
-                          />
-                        </span>
-                      </div>
-                    </button>
-                  );
+              const dateGroups: { label: string; items: FeedItem[] }[] = [];
+              let currentLabel = '';
+              for (const item of feedItems) {
+                const date = item.kind === 'expense' ? item.data.createdAt : item.batch.date;
+                const label = getDateLabel(date);
+                if (label !== currentLabel) {
+                  dateGroups.push({ label, items: [item] });
+                  currentLabel = label;
+                } else {
+                  const lastGroup = dateGroups[dateGroups.length - 1];
+                  if (lastGroup) lastGroup.items.push(item);
                 }
+              }
 
-                // settlement row
-                const { batch } = item;
-                const label = batch.iMePaying
-                  ? t('settlements.you_paid_friend', { name: friend?.displayName ?? '…' })
-                  : t('settlements.friend_paid_you', { name: friend?.displayName ?? '…' });
-
-                return (
-                  <div
-                    key={`settlement-${String(batch.records[0]?.id ?? idx)}`}
-                    className="flex items-center gap-3 py-3 border-b border-border last:border-0"
+              return dateGroups.map((group, groupIdx) => (
+                <div key={group.label}>
+                  <p
+                    className={`px-1 pb-1 text-xs font-medium text-muted-foreground ${groupIdx === 0 ? '' : 'pt-4'}`}
                   >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const id = batch.records[0]?.id;
-                        if (id)
-                          navigate({
-                            to: '/settlements/$settlementId',
-                            params: { settlementId: String(id) },
+                    {group.label}
+                  </p>
+                  <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
+                    {group.items.map((item, idx) => {
+                      if (item.kind === 'expense') {
+                        const expense = item.data;
+                        const paidByCurrentUser =
+                          (expense.paidBy as string) === (currentUserId as string);
+                        const paidByName = paidByCurrentUser
+                          ? t('common.you')
+                          : (friend?.displayName ?? '…');
+                        const signedShare = paidByCurrentUser
+                          ? (expense.splits.find(
+                              (s) => (s.userId as string) === (friend?.userId as string),
+                            )?.amount ?? ZERO)
+                          : negate(
+                              currentUserId
+                                ? (expense.splits.find((s) => s.userId === currentUserId)?.amount ??
+                                    ZERO)
+                                : ZERO,
+                            );
+
+                        return (
+                          <UnifiedExpenseItem
+                            key={`expense-${String(expense.id)}`}
+                            description={expense.description}
+                            paidByName={paidByName}
+                            totalAmount={expense.totalAmount}
+                            shareAmount={signedShare}
+                            paidByCurrentUser={paidByCurrentUser}
+                            onClick={() =>
+                              navigate({
+                                to: '/expenses/$expenseId',
+                                params: { expenseId: String(expense.id) },
+                              })
+                            }
+                          />
+                        );
+                      }
+
+                      // settlement row
+                      const { batch } = item;
+                      const label = batch.iMePaying
+                        ? t('settlements.you_paid_friend', {
+                            name: friend?.displayName ?? '…',
+                          })
+                        : t('settlements.friend_paid_you', {
+                            name: friend?.displayName ?? '…',
                           });
-                      }}
-                      className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{label}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {batch.note && <>{batch.note} · </>}
-                          {batch.date.toLocaleDateString(dateLocale, {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                      <MoneyDisplay
-                        amount={batch.total}
-                        className="shrink-0 text-sm font-semibold tabular-nums"
-                      />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteSettlement(batch)}
-                      disabled={deleteSettlement.isPending}
-                      aria-label={t('settlements.delete_aria')}
-                      className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+
+                      return (
+                        <div
+                          key={`settlement-${String(batch.records[0]?.id ?? idx)}`}
+                          className="flex items-center gap-3 py-3 border-b border-border last:border-0"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const id = batch.records[0]?.id;
+                              if (id)
+                                navigate({
+                                  to: '/settlements/$settlementId',
+                                  params: { settlementId: String(id) },
+                                });
+                            }}
+                            className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                              <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{label}</p>
+                              {batch.note && (
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {batch.note}
+                                </p>
+                              )}
+                            </div>
+                            <MoneyDisplay
+                              amount={batch.total}
+                              className="shrink-0 text-sm font-semibold tabular-nums"
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSettlement(batch)}
+                            disabled={deleteSettlement.isPending}
+                            aria-label={t('settlements.delete_aria')}
+                            className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              ));
+            })()}
 
             {/* Remove friend */}
             <div className="mt-5">

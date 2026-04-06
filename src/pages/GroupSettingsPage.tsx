@@ -24,7 +24,7 @@ import { useGroup } from '@features/groups/hooks/useGroups';
 import { useLeaveGroup } from '@features/groups/hooks/useLeaveGroup';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Link2, LogOut, QrCode, UserPlus } from 'lucide-react';
+import { LogOut, Share2, UserPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -94,25 +94,14 @@ export default function GroupSettingsPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
             {t('groups.share_group')}
           </p>
-          <p className="text-xs text-muted-foreground mb-3">{t('groups.share_coming_soon')}</p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm text-muted-foreground opacity-50 cursor-not-allowed"
-            >
-              <Link2 className="h-4 w-4" />
-              {t('groups.share_link')}
-            </button>
-            <button
-              type="button"
-              disabled
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm text-muted-foreground opacity-50 cursor-not-allowed"
-            >
-              <QrCode className="h-4 w-4" />
-              {t('groups.share_qr')}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowMemberOverlay(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm font-medium transition-colors hover:bg-muted active:opacity-80"
+          >
+            <Share2 className="h-4 w-4" />
+            {t('groups.share_invite_link')}
+          </button>
         </div>
 
         {/* Members section */}

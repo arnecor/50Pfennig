@@ -3,12 +3,44 @@
  *
  * Route: /account/imprint
  *
- * Static imprint page (Impressum). Content is placeholder — replace with real data.
+ * Imprint + privacy policy page (Impressum & Datenschutz).
  */
 
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useNavigate } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+function PrivacyPolicyContent() {
+  const [html, setHtml] = useState('');
+
+  useEffect(() => {
+    fetch('/impressum.html')
+      .then((r) => r.text())
+      .then(setHtml)
+      .catch(() => {});
+  }, []);
+
+  if (!html) return null;
+
+  return (
+    <div
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: content is a static local asset we control
+      dangerouslySetInnerHTML={{ __html: html }}
+      className="
+        [&_h1]:text-base [&_h1]:font-semibold [&_h1]:mb-3 [&_h1]:text-foreground
+        [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-foreground
+        [&_h3]:text-xs [&_h3]:font-medium [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-foreground
+        [&_p]:text-muted-foreground [&_p]:mb-2 [&_p]:leading-relaxed
+        [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2
+        [&_li]:text-muted-foreground [&_li]:mb-1 [&_li]:leading-relaxed
+        [&_strong]:font-semibold [&_strong]:text-foreground
+        [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2
+        [&_.index]:hidden
+      "
+    />
+  );
+}
 
 export default function ImprintPage() {
   const { t } = useTranslation();
@@ -24,11 +56,11 @@ export default function ImprintPage() {
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
             {t('account.imprint_section_app')}
           </h2>
-          <p className="font-medium">50Pfennig</p>
+          <p className="font-medium">Sharli</p>
           <p className="text-muted-foreground">{t('account.imprint_version_placeholder')}</p>
         </section>
 
-        {/* Responsible person / company */}
+        {/* Responsible person */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
             {t('account.imprint_section_responsible')}
@@ -47,12 +79,12 @@ export default function ImprintPage() {
           <p>{t('account.imprint_email_placeholder')}</p>
         </section>
 
-        {/* Legal notice */}
+        {/* Privacy policy */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-            {t('account.imprint_section_legal')}
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            {t('account.imprint_section_privacy')}
           </h2>
-          <p className="text-muted-foreground">{t('account.imprint_legal_placeholder')}</p>
+          <PrivacyPolicyContent />
         </section>
       </div>
     </div>

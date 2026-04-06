@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+sharli-release.jks
 
 # Design input
 /design-input

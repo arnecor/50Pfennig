@@ -1,7 +1,7 @@
 {
   "name": "sharli",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -27,7 +27,8 @@
     "db:seed-test": "node --env-file=.env.development scripts/seed-test.js",
     "db:seed-val-users": "node --env-file=.env.development scripts/seed-val-users.js",
     "db:remove-val-users": "node --env-file=.env.development scripts/remove-val-users.js",
-    "generate-icons": "capacitor-assets generate --android"
+    "generate-icons": "capacitor-assets generate --android",
+    "icon": "node scripts/generate-android-icons.mjs"
   },
   "dependencies": {
     "@capacitor-mlkit/barcode-scanning": "^6.2.0",
@@ -36,6 +37,7 @@
     "@capacitor/browser": "^6.0.6",
     "@capacitor/core": "^6.0.0",
     "@capacitor/network": "^6.0.0",
+    "@capacitor/preferences": "^6.0.4",
     "@capacitor/push-notifications": "^6.0.5",
     "@capacitor/share": "^6.0.4",
     "@capacitor/status-bar": "^6.0.3",

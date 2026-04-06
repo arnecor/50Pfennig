@@ -11,6 +11,8 @@
  *   - Subscribing to Supabase onAuthStateChange and syncing to authStore
  *   - Initialising push notifications (Android) and routing taps to the right screen
  *   - Starting the sync service (lib/storage/syncService.ts)
+ *   - Forwarding deep-link URLs and install referrer tokens into feature-level
+ *     invite handlers (parsing + acceptance live in features/invites/)
  *   - Nothing else — keep this file thin
  */
 
@@ -20,33 +22,39 @@ import { Capacitor } from '@capacitor/core';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RouterProvider } from '@tanstack/react-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import SplashScreen from './components/SplashScreen';
+import { useEffect, useRef, useState } from 'react';
 
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuthStore } from './features/auth/authStore';
+import { parseInviteToken } from './features/invites/lib/parseInviteToken';
+import {
+  processFriendInviteToken,
+  processGroupInviteToken,
+} from './features/invites/lib/processInviteAcceptance';
 import { type NotificationData, initPushNotifications } from './lib/capacitor/pushNotifications';
 import { initStatusBar } from './lib/capacitor/statusBar';
 import { checkInstallReferrer } from './lib/installReferrer';
+import { subscribeRealtime } from './lib/realtime/realtimeService';
 import { CACHE_MAX_AGE, idbPersister } from './lib/storage/queryPersister';
+import { initSyncService } from './lib/storage/syncService';
 import { supabase } from './lib/supabase/client';
-import { friendRepository } from './repositories';
 import { deletePushToken, upsertPushToken } from './repositories/supabase/pushTokenRepository';
 import { router } from './router';
+import { usePendingGroupInviteStore } from './store/pendingGroupInviteStore';
 import { usePendingInviteStore } from './store/pendingInviteStore';
 
 /**
- * Accepts an invite token, invalidates the friends query, and navigates to /friends.
- * Used by deep link handler and pending invite check.
+ * Dispatches a parsed invite token to the correct acceptance handler.
+ * Called from the deep-link handler and the pending-token check after login.
  */
-async function processInviteToken(token: string, queryClient: QueryClient) {
-  try {
-    await friendRepository.acceptInvite(token);
-    queryClient.invalidateQueries({ queryKey: ['friends'] });
-    router.navigate({ to: '/friends' });
-  } catch {
-    // Token may be expired, already used, or already friends — navigate anyway
-    router.navigate({ to: '/friends' });
+async function dispatchInviteToken(input: string, queryClient: QueryClient): Promise<void> {
+  const parsed = parseInviteToken(input);
+  if (!parsed) return;
+
+  if (parsed.type === 'friend') {
+    await processFriendInviteToken(parsed.token, queryClient);
+  } else {
+    await processGroupInviteToken(parsed.token, queryClient);
   }
 }
 
@@ -56,7 +64,7 @@ export default function App() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 5, // 5 min — fresh data, background refetch after
+            staleTime: 1000 * 30, // 30 s — fallback freshness; realtime + app-resume handle the rest
             gcTime: CACHE_MAX_AGE,
           },
         },
@@ -66,6 +74,9 @@ export default function App() {
   const { setSession, setHydrated, isHydrated } = useAuthStore();
   // Track the current FCM token so we can delete it on sign-out.
   const currentPushToken = useRef<string | null>(null);
+  // Cleanup functions for the realtime channel and sync service listeners.
+  const cleanupRealtime = useRef<(() => void) | null>(null);
+  const cleanupSync = useRef<(() => void) | null>(null);
 
   // Initialise Android status bar style (icon colour + background) on startup.
   // Runs before auth hydration so it takes effect as early as possible.
@@ -84,18 +95,22 @@ export default function App() {
       try {
         const urlObj = new URL(url);
 
-        // --- Invite deep link: com.arco.sharli://invite/f/{token} ---
-        const inviteMatch = urlObj.pathname.match(/\/f\/([A-Z0-9]{6})$/) ?? null;
+        // --- Invite deep link: com.arco.sharli://invite/{f|g}/{token} ---
+        const isInviteLink = urlObj.pathname.match(/\/[fg]\/[A-Z0-9]{6}$/) !== null;
 
-        if (inviteMatch?.[1]) {
-          const token = inviteMatch[1];
+        if (isInviteLink) {
           const session = useAuthStore.getState().session;
           if (session) {
-            // User is logged in — accept the invite immediately
-            await processInviteToken(token, queryClient);
+            await dispatchInviteToken(url, queryClient);
           } else {
-            // Not logged in — store token for after login
-            usePendingInviteStore.getState().setToken(token);
+            // Not logged in — store for processing after login.
+            // parseInviteToken reads the type, route to correct store.
+            const parsed = parseInviteToken(url);
+            if (parsed?.type === 'friend') {
+              usePendingInviteStore.getState().setToken(parsed.token);
+            } else if (parsed?.type === 'group') {
+              usePendingGroupInviteStore.getState().setToken(parsed.token);
+            }
           }
           return;
         }
@@ -152,7 +167,22 @@ export default function App() {
         void upsertPushToken(currentPushToken.current);
       }
 
+      // Start realtime + sync service as soon as a session is available.
+      // Guard with null-check so TOKEN_REFRESHED events don't re-subscribe.
+      if (session && cleanupRealtime.current === null) {
+        cleanupRealtime.current = subscribeRealtime(queryClient);
+        void initSyncService(queryClient).then((cleanup) => {
+          cleanupSync.current = cleanup;
+        });
+      }
+
       if (event === 'SIGNED_OUT') {
+        // Stop realtime subscriptions and lifecycle listeners.
+        cleanupRealtime.current?.();
+        cleanupRealtime.current = null;
+        cleanupSync.current?.();
+        cleanupSync.current = null;
+
         // Remove this device's push token so the user stops receiving
         // notifications after signing out.
         if (currentPushToken.current) {
@@ -201,52 +231,47 @@ export default function App() {
     return () => cleanup();
   }, [isHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Check for pending invite tokens after auth hydration.
-  // Two sources: (1) pendingInviteStore (from deep link before login),
+  // Process pending invite tokens after auth hydration.
+  // Two sources: (1) pending stores (from deep links before login),
   //              (2) Play Store install referrer (deferred deep link).
   useEffect(() => {
     if (!isHydrated) return;
     const session = useAuthStore.getState().session;
     if (!session) return;
 
-    // 1. Check pending invite store (deep link arrived before login)
-    const pendingToken = usePendingInviteStore.getState().token;
-    if (pendingToken) {
+    // 1. Check pending friend invite store
+    const pendingFriendToken = usePendingInviteStore.getState().token;
+    if (pendingFriendToken) {
       usePendingInviteStore.getState().clear();
-      void processInviteToken(pendingToken, queryClient);
+      void processFriendInviteToken(pendingFriendToken, queryClient);
       return;
     }
 
-    // 2. Check Play Store install referrer (deferred deep link after install)
-    void checkInstallReferrer().then((token) => {
-      if (token) void processInviteToken(token, queryClient);
+    // 2. Check pending group invite store
+    const pendingGroupToken = usePendingGroupInviteStore.getState().token;
+    if (pendingGroupToken) {
+      usePendingGroupInviteStore.getState().clear();
+      void processGroupInviteToken(pendingGroupToken, queryClient);
+      return;
+    }
+
+    // 3. Check Play Store install referrer (deferred deep link after install)
+    // checkInstallReferrer() returns a prefixed token: 'f:TOKEN' or 'g:TOKEN'
+    void checkInstallReferrer().then((referrerToken) => {
+      if (referrerToken) void dispatchInviteToken(referrerToken, queryClient);
     });
   }, [isHydrated, queryClient]);
 
-  // Track whether the splash screen has finished its exit animation
-  const [splashDone, setSplashDone] = useState(false);
-  const handleSplashDone = useCallback(() => setSplashDone(true), []);
-
-  // Show splash until both: auth is hydrated AND the splash animation is done
-  const showSplash = !splashDone;
-
-  return (
-    <>
-      {/* Splash sits on top of everything until its exit animation completes */}
-      {showSplash && <SplashScreen exiting={isHydrated} onDone={handleSplashDone} />}
-
-      {/* Mount the real app tree immediately so queries/auth can warm up,
-          but it is visually hidden behind the splash screen */}
-      {isHydrated && (
-        <ErrorBoundary>
-          <PersistQueryClientProvider
-            client={queryClient}
-            persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
-          >
-            <RouterProvider router={router} context={{ queryClient }} />
-          </PersistQueryClientProvider>
-        </ErrorBoundary>
-      )}
-    </>
+  return isHydrated ? (
+    <ErrorBoundary>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: idbPersister, maxAge: CACHE_MAX_AGE }}
+      >
+        <RouterProvider router={router} context={{ queryClient }} />
+      </PersistQueryClientProvider>
+    </ErrorBoundary>
+  ) : (
+    <div className="h-full w-full bg-background" />
   );
 }

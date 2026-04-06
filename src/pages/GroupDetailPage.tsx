@@ -13,8 +13,9 @@ import EmptyState from '@components/shared/EmptyState';
 import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
+import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
 import { calculateGroupBalances } from '@domain/balance';
-import { add, formatMoney, isNegative, isPositive, isZero, negate } from '@domain/money';
+import { add, formatMoney, isPositive, isZero, negate } from '@domain/money';
 import {
   type Expense,
   type GroupEvent,
@@ -45,13 +46,21 @@ type GroupActivityItem = ActivityExpense | ActivitySettlement | ActivityEvent;
 function ItemSkeleton() {
   return (
     <div className="flex items-center gap-3 py-3 border-b border-border last:border-0 px-1">
-      <div className="w-10 h-10 rounded-lg bg-muted animate-pulse shrink-0" />
+      <div className="w-8 h-8 rounded-full bg-muted animate-pulse shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-4 w-40 animate-pulse rounded bg-muted" />
         <div className="h-3 w-24 animate-pulse rounded bg-muted" />
       </div>
       <div className="h-4 w-16 animate-pulse rounded bg-muted shrink-0" />
     </div>
+  );
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
   );
 }
 
@@ -75,7 +84,7 @@ export default function GroupDetailPage() {
 
   const isLoading = groupLoading || expensesLoading || settlementsLoading;
 
-  const paidByName = useMemo(() => {
+  const resolveName = useMemo(() => {
     if (!group || !expenses) return (userId: string) => userId;
     return (userId: string) => {
       if (currentUserId && userId === (currentUserId as string)) return t('common.you');
@@ -112,6 +121,32 @@ export default function GroupDetailPage() {
   }, [expenses, settlements, groupEvents]);
 
   const dateLocale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
+
+  const dateGroups = useMemo(() => {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
+    const getDateLabel = (date: Date) => {
+      if (isSameDay(date, now)) return t('common.today');
+      if (isSameDay(date, yesterday)) return t('common.yesterday');
+      return date.toLocaleDateString(dateLocale, { day: 'numeric', month: 'long' });
+    };
+
+    const groups: { label: string; items: GroupActivityItem[] }[] = [];
+    let currentLabel = '';
+    for (const item of allItems) {
+      const label = getDateLabel(item.data.createdAt);
+      if (label !== currentLabel) {
+        groups.push({ label, items: [item] });
+        currentLabel = label;
+      } else {
+        const lastGroup = groups[groups.length - 1];
+        if (lastGroup) lastGroup.items.push(item);
+      }
+    }
+    return groups;
+  }, [allItems, t, dateLocale]);
 
   const handleAddExpense = () => navigate({ to: '/expenses/new', search: { groupId } });
   const handleBack = () => navigate({ to: '/groups' });
@@ -204,7 +239,8 @@ export default function GroupDetailPage() {
                   </p>
                 </div>
               </div>
-
+              {/* Button for group settlements temporary deactivated until fixed and redesigned*/}
+              {/*
               <button
                 type="button"
                 onClick={() =>
@@ -214,136 +250,122 @@ export default function GroupDetailPage() {
               >
                 {t('settlements.view_settlements')} →
               </button>
+              */}
             </div>
 
-            {/* Activity list */}
-            <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
-              {allItems.map((item) => {
-                if (item.kind === 'expense') {
-                  const expense = item.data;
-                  const paidByCurrentUser =
-                    (expense.paidBy as string) === (currentUserId as string);
-                  const myShare = currentUserId
-                    ? (expense.splits.find((s) => s.userId === currentUserId)?.amount ?? ZERO)
-                    : ZERO;
-                  const signedShare = paidByCurrentUser
-                    ? ((expense.totalAmount - myShare) as Money)
-                    : negate(myShare);
-                  const signedPositive = !isNegative(signedShare);
+            {/* Activity list grouped by date */}
+            {dateGroups.map((group, groupIdx) => (
+              <div key={group.label}>
+                <p
+                  className={`px-1 pb-1 text-xs font-medium text-muted-foreground ${groupIdx === 0 ? '' : 'pt-4'}`}
+                >
+                  {group.label}
+                </p>
+                <div className="bg-card rounded-2xl border border-border overflow-hidden px-4 mb-0">
+                  {group.items.map((item) => {
+                    if (item.kind === 'expense') {
+                      const expense = item.data;
+                      const paidByCurrentUser =
+                        (expense.paidBy as string) === (currentUserId as string);
+                      const myShare = currentUserId
+                        ? (expense.splits.find((s) => s.userId === currentUserId)?.amount ?? ZERO)
+                        : ZERO;
+                      const signedShare = paidByCurrentUser
+                        ? ((expense.totalAmount - myShare) as Money)
+                        : negate(myShare);
 
-                  return (
-                    <button
-                      key={expense.id}
-                      type="button"
-                      onClick={() =>
-                        navigate({
-                          to: '/expenses/$expenseId',
-                          params: { expenseId: String(expense.id) },
-                        })
-                      }
-                      className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {expense.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {paidByName(expense.paidBy)}
-                          {' · '}
-                          {expense.createdAt.toLocaleDateString(dateLocale, {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p
-                          className={cn(
-                            'text-sm font-semibold tabular-nums',
-                            signedPositive ? 'text-owed-to-you' : 'text-you-owe',
-                          )}
-                        >
-                          {signedPositive ? '+' : ''}
-                          {formatMoney(signedShare)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t('groups.total')} {formatMoney(expense.totalAmount)}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                }
-
-                // event row (member joined / left)
-                if (item.kind === 'event') {
-                  const ev = item.data;
-                  const isJoin = ev.eventType === 'member_joined';
-                  const label = isJoin
-                    ? t('groups.event_member_joined', { name: ev.displayName })
-                    : t('groups.event_member_left', { name: ev.displayName });
-                  return (
-                    <div
-                      key={ev.id}
-                      className="flex items-center gap-3 py-3 border-b border-border last:border-0 px-1"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <Users className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-muted-foreground truncate">{label}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {ev.createdAt.toLocaleDateString(dateLocale, {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                }
-
-                // settlement row
-                const s = item.data;
-                const payerName = paidByName(s.fromUserId);
-                const payeeName = paidByName(s.toUserId);
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() =>
-                      navigate({
-                        to: '/settlements/$settlementId',
-                        params: { settlementId: String(s.id) },
-                      })
+                      return (
+                        <UnifiedExpenseItem
+                          key={expense.id}
+                          description={expense.description}
+                          paidByName={resolveName(expense.paidBy)}
+                          totalAmount={expense.totalAmount}
+                          shareAmount={signedShare}
+                          paidByCurrentUser={paidByCurrentUser}
+                          onClick={() =>
+                            navigate({
+                              to: '/expenses/$expenseId',
+                              params: { expenseId: String(expense.id) },
+                            })
+                          }
+                        />
+                      );
                     }
-                    className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                      <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-muted-foreground truncate">
-                        {t('groups.activity_settlement', { payer: payerName, payee: payeeName })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {s.createdAt.toLocaleDateString(dateLocale, {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                    <MoneyDisplay
-                      amount={s.amount}
-                      colored={false}
-                      className="shrink-0 text-sm tabular-nums text-muted-foreground"
-                    />
-                  </button>
-                );
-              })}
-            </div>
+
+                    // event row (member joined / left)
+                    if (item.kind === 'event') {
+                      const ev = item.data;
+                      const isJoin = ev.eventType === 'member_joined';
+                      const label = isJoin
+                        ? t('groups.event_member_joined', { name: ev.displayName })
+                        : t('groups.event_member_left', { name: ev.displayName });
+                      return (
+                        <div
+                          key={ev.id}
+                          className="flex items-center gap-3 py-3 border-b border-border last:border-0 px-1"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                            <Users className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-muted-foreground truncate">{label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {ev.createdAt.toLocaleDateString(dateLocale, {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // settlement row
+                    const s = item.data;
+                    const payerName = resolveName(s.fromUserId);
+                    const payeeName = resolveName(s.toUserId);
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() =>
+                          navigate({
+                            to: '/settlements/$settlementId',
+                            params: { settlementId: String(s.id) },
+                          })
+                        }
+                        className="w-full flex items-center gap-3 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors text-left px-1"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {t('groups.activity_settlement', {
+                              payer: payerName,
+                              payee: payeeName,
+                            })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {s.createdAt.toLocaleDateString(dateLocale, {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                        <MoneyDisplay
+                          amount={s.amount}
+                          colored={false}
+                          className="shrink-0 text-sm tabular-nums text-muted-foreground"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </>
         )}
       </div>

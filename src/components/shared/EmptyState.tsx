@@ -54,34 +54,10 @@ const mascotSizes = {
 
 export function SharliMascot({ size = 'md', className }: SharliMascotProps) {
   return (
-    <svg
-      viewBox="0 0 80 80"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={cn(mascotSizes[size], className)}
-      role="img"
-      aria-label="Sharli"
-    >
-      {/* Body */}
-      <ellipse cx="40" cy="48" rx="24" ry="22" className="fill-primary/20" />
-      {/* Head */}
-      <circle cx="40" cy="30" r="20" className="fill-primary/30" />
-      {/* Eyes */}
-      <circle cx="33" cy="28" r="6" className="fill-card" />
-      <circle cx="47" cy="28" r="6" className="fill-card" />
-      <circle cx="34" cy="28" r="3" className="fill-foreground" />
-      <circle cx="48" cy="28" r="3" className="fill-foreground" />
-      {/* Beak */}
-      <path d="M40 34 L37 38 L43 38 Z" className="fill-accent" />
-      {/* Ear tufts */}
-      <path d="M22 18 L28 24 L24 26 Z" className="fill-primary/40" />
-      <path d="M58 18 L52 24 L56 26 Z" className="fill-primary/40" />
-      {/* Wings */}
-      <ellipse cx="20" cy="48" rx="8" ry="12" className="fill-primary/25" />
-      <ellipse cx="60" cy="48" rx="8" ry="12" className="fill-primary/25" />
-      {/* Feet */}
-      <ellipse cx="34" cy="68" rx="4" ry="2" className="fill-accent" />
-      <ellipse cx="46" cy="68" rx="4" ry="2" className="fill-accent" />
-    </svg>
+    <img
+      src="/icon.png"
+      alt="Sharli"
+      className={cn(mascotSizes[size], 'rounded-full object-cover', className)}
+    />
   );
 }
