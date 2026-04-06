@@ -190,6 +190,8 @@
     "net_balance": "Net balance",
     "friend_owes_you": "{{name}} owes you",
     "you_owe_friend": "You owe {{name}}",
+    "group_breakdown": "Breakdown",
+    "direct_expenses": "Direct expenses",
     "your_share": "Your share",
     "participant_count": "{{count}} ppl.",
     "method_share_link": "Share invite link",
