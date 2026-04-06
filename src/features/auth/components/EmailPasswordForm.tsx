@@ -80,18 +80,26 @@ export default function EmailPasswordForm({
   const isSignIn = mode === 'sign_in';
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-3" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4" noValidate>
+      {/* Form heading — tells users exactly what they're doing */}
+      <div className="space-y-0.5">
+        <h2 className="text-lg font-semibold text-foreground">
+          {t(isSignIn ? 'auth.sign_in_title' : 'auth.sign_up_title')}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {t(isSignIn ? 'auth.sign_in_subtitle' : 'auth.sign_up_subtitle')}
+        </p>
+      </div>
+
       {!isSignIn && (
         <div className="space-y-1.5">
-          <Label htmlFor="pw-name" className="sr-only">
-            {t('auth.display_name')}
-          </Label>
+          <Label htmlFor="pw-name">{t('auth.display_name')}</Label>
           <Input
             id="pw-name"
             type="text"
             autoComplete="name"
             placeholder={t('auth.display_name_placeholder')}
-            className="h-11"
+            className="h-11 bg-card"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
@@ -100,36 +108,39 @@ export default function EmailPasswordForm({
       )}
 
       <div className="space-y-1.5">
-        <Label htmlFor="pw-email" className="sr-only">
-          {t('auth.email')}
-        </Label>
+        <Label htmlFor="pw-email">{t('auth.email')}</Label>
         <Input
           id="pw-email"
           type="email"
           autoComplete="email"
           placeholder={t('auth.email_placeholder')}
-          className="h-11"
+          className="h-11 bg-card"
           {...register('email')}
         />
         {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="pw-password" className="sr-only">
-          {t('auth.password')}
-        </Label>
+        <Label htmlFor="pw-password">{t('auth.password')}</Label>
         <Input
           id="pw-password"
           type="password"
           autoComplete={isSignIn ? 'current-password' : 'new-password'}
           placeholder={t('auth.password_placeholder')}
-          className="h-11"
+          className="h-11 bg-card"
           {...register('password')}
         />
         {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+        {!isSignIn && (
+          <p className="text-xs text-muted-foreground">{t('auth.password_min_hint')}</p>
+        )}
       </div>
 
-      {serverError && <p className="text-center text-xs text-destructive">{serverError}</p>}
+      {serverError && (
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-center text-xs text-destructive">
+          {serverError}
+        </p>
+      )}
 
       <Button type="submit" className="h-11 w-full" disabled={isSubmitting}>
         {isSubmitting ? (
@@ -142,25 +153,27 @@ export default function EmailPasswordForm({
         )}
       </Button>
 
-      <button
-        type="button"
-        onClick={() => {
-          setMode(isSignIn ? 'sign_up' : 'sign_in');
-          setDisplayName('');
-          setServerError(null);
-        }}
-        className="w-full py-1 text-center text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        {t(isSignIn ? 'auth.switch_to_sign_up' : 'auth.switch_to_sign_in')}
-      </button>
+      <div className="space-y-2 pt-1">
+        <button
+          type="button"
+          onClick={() => {
+            setMode(isSignIn ? 'sign_up' : 'sign_in');
+            setDisplayName('');
+            setServerError(null);
+          }}
+          className="w-full rounded-md py-2 text-center text-sm font-medium text-primary underline-offset-4 transition-colors hover:underline"
+        >
+          {t(isSignIn ? 'auth.switch_to_sign_up' : 'auth.switch_to_sign_in')}
+        </button>
 
-      <button
-        type="button"
-        onClick={() => onSwitchToMagicLink(getValues('email'))}
-        className="w-full py-2 text-center text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-      >
-        {t('auth.use_magic_link')}
-      </button>
+        <button
+          type="button"
+          onClick={() => onSwitchToMagicLink(getValues('email'))}
+          className="w-full py-1 text-center text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+        >
+          {t('auth.use_magic_link')}
+        </button>
+      </div>
     </form>
   );
 }

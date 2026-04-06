@@ -25,8 +25,8 @@ export default function LoginPage() {
         <p className="max-w-xs text-center text-sm text-muted-foreground">{t('auth.tagline')}</p>
       </div>
 
-      {/* Auth area — separated from branding by generous spacing */}
-      <div className="mt-8 w-full max-w-sm">
+      {/* Auth area — card surface elevates the form from the background */}
+      <div className="mt-8 w-full max-w-sm rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border">
         <LoginForm />
       </div>
 
