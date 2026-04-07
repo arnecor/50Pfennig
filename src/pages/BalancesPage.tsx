@@ -13,10 +13,11 @@ import { Button } from '@components/ui/button';
 import { formatMoney } from '@domain/money';
 import type { DebtInstruction, GroupId, UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
+import GreedyExplainerSheet from '@features/balances/components/GreedyExplainerSheet';
 import { useGroupBalances } from '@features/balances/hooks/useGroupBalances';
 import RecordGroupSettlementSheet from '@features/settlements/components/RecordGroupSettlementSheet';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -31,6 +32,7 @@ export default function BalancesPage() {
 
   const [showSheet, setShowSheet] = useState(false);
   const [suggestion, setSuggestion] = useState<DebtInstruction | undefined>();
+  const [showExplainer, setShowExplainer] = useState(false);
 
   const memberName = (id: UserId) => {
     if ((id as string) === (currentUserId as string)) return t('common.you');
@@ -77,9 +79,19 @@ export default function BalancesPage() {
 
         {!isLoading && instructions.length > 0 && (
           <section>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {t('balances.suggestion_heading')}
-            </p>
+            <div className="mb-3 flex items-center gap-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t('balances.suggestion_heading')}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowExplainer(true)}
+                className="text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+                aria-label={t('balances.explainer_open_label')}
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <div className="space-y-3">
               {instructions.map((s) => (
                 <div
@@ -108,6 +120,8 @@ export default function BalancesPage() {
           </section>
         )}
       </div>
+
+      {showExplainer && <GreedyExplainerSheet onClose={() => setShowExplainer(false)} />}
 
       {showSheet && group && currentUserId && (
         <RecordGroupSettlementSheet

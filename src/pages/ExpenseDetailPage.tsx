@@ -18,7 +18,7 @@ import { groupDetailQueryOptions } from '@features/groups/groupQueries';
 import { useGroups } from '@features/groups/hooks/useGroups';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { ArrowDownLeft, ArrowUpRight, Trash2, Users } from 'lucide-react';
+import { Trash2, Users } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -154,14 +154,9 @@ export default function ExpenseDetailPage() {
                   sharePositive ? 'bg-owed-to-you-muted' : 'bg-you-owe-muted',
                 )}
               >
-                {sharePositive ? (
-                  <ArrowDownLeft className="w-4 h-4 text-owed-to-you shrink-0" />
-                ) : (
-                  <ArrowUpRight className="w-4 h-4 text-you-owe shrink-0" />
-                )}
                 <div>
                   <p className="text-xs text-muted-foreground leading-none mb-0.5">
-                    {t('friends.your_share')}
+                    {sharePositive ? t('friends.you_get') : t('friends.you_owe')}
                   </p>
                   <MoneyDisplay
                     amount={myShare}
