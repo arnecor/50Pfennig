@@ -8,9 +8,9 @@
  * Guarded by GuestGuard: redirects to /home if already authenticated.
  */
 
+import { useTranslation } from 'react-i18next';
 import { SharliMascot } from '../components/shared/EmptyState';
 import { EnvBadge } from '../components/shared/EnvBadge';
-import { useTranslation } from 'react-i18next';
 import LoginForm from '../features/auth/components/LoginForm';
 
 export default function LoginPage() {
