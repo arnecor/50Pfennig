@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const f=(JSON.parse(d).tool_input||{}).file_path||'';if(/\\.(ts|tsx)$/.test(f)){const {spawnSync}=require('child_process');const r=spawnSync('npx',['tsc','--noEmit'],{encoding:'utf8',shell:true});const out=(r.stdout+r.stderr).split('\\n').slice(0,30).join('\\n');if(out.trim())console.log(out);}})\"",
+            "statusMessage": "Type-checking..."
+          }
+        ]
+      }
+    ]
+  }
+}

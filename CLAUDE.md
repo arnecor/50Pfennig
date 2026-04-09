@@ -14,6 +14,11 @@ When fixing TypeScript or lint errors, verify the fix doesn't break existing fun
 ## Supabase
 When generating or modifying SQL migrations, always use `DROP POLICY IF EXISTS` before `CREATE POLICY`, and verify function/table ordering so that referenced objects exist before they are used.
 
+## Supabase Workflow
+- This project uses a REMOTE Supabase instance only - never suggest `--local` flags
+- For type generation, ask the user to run the type generation command rather than hand-reconstructing types.gen.ts from migrations
+- The Supabase project ref is not in config.toml; ask the user when needed
+
 ## Tech Stack
 
 | Concern | Choice |
