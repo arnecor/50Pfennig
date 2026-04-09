@@ -1,4 +1,6 @@
+import GuestUpgradeDialog from '@/features/auth/components/GuestUpgradeDialog';
 import { cn } from '@/lib/utils';
+import { useUIStore } from '@/store/uiStore';
 import { Link, Outlet, useRouter, useRouterState } from '@tanstack/react-router';
 import { Home, Settings, UserPlus, Users } from 'lucide-react';
 import { useEffect } from 'react';
@@ -15,6 +17,8 @@ export default function AppShell() {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const guestReminderOpen = useUIStore((s) => s.guestReminderOpen);
+  const setGuestReminderOpen = useUIStore((s) => s.setGuestReminderOpen);
 
   const showNav = pathname !== '/login' && !pathname.startsWith('/auth/');
 
@@ -32,6 +36,10 @@ export default function AppShell() {
       <main className={cn('flex-1 overflow-auto', showNav && 'pb-16')}>
         <Outlet />
       </main>
+
+      {guestReminderOpen && (
+        <GuestUpgradeDialog variant="reminder" onDismiss={() => setGuestReminderOpen(false)} />
+      )}
 
       {showNav && (
         <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border safe-bottom z-50">

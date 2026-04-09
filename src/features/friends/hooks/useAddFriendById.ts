@@ -6,6 +6,7 @@
  */
 
 import type { UserId } from '@domain/types';
+import { triggerGuestUpgradeReminderFromStore } from '@features/auth/hooks/useGuestUpgradeReminder';
 import { friendRepository } from '@repositories';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -16,6 +17,7 @@ export function useAddFriendById() {
     mutationFn: (userId: UserId) => friendRepository.addById(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+      triggerGuestUpgradeReminderFromStore();
     },
   });
 }

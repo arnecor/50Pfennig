@@ -25,9 +25,13 @@ import { useTranslation } from 'react-i18next';
 export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAnonymous } = useAuth();
 
-  const displayName: string = user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
+  const baseDisplayName: string =
+    user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
+  const displayName: string = isAnonymous
+    ? `${baseDisplayName} ${t('auth.guest_suffix')}`.trim()
+    : baseDisplayName;
   const currentUserId = user?.id as UserId | undefined;
   const { youAreOwed, youOwe } = useTotalBalance(currentUserId);
 

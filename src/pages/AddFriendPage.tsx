@@ -7,6 +7,8 @@
  */
 
 import { PageHeader } from '@components/shared/PageHeader';
+import GuestUpgradeDialog from '@features/auth/components/GuestUpgradeDialog';
+import { useAuth } from '@features/auth/hooks/useAuth';
 import AddFriendMethodList from '@features/friends/components/AddFriendMethodList';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +16,11 @@ import { useTranslation } from 'react-i18next';
 export default function AddFriendPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isAnonymous } = useAuth();
+
+  if (isAnonymous) {
+    return <GuestUpgradeDialog variant="gate" />;
+  }
 
   return (
     <div className="min-h-full">

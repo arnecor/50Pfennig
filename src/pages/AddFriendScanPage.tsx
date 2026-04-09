@@ -7,6 +7,8 @@
  * Native only — the route should only be reachable on native platforms.
  */
 
+import GuestUpgradeDialog from '@features/auth/components/GuestUpgradeDialog';
+import { useAuth } from '@features/auth/hooks/useAuth';
 import QRCodeScanner from '@features/friends/components/QRCodeScanner';
 import { useNavigate } from '@tanstack/react-router';
 import { X } from 'lucide-react';
@@ -15,6 +17,11 @@ import { useTranslation } from 'react-i18next';
 export default function AddFriendScanPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isAnonymous } = useAuth();
+
+  if (isAnonymous) {
+    return <GuestUpgradeDialog variant="gate" />;
+  }
 
   return (
     <div className="flex h-full flex-col">

@@ -33,6 +33,7 @@ import {
 import { lazy } from 'react';
 
 import AppShell from '../components/layout/AppShell';
+import { useAuthStore } from '../features/auth/authStore';
 import GroupsPage from '../pages/GroupsPage';
 import HomePage from '../pages/HomePage';
 import { requireAuth, requireGuest } from './guards';
@@ -57,6 +58,7 @@ const GroupDetailPage = lazy(() => import('../pages/GroupDetailPage'));
 const GroupSettingsPage = lazy(() => import('../pages/GroupSettingsPage'));
 const ImprintPage = lazy(() => import('../pages/ImprintPage'));
 const LoginPage = lazy(() => import('../pages/LoginPage'));
+const OnboardingPage = lazy(() => import('../pages/OnboardingPage'));
 const SettlementDetailPage = lazy(() => import('../pages/SettlementDetailPage'));
 const SettlementsPage = lazy(() => import('../pages/SettlementsPage'));
 
@@ -69,8 +71,25 @@ type RouterContext = { queryClient: QueryClient };
 const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: AppShell,
   beforeLoad: ({ location }) => {
-    if (location.pathname === '/') throw redirect({ to: '/home' });
+    if (location.pathname === '/') {
+      // First-time users and signed-out users land on the onboarding flow;
+      // the onboarding screen has an explicit "Bereits einen Account? Anmelden"
+      // link that routes returning users to /login.
+      const session = useAuthStore.getState().session;
+      throw redirect({ to: session ? '/home' : '/onboarding' });
+    }
   },
+});
+
+// ---------------------------------------------------------------------------
+// /onboarding — first-time entry point; accessible only when NOT authenticated
+// ---------------------------------------------------------------------------
+
+const onboardingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/onboarding',
+  beforeLoad: requireGuest,
+  component: OnboardingPage,
 });
 
 // ---------------------------------------------------------------------------
@@ -252,6 +271,7 @@ const imprintRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   homeRoute,
+  onboardingRoute,
   loginRoute,
   checkEmailRoute,
   groupsRoute,
