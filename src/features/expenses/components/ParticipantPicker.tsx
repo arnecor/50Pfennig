@@ -89,7 +89,7 @@ export default function ParticipantPicker({
 
   // Get the currently selected group for displaying members
   const selectedGroup = selectedGroupId
-    ? groups.find((g) => g.id === selectedGroupId) ?? null
+    ? (groups.find((g) => g.id === selectedGroupId) ?? null)
     : null;
 
   function handleTabChange(tab: Tab) {

@@ -106,9 +106,7 @@ export default function ExpenseForm({
     }
     // Use selectedMemberIds for groups (only selected members participate)
     const nextIds: UserId[] =
-      next.type === 'group'
-        ? next.selectedMemberIds
-        : [currentUserId, ...next.userIds];
+      next.type === 'group' ? next.selectedMemberIds : [currentUserId, ...next.userIds];
     if (!nextIds.includes(paidByUserId)) {
       setPaidByUserId(currentUserId);
     }
@@ -141,9 +139,7 @@ export default function ExpenseForm({
     if (!selection) return [];
     // For groups, only include selected members (not all group members)
     if (selection.type === 'group') {
-      return selection.group.members.filter((m) =>
-        selection.selectedMemberIds.includes(m.userId),
-      );
+      return selection.group.members.filter((m) => selection.selectedMemberIds.includes(m.userId));
     }
     // Friend expense: selected friends + the current user
     const friendMembers: GroupMember[] = selection.userIds.map((uid) => {
