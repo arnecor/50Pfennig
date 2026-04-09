@@ -87,7 +87,13 @@ export default function ExpenseForm({
     : null;
 
   const [selection, setSelection] = useState<ParticipantSelection | null>(
-    preselectedGroup ? { type: 'group', group: preselectedGroup } : null,
+    preselectedGroup
+      ? {
+          type: 'group',
+          group: preselectedGroup,
+          selectedMemberIds: preselectedGroup.members.map((m) => m.userId),
+        }
+      : null,
   );
   const [selectionError, setSelectionError] = useState<string | null>(null);
 
@@ -98,9 +104,10 @@ export default function ExpenseForm({
       setPaidByUserId(currentUserId);
       return;
     }
+    // Use selectedMemberIds for groups (only selected members participate)
     const nextIds: UserId[] =
       next.type === 'group'
-        ? next.group.members.map((m) => m.userId)
+        ? next.selectedMemberIds
         : [currentUserId, ...next.userIds];
     if (!nextIds.includes(paidByUserId)) {
       setPaidByUserId(currentUserId);
@@ -132,7 +139,12 @@ export default function ExpenseForm({
   // CustomSplitEditor's useEffect to reset splits to equal on every state update.
   const participantsForPreview = useMemo<GroupMember[]>(() => {
     if (!selection) return [];
-    if (selection.type === 'group') return [...selection.group.members];
+    // For groups, only include selected members (not all group members)
+    if (selection.type === 'group') {
+      return selection.group.members.filter((m) =>
+        selection.selectedMemberIds.includes(m.userId),
+      );
+    }
     // Friend expense: selected friends + the current user
     const friendMembers: GroupMember[] = selection.userIds.map((uid) => {
       const friend = friends.find((f) => f.userId === uid);

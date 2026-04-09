@@ -25,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 // ---------------------------------------------------------------------------
 
 export type ParticipantSelection =
-  | { type: 'group'; group: Group }
+  | { type: 'group'; group: Group; selectedMemberIds: UserId[] }
   | { type: 'friends'; userIds: UserId[] };
 
 type Props = {
@@ -35,6 +35,8 @@ type Props = {
   onChange: (value: ParticipantSelection | null) => void;
   onClose: () => void;
 };
+
+const MIN_GROUP_MEMBERS_SELECTED = 2;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -60,16 +62,44 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
 
   const selectedFriendIds: UserId[] = draft?.type === 'friends' ? draft.userIds : [];
 
+  // When a group is selected, track which members are selected (default: all)
+  const selectedMemberIds: UserId[] =
+    draft?.type === 'group' ? draft.selectedMemberIds : [];
+
   const groupsDisabled = draft?.type === 'friends' && draft.userIds.length > 0;
-  const friendsDisabled = draft?.type === 'group';
+
+  // Get the currently selected group for displaying members
+  const selectedGroup = selectedGroupId
+    ? groups.find((g) => g.id === selectedGroupId) ?? null
+    : null;
 
   function handleGroupTap(group: Group) {
     if (selectedGroupId === group.id) {
       // Deselect
       setDraft(null);
     } else {
-      setDraft({ type: 'group', group });
+      // Select group with all members selected by default
+      const allMemberIds = group.members.map((m) => m.userId);
+      setDraft({ type: 'group', group, selectedMemberIds: allMemberIds });
     }
+  }
+
+  function handleMemberToggle(memberId: UserId) {
+    if (draft?.type !== 'group') return;
+
+    const current = selectedMemberIds;
+    const isCurrentlySelected = current.includes(memberId);
+
+    // Prevent deselecting if it would result in less than minimum members
+    if (isCurrentlySelected && current.length <= MIN_GROUP_MEMBERS_SELECTED) {
+      return;
+    }
+
+    const next = isCurrentlySelected
+      ? current.filter((id) => id !== memberId)
+      : [...current, memberId];
+
+    setDraft({ type: 'group', group: draft.group, selectedMemberIds: next });
   }
 
   function handleFriendToggle(userId: UserId) {
@@ -151,8 +181,45 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
             </section>
           )}
 
-          {/* Friends section */}
-          {filteredFriends.length > 0 && (
+          {/* Group members section — shown when a group is selected */}
+          {selectedGroup && (
+            <section className="mb-4">
+              <p className="mb-1.5 mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t('expenses.form.picker_members_section')}
+              </p>
+              <div className="flex flex-col gap-1">
+                {selectedGroup.members
+                  .filter((member) => member.displayName.toLowerCase().includes(q))
+                  .map((member) => {
+                    const isChecked = selectedMemberIds.includes(member.userId);
+                    const canDeselect =
+                      !isChecked || selectedMemberIds.length > MIN_GROUP_MEMBERS_SELECTED;
+                    return (
+                      <button
+                        key={member.userId}
+                        type="button"
+                        disabled={!canDeselect}
+                        onClick={() => handleMemberToggle(member.userId)}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors
+                          ${!canDeselect ? 'opacity-40 cursor-not-allowed' : 'hover:bg-muted'}
+                          ${isChecked ? 'text-primary font-medium' : 'text-foreground'}
+                        `}
+                      >
+                        {isChecked ? (
+                          <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
+                        ) : (
+                          <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        )}
+                        <span className="flex-1 text-left">{member.displayName}</span>
+                      </button>
+                    );
+                  })}
+              </div>
+            </section>
+          )}
+
+          {/* Friends section — hidden when a group is selected */}
+          {!selectedGroup && filteredFriends.length > 0 && (
             <section className="mb-4">
               <p className="mb-1.5 mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {t('expenses.form.picker_friends_section')}
@@ -164,10 +231,8 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
                     <button
                       key={friend.userId}
                       type="button"
-                      disabled={friendsDisabled}
                       onClick={() => handleFriendToggle(friend.userId)}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors
-                        ${friendsDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-muted'}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-muted
                         ${isChecked ? 'text-primary font-medium' : 'text-foreground'}
                       `}
                     >
