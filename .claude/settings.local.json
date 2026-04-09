@@ -1,7 +1,10 @@
 {
+  "defaultShell": "powershell",
   "env": {
-    "ENABLE_LSP_TOOL": "1"
-  },
+    "ENABLE_LSP_TOOL": "1",
+    "CLAUDE_CODE_ENABLE_POWERSHELL": "1",
+    "CLAUDE_CODE_GIT_BASH_PATH":  "C:\\Program Files\\Git\\bin\\bash.exe"
+     },
   "permissions": {
     "deny": [
       "Bash(npm run db:migrate:prod*)",
