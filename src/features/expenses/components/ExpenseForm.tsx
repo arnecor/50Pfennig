@@ -436,6 +436,7 @@ export default function ExpenseForm({
           value={selection}
           onChange={handleSelectionChange}
           onClose={() => setPickerOpen(false)}
+          paidByUserId={paidByUserId}
         />
       )}
     </>

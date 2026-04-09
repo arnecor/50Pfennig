@@ -34,6 +34,7 @@ type Props = {
   value: ParticipantSelection | null;
   onChange: (value: ParticipantSelection | null) => void;
   onClose: () => void;
+  paidByUserId: UserId;
 };
 
 const MIN_GROUP_MEMBERS_SELECTED = 2;
@@ -42,7 +43,14 @@ const MIN_GROUP_MEMBERS_SELECTED = 2;
 // Component
 // ---------------------------------------------------------------------------
 
-export default function ParticipantPicker({ groups, friends, value, onChange, onClose }: Props) {
+export default function ParticipantPicker({
+  groups,
+  friends,
+  value,
+  onChange,
+  onClose,
+  paidByUserId,
+}: Props) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
@@ -86,6 +94,9 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
 
   function handleMemberToggle(memberId: UserId) {
     if (draft?.type !== 'group') return;
+
+    // Prevent toggling the payer (they must always be included)
+    if (memberId === paidByUserId) return;
 
     const current = selectedMemberIds;
     const isCurrentlySelected = current.includes(memberId);
@@ -192,8 +203,10 @@ export default function ParticipantPicker({ groups, friends, value, onChange, on
                   .filter((member) => member.displayName.toLowerCase().includes(q))
                   .map((member) => {
                     const isChecked = selectedMemberIds.includes(member.userId);
+                    const isPayer = member.userId === paidByUserId;
                     const canDeselect =
-                      !isChecked || selectedMemberIds.length > MIN_GROUP_MEMBERS_SELECTED;
+                      !isPayer &&
+                      (!isChecked || selectedMemberIds.length > MIN_GROUP_MEMBERS_SELECTED);
                     return (
                       <button
                         key={member.userId}
