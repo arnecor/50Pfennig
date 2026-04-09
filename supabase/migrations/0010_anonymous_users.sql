@@ -1,4 +1,4 @@
--- 0006_anonymous_users.sql
+-- 0010_anonymous_users.sql
 --
 -- Enables Supabase anonymous sign-ins (guest mode) to coexist safely with the
 -- existing auth/profile/RLS architecture.
