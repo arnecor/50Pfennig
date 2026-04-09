@@ -1,3 +1,5 @@
+> **Status: Proposed — not yet implemented.**
+
 # Android Build Optimization Plan (Size + Speed)
 
 ## Context
