@@ -26,6 +26,7 @@ import {
   simplifyDebts,
 } from '@domain/balance';
 import { add } from '@domain/money';
+import { isSameUser } from '@domain/types';
 import type { UserId } from '@domain/types';
 import { ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
@@ -92,14 +93,13 @@ export default function FriendsPage() {
 
     return friends
       .map((friend) => {
-        const friendIdStr = friend.userId as string;
         let balance = ZERO;
 
         // Group contributions: use simplified group debts
         for (let i = 0; i < groups.length; i++) {
           // biome-ignore lint/style/noNonNullAssertion: loop bound guarantees i is in range
           const group = groups[i]!;
-          const isMember = group.members.some((m) => (m.userId as string) === friendIdStr);
+          const isMember = group.members.some((m) => isSameUser(m.userId, friend.userId));
           if (!isMember) continue;
 
           const groupExpenses = groupExpensesResults[i]?.data ?? [];
@@ -112,11 +112,11 @@ export default function FriendsPage() {
         // Direct contributions: bilateral on friend-only data
         const directExpenses = friendExpenses.filter(
           (e) =>
-            (e.paidBy as string) === friendIdStr ||
-            e.splits.some((s) => (s.userId as string) === friendIdStr),
+            isSameUser(e.paidBy, friend.userId) ||
+            e.splits.some((s) => isSameUser(s.userId, friend.userId)),
         );
         const directSettlements = allFriendSettlements.filter(
-          (s) => (s.fromUserId as string) === friendIdStr || (s.toUserId as string) === friendIdStr,
+          (s) => isSameUser(s.fromUserId, friend.userId) || isSameUser(s.toUserId, friend.userId),
         );
         balance = add(
           balance,

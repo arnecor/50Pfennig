@@ -46,6 +46,7 @@ import {
   type Settlement,
   type UserId,
   ZERO,
+  isSameUser,
   money,
 } from '../types';
 
@@ -153,31 +154,23 @@ export const computeBilateralBalance = (
   let balance: Money = ZERO;
 
   for (const e of expenses) {
-    if ((e.paidBy as string) === (meId as string)) {
+    if (isSameUser(e.paidBy, meId)) {
       // I paid — friend's split is their debt to me
-      const friendSplit =
-        e.splits.find((s) => (s.userId as string) === (friendId as string))?.amount ?? ZERO;
+      const friendSplit = e.splits.find((s) => isSameUser(s.userId, friendId))?.amount ?? ZERO;
       balance = add(balance, friendSplit);
-    } else if ((e.paidBy as string) === (friendId as string)) {
+    } else if (isSameUser(e.paidBy, friendId)) {
       // Friend paid — my split is my debt to friend
-      const mySplit =
-        e.splits.find((s) => (s.userId as string) === (meId as string))?.amount ?? ZERO;
+      const mySplit = e.splits.find((s) => isSameUser(s.userId, meId))?.amount ?? ZERO;
       balance = subtract(balance, mySplit);
     }
     // Third party paid — no bilateral effect between me and friend
   }
 
   for (const s of settlements) {
-    if (
-      (s.fromUserId as string) === (friendId as string) &&
-      (s.toUserId as string) === (meId as string)
-    ) {
+    if (isSameUser(s.fromUserId, friendId) && isSameUser(s.toUserId, meId)) {
       // Friend paid me — friend's debt decreases
       balance = subtract(balance, s.amount);
-    } else if (
-      (s.fromUserId as string) === (meId as string) &&
-      (s.toUserId as string) === (friendId as string)
-    ) {
+    } else if (isSameUser(s.fromUserId, meId) && isSameUser(s.toUserId, friendId)) {
       // I paid friend — my debt to friend decreases
       balance = add(balance, s.amount);
     }
@@ -208,16 +201,10 @@ export const extractSimplifiedDebt = (
   let balance: Money = ZERO;
 
   for (const inst of instructions) {
-    if (
-      (inst.fromUserId as string) === (friendId as string) &&
-      (inst.toUserId as string) === (meId as string)
-    ) {
+    if (isSameUser(inst.fromUserId, friendId) && isSameUser(inst.toUserId, meId)) {
       // Friend pays me — friend's debt to me increases
       balance = add(balance, inst.amount);
-    } else if (
-      (inst.fromUserId as string) === (meId as string) &&
-      (inst.toUserId as string) === (friendId as string)
-    ) {
+    } else if (isSameUser(inst.fromUserId, meId) && isSameUser(inst.toUserId, friendId)) {
       // I pay friend — my debt to friend increases
       balance = subtract(balance, inst.amount);
     }

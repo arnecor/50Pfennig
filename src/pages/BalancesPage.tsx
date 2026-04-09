@@ -11,6 +11,7 @@ import EmptyState from '@components/shared/EmptyState';
 import { PageHeader } from '@components/shared/PageHeader';
 import { Button } from '@components/ui/button';
 import { formatMoney } from '@domain/money';
+import { isSameUser } from '@domain/types';
 import type { DebtInstruction, GroupId, UserId } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import GreedyExplainerSheet from '@features/balances/components/GreedyExplainerSheet';
@@ -35,10 +36,8 @@ export default function BalancesPage() {
   const [showExplainer, setShowExplainer] = useState(false);
 
   const memberName = (id: UserId) => {
-    if ((id as string) === (currentUserId as string)) return t('common.you');
-    return (
-      group?.members.find((m) => (m.userId as string) === (id as string))?.displayName ?? String(id)
-    );
+    if (currentUserId && isSameUser(id, currentUserId)) return t('common.you');
+    return group?.members.find((m) => isSameUser(m.userId, id))?.displayName ?? String(id);
   };
 
   const handleOpenSheet = (s: DebtInstruction) => {

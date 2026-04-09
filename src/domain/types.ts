@@ -27,6 +27,17 @@ export type SettlementId = Brand<string, 'SettlementId'>;
 export type FriendshipId = Brand<string, 'FriendshipId'>;
 
 // ---------------------------------------------------------------------------
+// Branded type helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Type-safe equality check for UserId values.
+ * TypeScript's === does not unwrap branded types, so a cast is required.
+ * Centralising the cast here avoids scattered `as string` comparisons.
+ */
+export const isSameUser = (a: UserId, b: UserId): boolean => (a as string) === (b as string);
+
+// ---------------------------------------------------------------------------
 // Friendship types
 // ---------------------------------------------------------------------------
 
