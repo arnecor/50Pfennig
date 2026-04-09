@@ -21,8 +21,10 @@ import { Capacitor } from '@capacitor/core';
 import { type ActionPerformed, PushNotifications, type Token } from '@capacitor/push-notifications';
 
 export type NotificationData = {
-  type: 'expense' | 'group_member';
+  type: 'expense' | 'group_member' | 'settlement';
   expenseId?: string;
+  settlementId?: string;
+  batchId?: string;
   groupId?: string;
   friendId?: string;
 };
@@ -92,9 +94,11 @@ export async function initPushNotifications(
       if (!raw?.type) return;
       onTap({
         type: raw.type as NotificationData['type'],
-        ...(raw.expenseId !== undefined && { expenseId: raw.expenseId }),
-        ...(raw.groupId !== undefined && { groupId: raw.groupId }),
-        ...(raw.friendId !== undefined && { friendId: raw.friendId }),
+        ...(raw.expenseId    !== undefined && { expenseId:    raw.expenseId }),
+        ...(raw.settlementId !== undefined && { settlementId: raw.settlementId }),
+        ...(raw.batchId      !== undefined && { batchId:      raw.batchId }),
+        ...(raw.groupId      !== undefined && { groupId:      raw.groupId }),
+        ...(raw.friendId     !== undefined && { friendId:     raw.friendId }),
       });
     },
   );
