@@ -220,6 +220,12 @@ export default function App() {
         }
       } else if (data.type === 'group_member' && data.groupId) {
         void router.navigate({ to: '/groups/$groupId', params: { groupId: data.groupId } });
+      } else if (data.type === 'settlement') {
+        if (data.groupId) {
+          void router.navigate({ to: '/groups/$groupId', params: { groupId: data.groupId } });
+        } else if (data.friendId) {
+          void router.navigate({ to: '/friends/$friendId', params: { friendId: data.friendId } });
+        }
       }
     };
 

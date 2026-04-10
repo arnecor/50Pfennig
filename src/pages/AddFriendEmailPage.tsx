@@ -5,6 +5,8 @@
  */
 
 import { PageHeader } from '@components/shared/PageHeader';
+import GuestUpgradeDialog from '@features/auth/components/GuestUpgradeDialog';
+import { useAuth } from '@features/auth/hooks/useAuth';
 import EmailSearch from '@features/friends/components/EmailSearch';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +14,11 @@ import { useTranslation } from 'react-i18next';
 export default function AddFriendEmailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isAnonymous } = useAuth();
+
+  if (isAnonymous) {
+    return <GuestUpgradeDialog variant="gate" />;
+  }
 
   return (
     <div className="min-h-full">

@@ -7,12 +7,21 @@ Full architectural rationale lives in [docs/adr/](docs/adr/).
 
 ## General coding guidelines
 Always act like a professional Senior Developer. Do not take shortcuts or do dirty fixes. A clean architecture needs to be maintained. You code will be reviewed by codex.
+## Code Quality
+Prefer correct, complete implementations over minimal ones.
+- Use appropriate data structures and algorithms - don't brute-force what has a known better solution. - When fixing a bug, fix the root cause, not the symptom.
+- If something I asked for requires error handling or validation to work reliably, include it without asking.
 
 ## Code Changes 
 When fixing TypeScript or lint errors, verify the fix doesn't break existing functionality. Run `npx tsc --noEmit` after edits and avoid changing dependency arrays or logic beyond the scope of the fix.
 
 ## Supabase
 When generating or modifying SQL migrations, always use `DROP POLICY IF EXISTS` before `CREATE POLICY`, and verify function/table ordering so that referenced objects exist before they are used.
+
+## Supabase Workflow
+- This project uses a REMOTE Supabase instance only - never suggest `--local` flags
+- For type generation, ask the user to run the type generation command rather than hand-reconstructing types.gen.ts from migrations
+- The Supabase project ref is not in config.toml; ask the user when needed
 
 ## Tech Stack
 
@@ -82,8 +91,8 @@ moving on. Fix any type errors or missing imports immediately.
 
 ## UI Components
 
-Only these shadcn/ui components are installed: `button`, `card`, `input`, `label`.
-No toast / sonner / dialog / select. Use inline error state for form errors. If you want to add components, ask the user.
+Installed shadcn/ui components: `badge`, `button`, `card`, `dialog`, `input`, `label`.
+No toast / sonner / select. Use inline error state for form errors. If you want to add more components, ask the user.
  
  ## UI Designs & Creating new UIs
  This is a Capacitor mobile app targeting Android. Always test UI fixes against safe area insets, nav bar overlap, and keyboard behavior. Status bar config uses Capacitor's Style enum.
@@ -101,10 +110,13 @@ pages/        →  imports from features/ and router/ only
 ## Where to find common tasks
 - Split math rules: `src/domain/splitting/index.ts` (+ tests in `src/domain/splitting/splitting.test.ts`).
 - Balance/debt logic: `src/domain/balance/index.ts` (+ tests in `src/domain/balance/balance.test.ts`).
+- Balance UI (who owes whom): `src/pages/BalancesPage.tsx` — fully implemented here.
 - Expense write/read behavior: `src/repositories/supabase/expenseRepository.ts` and DB RPC migrations.
 - Settlement behavior: `src/repositories/supabase/settlementRepository.ts` and `0001_schema.sql`.
 - Friend lifecycle logic: `src/repositories/supabase/friendRepository.ts` and `0001_schema.sql`.
 - Access bugs (permissions/visibility): inspect relevant RLS policies in migrations before touching UI.
+- Feature implementation status (stubs, incomplete features): `STATUS.md`.
+- All installed shadcn/ui components: `src/components/ui/`.
 
 ## State Management Rules (Overview)
 
@@ -112,6 +124,7 @@ pages/        →  imports from features/ and router/ only
 **Zustand** owns UI and device-local state.  
 **Never put in Zustand:** group/expense/settlement data, computed balances.  
 **Never put in TanStack Query:** UI state, auth session, offline queue.
+**offlineStore** (`offlineQueue.ts`) is a future stub — do not enqueue mutations in feature code until implemented.
 
 Details: `@docs/state-management.md`
 
