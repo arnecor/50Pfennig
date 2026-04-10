@@ -51,6 +51,7 @@ export type Friend = {
   readonly userId: UserId;
   readonly displayName: string;
   readonly friendshipId: FriendshipId;
+  readonly avatarUrl?: string;
 };
 
 /** Construct a Money value. Throws if the value is not an integer. */
@@ -100,6 +101,7 @@ export type GroupMember = {
   readonly groupId: GroupId;
   readonly displayName: string;
   readonly joinedAt: Date;
+  readonly avatarUrl?: string;
 };
 
 export type Group = {

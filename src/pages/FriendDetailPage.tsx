@@ -19,6 +19,7 @@ import EmptyState from '@components/shared/EmptyState';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
 import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import { Button } from '@components/ui/button';
 import {
   calculateGroupBalances,
@@ -80,6 +81,9 @@ export default function FriendDetailPage() {
   const { friendId } = useParams({ strict: false }) as { friendId: string };
 
   const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
+  const currentUserAvatarUrl: string | undefined = useAuthStore(
+    (s) => s.session?.user.user_metadata?.avatar_url,
+  );
 
   const { data: friends = [] } = useFriends();
   const friend = friends.find((f) => (f.userId as string) === friendId);
@@ -270,6 +274,13 @@ export default function FriendDetailPage() {
         actionLabel={t('friends.send_reminder')}
       />
 
+      {/* Friend avatar hero */}
+      {friend && (
+        <div className="flex flex-col items-center gap-1 pt-2 pb-4">
+          <UserAvatar name={friend.displayName} avatarUrl={friend.avatarUrl} size="xl" />
+        </div>
+      )}
+
       <div className="px-5">
         {isLoading && (
           <div className="bg-card rounded-2xl border border-border overflow-hidden px-4 mb-5">
@@ -427,11 +438,16 @@ export default function FriendDetailPage() {
                                     : ZERO,
                                 );
 
+                            const paidByAvatarUrl = paidByCurrentUser
+                              ? currentUserAvatarUrl
+                              : friend?.avatarUrl;
+
                             return (
                               <UnifiedExpenseItem
                                 key={`expense-${String(expense.id)}`}
                                 description={expense.description}
                                 paidByName={paidByName}
+                                paidByAvatarUrl={paidByAvatarUrl}
                                 totalAmount={expense.totalAmount}
                                 shareAmount={signedShare}
                                 paidByCurrentUser={paidByCurrentUser}

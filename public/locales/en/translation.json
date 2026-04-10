@@ -264,6 +264,8 @@
     "display_name_placeholder": "What should we call you?",
     "email_label": "Email",
     "profile_picture_label": "Profile picture",
+    "avatar_upload_error": "Could not upload profile picture. Please try again.",
+    "avatar_uploading": "Uploading…",
     "edit_display_name_aria": "Edit display name",
     "save_display_name_aria": "Save display name",
     "cancel_edit_aria": "Cancel editing",

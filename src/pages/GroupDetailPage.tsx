@@ -71,6 +71,9 @@ export default function GroupDetailPage() {
   const { groupId } = useParams({ strict: false }) as { groupId: string };
 
   const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
+  const currentUserAvatarUrl: string | undefined = useAuthStore(
+    (s) => s.session?.user.user_metadata?.avatar_url,
+  );
 
   const { data: group, isLoading: groupLoading } = useGroup(groupId as GroupId);
   const { data: expenses, isLoading: expensesLoading } = useExpenses(groupId as GroupId);
@@ -92,6 +95,14 @@ export default function GroupDetailPage() {
       return group.members.find((m) => m.userId === userId)?.displayName ?? userId;
     };
   }, [group, expenses, currentUserId, t]);
+
+  const resolveAvatarUrl = useMemo(() => {
+    if (!group) return (_userId: string) => undefined as string | undefined;
+    return (userId: string): string | undefined => {
+      if (currentUserId && userId === (currentUserId as string)) return currentUserAvatarUrl;
+      return group.members.find((m) => m.userId === userId)?.avatarUrl;
+    };
+  }, [group, currentUserId, currentUserAvatarUrl]);
 
   const netBalance = useMemo(() => {
     if (!currentUserId || !group || !expenses) return ZERO;
@@ -277,6 +288,7 @@ export default function GroupDetailPage() {
                           key={expense.id}
                           description={expense.description}
                           paidByName={resolveName(expense.paidBy)}
+                          paidByAvatarUrl={resolveAvatarUrl(expense.paidBy)}
                           totalAmount={expense.totalAmount}
                           shareAmount={signedShare}
                           paidByCurrentUser={paidByCurrentUser}

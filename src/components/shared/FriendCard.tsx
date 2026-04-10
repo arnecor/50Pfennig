@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 type FriendCardProps = {
   name: string;
+  avatarUrl?: string | undefined;
   /** Positive = they owe you, negative = you owe them. */
   balance: Money;
   /** Label shown below the name when not settled (e.g. "Owes you" / "You owe"). */
@@ -19,6 +20,7 @@ type FriendCardProps = {
 
 export function FriendCard({
   name,
+  avatarUrl,
   balance,
   balanceLabel,
   settledLabel,
@@ -42,7 +44,7 @@ export function FriendCard({
       )}
       type="button"
     >
-      <UserAvatar name={name} size="md" />
+      <UserAvatar name={name} avatarUrl={avatarUrl} size="md" />
 
       <div className="flex-1 min-w-0">
         <p
@@ -78,6 +80,7 @@ export function FriendCard({
 
 type FriendListItemProps = {
   name: string;
+  avatarUrl?: string | undefined;
   balance: Money;
   settledLabel?: string;
   onClick?: () => void;
@@ -88,6 +91,7 @@ type FriendListItemProps = {
 
 export function FriendListItem({
   name,
+  avatarUrl,
   balance,
   settledLabel,
   onClick,
@@ -133,7 +137,7 @@ export function FriendListItem({
         </div>
       )}
 
-      <UserAvatar name={name} size="md" />
+      <UserAvatar name={name} avatarUrl={avatarUrl} size="md" />
 
       <div className="flex-1 min-w-0">
         <p className="font-medium text-foreground truncate">{name}</p>

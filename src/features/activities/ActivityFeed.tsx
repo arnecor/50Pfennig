@@ -160,6 +160,7 @@ export default function ActivityFeed({
                     key={item.id}
                     description={item.description}
                     paidByName={item.paidByName}
+                    paidByAvatarUrl={item.paidByAvatarUrl}
                     totalAmount={item.totalAmount}
                     shareAmount={signedShare}
                     paidByCurrentUser={item.paidByCurrentUser}
