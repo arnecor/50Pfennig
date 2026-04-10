@@ -31,8 +31,8 @@ export class SupabaseFriendRepository implements IFriendRepository {
       .from('friendships')
       .select(`
         *,
-        requester:profiles!friendships_requester_id_fkey(display_name),
-        addressee:profiles!friendships_addressee_id_fkey(display_name)
+        requester:profiles!friendships_requester_id_fkey(display_name, avatar_url),
+        addressee:profiles!friendships_addressee_id_fkey(display_name, avatar_url)
       `)
       .eq('status', 'accepted')
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)

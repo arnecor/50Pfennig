@@ -3,10 +3,6 @@
     "ENABLE_LSP_TOOL": "1"
   },
   "permissions": {
-    "deny": [
-      "Bash(npm run db:migrate:prod*)",
-      "Bash(supabase db push *)"
-    ],
     "allow": [
       "Bash(ls)",
       "Bash(cd)",
@@ -54,7 +50,12 @@
       "Bash(grep *)",
       "Bash(npm run *)",
       "Bash(npx supabase *)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "Bash(xargs grep:*)"
+    ],
+    "deny": [
+      "Bash(npm run db:migrate:prod*)",
+      "Bash(supabase db push *)"
     ]
   },
   "enabledPlugins": {

@@ -265,6 +265,8 @@
     "display_name_placeholder": "Wie soll man dich nennen?",
     "email_label": "E-Mail",
     "profile_picture_label": "Profilbild",
+    "avatar_upload_error": "Profilbild konnte nicht hochgeladen werden. Bitte versuche es erneut.",
+    "avatar_uploading": "Wird hochgeladen…",
     "edit_display_name_aria": "Anzeigename bearbeiten",
     "save_display_name_aria": "Anzeigename speichern",
     "cancel_edit_aria": "Bearbeitung abbrechen",

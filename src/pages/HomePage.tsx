@@ -35,13 +35,19 @@ export default function HomePage() {
   const currentUserId = user?.id as UserId | undefined;
   const { youAreOwed, youOwe } = useTotalBalance(currentUserId);
 
+  const currentUserAvatarUrl: string | undefined = user?.user_metadata?.avatar_url ?? undefined;
+
   const {
     items,
     isLoading: activityLoading,
     hasMore,
     loadMore,
-  } = useRecentActivity(currentUserId, t('common.you'), t('common.you_dative'), (n) =>
-    t('expenses.x_people', { count: n }),
+  } = useRecentActivity(
+    currentUserId,
+    currentUserAvatarUrl,
+    t('common.you'),
+    t('common.you_dative'),
+    (n) => t('expenses.x_people', { count: n }),
   );
 
   const handleActivityClick = (item: ActivityItem) => {

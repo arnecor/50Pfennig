@@ -29,7 +29,8 @@ import type {
 import type { CreateGroupInput, IGroupRepository } from '../types';
 
 /** Select string that embeds the profiles join for display names */
-const GROUP_SELECT = '*, group_members(user_id, group_id, joined_at, profiles(display_name))';
+const GROUP_SELECT =
+  '*, group_members(user_id, group_id, joined_at, profiles(display_name, avatar_url))';
 
 export class SupabaseGroupRepository implements IGroupRepository {
   async getAll(): Promise<Group[]> {
@@ -85,7 +86,7 @@ export class SupabaseGroupRepository implements IGroupRepository {
     // Fetch the full member row with display name
     const { data: memberRow, error: memberError } = await supabase
       .from('group_members')
-      .select('user_id, group_id, joined_at, profiles(display_name)')
+      .select('user_id, group_id, joined_at, profiles(display_name, avatar_url)')
       .eq('group_id', groupId)
       .eq('user_id', userId)
       .single();

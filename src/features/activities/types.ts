@@ -17,6 +17,7 @@ export type ActivityItem = {
       totalAmount: Money;
       paidByCurrentUser: boolean;
       paidByName: string;
+      paidByAvatarUrl?: string | undefined;
       myShare: Money;
       sharedWithLabel: string;
       context: 'group' | 'friend';
