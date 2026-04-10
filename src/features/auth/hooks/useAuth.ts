@@ -5,10 +5,23 @@
  *
  * Provides:
  *   - currentUser: the authenticated user (or null)
- *   - isLoading: true while session is hydrating
+ *   - isAnonymous: true when the current session is a Supabase anonymous (guest) user
  *   - signIn(email, password): Supabase email/password sign-in
  *   - signInWithGoogle(): OAuth sign-in via system browser
- *   - signInWithMagicLink(email): passwordless email sign-in
+ *   - linkGoogleIdentity(): attaches a Google identity to the CURRENT session,
+ *     used from the guest-upgrade flow on AccountPage. Unlike signInWithGoogle,
+ *     this does not create a new user — user.id stays the same.
+ *   - signInWithMagicLink(email, displayName?): passwordless email sign-in. When
+ *     displayName is passed AND the email does not yet have an account, Supabase
+ *     stores it in raw_user_meta_data on the newly created row so the
+ *     handle_new_user trigger writes it into profiles automatically.
+ *   - signInAsGuest(displayName): creates a Supabase anonymous user whose
+ *     display_name is set at row-insert time (trigger reads raw_user_meta_data).
+ *   - upgradeGuestWithEmail(email, password?): attaches email (and optionally a
+ *     password) to the current anonymous session. Supabase sends a confirmation
+ *     email; once the user clicks the link, is_anonymous flips to false. The
+ *     user.id stays the same, so all guest data is preserved automatically.
+ *     Omit `password` for the login-link upgrade variant.
  *   - signOut(): clears session and redirects to /login
  */
 
@@ -72,15 +85,42 @@ export const useAuth = () => {
     }
   }, []);
 
+  const linkGoogleIdentity = useCallback(async () => {
+    const redirectTo = Capacitor.isNativePlatform()
+      ? 'com.arco.sharli://auth/callback'
+      : `${window.location.origin}/home`;
+
+    const { data, error } = await supabase.auth.linkIdentity({
+      provider: 'google',
+      options: {
+        redirectTo,
+        skipBrowserRedirect: Capacitor.isNativePlatform(),
+      },
+    });
+    if (error) throw error;
+
+    if (Capacitor.isNativePlatform() && data?.url) {
+      await Browser.open({ url: data.url });
+    }
+  }, []);
+
   const signInWithMagicLink = useCallback(
-    async (email: string) => {
+    async (email: string, displayName?: string) => {
       const emailRedirectTo = Capacitor.isNativePlatform()
         ? 'com.arco.sharli://auth/callback'
         : `${window.location.origin}/home`;
 
+      // For new users (onboarding flow), displayName is passed via options.data.
+      // Supabase writes it to raw_user_meta_data on the newly created auth.users
+      // row, so the handle_new_user trigger reads it into profiles on INSERT.
+      // For existing users, Supabase ignores data, so their stored name stays.
+      const trimmedName = displayName?.trim();
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo },
+        options: {
+          emailRedirectTo,
+          ...(trimmedName ? { data: { display_name: trimmedName } } : {}),
+        },
       });
       if (error) throw error;
       await router.navigate({
@@ -90,6 +130,31 @@ export const useAuth = () => {
     },
     [router],
   );
+
+  const signInAsGuest = useCallback(
+    async (displayName: string) => {
+      const trimmedName = displayName.trim();
+      // Pass display_name via options.data so the handle_new_user trigger
+      // writes it on INSERT — this avoids a race between signInAnonymously
+      // and a follow-up updateUser call.
+      const { error } = await supabase.auth.signInAnonymously(
+        trimmedName ? { options: { data: { display_name: trimmedName } } } : undefined,
+      );
+      if (error) throw error;
+      await router.navigate({ to: '/home' });
+    },
+    [router],
+  );
+
+  const upgradeGuestWithEmail = useCallback(async (email: string, password?: string) => {
+    // Email upgrade of an anonymous session uses updateUser, NOT linkIdentity.
+    // linkIdentity is for OAuth providers only. After updateUser, Supabase
+    // sends a confirmation email; once confirmed, is_anonymous flips to false
+    // and all data is preserved because user.id never changes.
+    // Password is optional — omit it for the login-link upgrade variant.
+    const { error } = await supabase.auth.updateUser(password ? { email, password } : { email });
+    if (error) throw error;
+  }, []);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -124,10 +189,14 @@ export const useAuth = () => {
   return {
     user: session?.user ?? null,
     session,
+    isAnonymous: session?.user?.is_anonymous ?? false,
     signIn,
     signUp,
     signInWithGoogle,
+    linkGoogleIdentity,
     signInWithMagicLink,
+    signInAsGuest,
+    upgradeGuestWithEmail,
     signOut,
     updateDisplayName,
   };

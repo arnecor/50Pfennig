@@ -29,6 +29,25 @@ type UIStore = {
   activeSheet: ActiveSheet;
   openSheet: (sheet: NonNullable<ActiveSheet>) => void;
   closeSheet: () => void;
+
+  /**
+   * Whether the guest-upgrade reminder dialog has already been shown in the
+   * current session. Used by useGuestUpgradeReminder to throttle the reminder
+   * to once per session regardless of how many qualifying mutations succeed.
+   * Not persisted — Zustand in-memory only, resets on every app open.
+   */
+  guestReminderShownThisSession: boolean;
+  setGuestReminderShown: (val: boolean) => void;
+
+  /**
+   * Whether the global guest-upgrade reminder dialog should currently be open.
+   * Set to true by triggerGuestUpgradeReminderFromStore() and consumed by the
+   * top-level renderer (AppShell) to mount the dialog. Cleared when the user
+   * dismisses the dialog. Decoupled from `guestReminderShownThisSession` so
+   * the throttle persists even after the dialog closes.
+   */
+  guestReminderOpen: boolean;
+  setGuestReminderOpen: (val: boolean) => void;
 };
 
 export const useUIStore = create<UIStore>()((set) => ({
@@ -37,4 +56,8 @@ export const useUIStore = create<UIStore>()((set) => ({
   activeSheet: null,
   openSheet: (sheet) => set({ activeSheet: sheet }),
   closeSheet: () => set({ activeSheet: null }),
+  guestReminderShownThisSession: false,
+  setGuestReminderShown: (val) => set({ guestReminderShownThisSession: val }),
+  guestReminderOpen: false,
+  setGuestReminderOpen: (val) => set({ guestReminderOpen: val }),
 }));

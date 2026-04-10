@@ -4,6 +4,11 @@
  * Google OAuth sign-in button following Google's official branding guidelines:
  * white background, multicolor "G" logo, dark gray text.
  * Always white — even in dark mode — per Google trademark requirements.
+ *
+ * Modes:
+ *   - "signin" (default): creates/signs in to a Google-based account
+ *   - "link":             attaches a Google identity to the current session,
+ *                         used by the guest-upgrade flow on AccountPage
  */
 
 import { Loader2 } from 'lucide-react';
@@ -35,9 +40,15 @@ function GoogleLogo({ className }: { className?: string }) {
   );
 }
 
-export default function GoogleSignInButton() {
+export type GoogleSignInButtonMode = 'signin' | 'link';
+
+interface GoogleSignInButtonProps {
+  mode?: GoogleSignInButtonMode;
+}
+
+export default function GoogleSignInButton({ mode = 'signin' }: GoogleSignInButtonProps = {}) {
   const { t } = useTranslation();
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, linkGoogleIdentity } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +56,11 @@ export default function GoogleSignInButton() {
     setError(null);
     setIsLoading(true);
     try {
-      await signInWithGoogle();
+      if (mode === 'link') {
+        await linkGoogleIdentity();
+      } else {
+        await signInWithGoogle();
+      }
     } catch {
       setError(t('auth.error_google_sign_in'));
     } finally {

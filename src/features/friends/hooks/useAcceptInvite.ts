@@ -5,6 +5,7 @@
  * an accepted friendship. Invalidates ['friends'] on success.
  */
 
+import { triggerGuestUpgradeReminderFromStore } from '@features/auth/hooks/useGuestUpgradeReminder';
 import { friendRepository } from '@repositories';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -15,6 +16,7 @@ export function useAcceptInvite() {
     mutationFn: (token: string) => friendRepository.acceptInvite(token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+      triggerGuestUpgradeReminderFromStore();
     },
   });
 }

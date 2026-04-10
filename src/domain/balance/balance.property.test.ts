@@ -21,8 +21,8 @@
  * 15.  Cross-cutting: bilateral balance sign agrees with simplified debt sign
  */
 
-import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
+import { describe, expect, it } from 'vitest';
 import { ZERO, money } from '../money';
 import { splitExpense } from '../splitting/index';
 import type {
@@ -474,8 +474,7 @@ describe('splitExpense percentage — sum invariant (property)', () => {
           for (let i = 0; i < parts.length; i++) {
             basisPoints[participants[i] as string] = parts[i] as number;
           }
-          basisPoints[lastParticipant as string] =
-            10_000 - parts.reduce((a, b) => a + b, 0);
+          basisPoints[lastParticipant as string] = 10_000 - parts.reduce((a, b) => a + b, 0);
 
           const result = splitExpense(total, allParticipants, {
             type: 'percentage',
