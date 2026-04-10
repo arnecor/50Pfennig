@@ -2,15 +2,16 @@
  * Edge Function: send-push
  *
  * Sends Firebase Cloud Messaging (FCM) push notifications triggered by
- * Supabase Database Webhooks.  Two webhooks call this function:
+ * Supabase Database Webhooks.  Three webhooks call this function:
  *
  *   1. expenses     → INSERT  — notifies every non-payer split participant
  *   2. group_members → INSERT  — notifies the newly added member
+ *   3. settlements  → INSERT  — notifies the recipient of a payment
  *
  * The webhook body is the standard Supabase envelope:
  *   {
  *     type:       'INSERT';
- *     table:      'expenses' | 'group_members';
+ *     table:      'expenses' | 'group_members' | 'settlements';
  *     schema:     'public';
  *     record:     Record<string, unknown>;   // the inserted row
  *     old_record: null;
@@ -324,6 +325,77 @@ async function handleGroupMemberInsert(
   ];
 }
 
+/**
+ * settlements INSERT — notify the recipient of a payment.
+ *
+ * Batch deduplication: when a batch settlement is recorded, multiple rows
+ * sharing the same batch_id are committed in a single transaction, so this
+ * function fires once per row. We only send one notification — for the row
+ * whose id is lexicographically smallest in the batch — and sum all amounts
+ * so the recipient sees the full payment total.
+ */
+async function handleSettlementInsert(
+  supabase: ReturnType<typeof createClient>,
+  record: Record<string, unknown>,
+): Promise<PushJob[]> {
+  const settlementId = record.id as string;
+  const fromUserId = record.from_user_id as string;
+  const toUserId = record.to_user_id as string;
+  const groupId = record.group_id as string | null;
+  const batchId = record.batch_id as string | null;
+  let amount = record.amount as number;
+
+  if (batchId) {
+    // Only proceed for the first row in the batch (smallest id → deterministic)
+    const { data: first } = await supabase
+      .from('settlements')
+      .select('id')
+      .eq('batch_id', batchId)
+      .order('id', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (first?.id !== settlementId) return []; // another row will handle this batch
+
+    // Sum all allocations to show the real-world total
+    const { data: batchRows } = await supabase
+      .from('settlements')
+      .select('amount')
+      .eq('batch_id', batchId);
+    amount = (batchRows ?? []).reduce(
+      (sum: number, r: { amount: unknown }) => sum + (r.amount as number),
+      0,
+    );
+  }
+
+  // Payer display name
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', fromUserId)
+    .maybeSingle();
+  const payerName = (profile?.display_name as string | null) ?? 'Jemand';
+
+  // German-locale amount formatting (cents → "12,50 €")
+  const formatted = `${(amount / 100).toFixed(2).replace('.', ',')} €`;
+
+  const data: Record<string, string> = {
+    type: 'settlement',
+    settlementId,
+    ...(batchId && { batchId }),
+    ...(groupId != null ? { groupId } : { friendId: fromUserId }),
+  };
+
+  return [
+    {
+      recipientId: toUserId,
+      title: `${payerName} hat eine Zahlung geleistet`,
+      body: formatted,
+      data,
+    },
+  ];
+}
+
 // ---------------------------------------------------------------------------
 // Handler
 // ---------------------------------------------------------------------------
@@ -372,6 +444,8 @@ Deno.serve(async (req: Request) => {
     jobs = await handleExpenseInsert(supabase, webhook.record);
   } else if (webhook.table === 'group_members') {
     jobs = await handleGroupMemberInsert(supabase, webhook.record);
+  } else if (webhook.table === 'settlements') {
+    jobs = await handleSettlementInsert(supabase, webhook.record);
   } else {
     console.warn('Unexpected webhook table:', webhook.table);
   }

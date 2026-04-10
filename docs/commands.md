@@ -47,19 +47,17 @@ Get the service account JSON from Firebase Console → Project Settings → Serv
 
 ---
 
-
-**Environment**: `.env.local` (git-ignored):
-```
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
+## Common Dev Commands
 
 ```bash
 npm run dev           # Vite dev server
 npm run build         # Production build
-npm test              # Domain unit tests
-npm run lint          # Biome lint (check only)
-npm run format        # Biome format (check only)
+npm test              # Domain unit tests (vitest)
+npm run test:watch    # Watch mode during development
+npx tsc --noEmit      # TypeScript type check (run after every edit)
+
+npm run lint          # Biome lint (check only — reports issues, no auto-fix)
+npm run format        # Biome format (check only — reports issues, no auto-fix)
 npx biome check --fix             # Auto-fix safe issues (import order, formatting)
 npx biome check --fix --unsafe    # Also fix isNaN→Number.isNaN, parseFloat→Number.parseFloat, etc.
 
@@ -69,6 +67,6 @@ npm run db:types      # Regenerate types.gen.ts
 npm run db:migrate
 npm run db:reset
 
-npx cap sync android  # Sync to Android
-npx cap open android  # Android Studio
+npx cap sync android  # Sync web assets to Android
+npx cap open android  # Open Android Studio
 ```

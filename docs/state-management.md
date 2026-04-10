@@ -28,4 +28,4 @@ selectedGroupId:    GroupId | null
 activeSheet:        'add-expense' | ... | null
 ```
 
-`offlineStore`: mutation queue — not yet implemented.
+`offlineStore`: mutation queue — **not yet implemented**. Do not reference or enqueue mutations in feature code until this is built.
