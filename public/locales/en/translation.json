@@ -6,6 +6,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "confirm": "Confirm",
+    "continue": "Continue",
     "loading": "Loading…",
     "error_generic": "Something went wrong. Please try again.",
     "back": "Back",
@@ -54,7 +55,24 @@
     "display_name_placeholder": "What's your name?",
     "display_name_hint": "This name will be shown to your friends.",
     "error_name_required": "Please enter your name.",
-    "password_min_hint": "At least 6 characters."
+    "password_min_hint": "At least 6 characters.",
+    "guest_suffix": "(Guest)",
+    "guest_gate_title": "Account required",
+    "guest_gate_body": "This feature needs a real account. Create one now – your data and groups will carry over.",
+    "guest_reminder_title": "Ready for an account?",
+    "guest_reminder_body": "Keep your data safe and don't lose anything if you reinstall. You can upgrade any time – your groups will carry over.",
+    "guest_later": "Later",
+    "guest_create_account": "Create account"
+  },
+  "onboarding": {
+    "name_headline": "What's your name?",
+    "name_placeholder": "Your name",
+    "already_have_account": "Already have an account? Sign in",
+    "greeting": "Hello, {{name}}!",
+    "account_question": "Would you like to create a (free) account?",
+    "account_explainer": "With an account your data is safe and you can invite friends.",
+    "create_account": "Create account",
+    "start_as_guest": "Continue as guest"
   },
   "groups": {
     "title": "Groups",
@@ -235,6 +253,12 @@
   },
   "account": {
     "title": "Account",
+    "upgrade_title": "Create account",
+    "upgrade_body": "Enter your email to keep your data safe.",
+    "upgrade_success_title": "Almost done!",
+    "upgrade_success_body": "We sent a confirmation link to {{email}}. Tap the link in the email to secure your account.",
+    "upgrade_magic_link_success_body": "We sent a sign-in link to {{email}}. Tap the link to secure your account.",
+    "exit_as_guest": "Exit as guest",
     "profile_section_title": "Profile",
     "display_name_label": "Display name",
     "display_name_placeholder": "What should we call you?",

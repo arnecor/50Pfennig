@@ -18,12 +18,12 @@ import { useAuthStore } from '../features/auth/authStore';
 
 /**
  * Use as `beforeLoad` on protected routes.
- * Redirects to /login if the user has no active session.
+ * Redirects to /onboarding if the user has no active session.
  * Auth must already be hydrated before this runs (App.tsx gates the router).
  */
 export const requireAuth = () => {
   const { session } = useAuthStore.getState();
-  if (!session) throw redirect({ to: '/login' });
+  if (!session) throw redirect({ to: '/onboarding' });
 };
 
 /**

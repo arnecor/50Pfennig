@@ -10,6 +10,7 @@
  * Both feed into useTotalBalance, so the home-screen totals update automatically.
  */
 
+import { triggerGuestUpgradeReminderFromStore } from '@features/auth/hooks/useGuestUpgradeReminder';
 import { expenseRepository } from '@repositories';
 import type { CreateExpenseInput } from '@repositories/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -25,6 +26,7 @@ export const useCreateExpense = () => {
       } else {
         queryClient.invalidateQueries({ queryKey: ['expenses', 'participant'] });
       }
+      triggerGuestUpgradeReminderFromStore();
     },
   });
 };

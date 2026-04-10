@@ -13,6 +13,7 @@
  */
 
 import type { UserId } from '@domain/types';
+import { triggerGuestUpgradeReminderFromStore } from '@features/auth/hooks/useGuestUpgradeReminder';
 import { groupRepository } from '@repositories';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -29,6 +30,7 @@ export const useCreateGroup = () => {
       groupRepository.create({ name, memberIds: memberIds ?? [] }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
+      triggerGuestUpgradeReminderFromStore();
     },
   });
 };

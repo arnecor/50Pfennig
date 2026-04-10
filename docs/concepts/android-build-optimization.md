@@ -1,5 +1,8 @@
+<<<<<<< pushForSettlement
 > **Status: Proposed — not yet implemented.**
 
+=======
+>>>>>>> develop
 # Android Build Optimization Plan (Size + Speed)
 
 ## Context
