@@ -43,16 +43,14 @@ const NAME_MAX_LENGTH = 20;
 const PASSWORD_MIN_LENGTH = 6;
 
 type Step = 'name' | 'account';
-type AuthMode = 'password' | 'login_link';
 
 export default function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signUp, signInWithMagicLink, signInAsGuest } = useAuth();
+  const { signUp, signInAsGuest } = useAuth();
 
   const [step, setStep] = useState<Step>('name');
   const [name, setName] = useState('');
-  const [authMode, setAuthMode] = useState<AuthMode>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,8 +62,6 @@ export default function OnboardingPage() {
   const emailTrimmed = email.trim();
   const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed);
   const passwordValid = password.length >= PASSWORD_MIN_LENGTH;
-  const accountFormValid =
-    authMode === 'password' ? emailLooksValid && passwordValid : emailLooksValid;
 
   const handleContinueFromName = () => {
     if (!step1Valid) return;
@@ -87,25 +83,13 @@ export default function OnboardingPage() {
   };
 
   const handleCreateAccount = async () => {
-    if (!accountFormValid) return;
+    if (!emailLooksValid || !passwordValid) return;
     setServerError(null);
     setIsSubmitting(true);
     try {
       await signUp(emailTrimmed, password, trimmedName);
     } catch (err) {
       setServerError(translateAuthError(err));
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSendLoginLink = async () => {
-    if (!emailLooksValid) return;
-    setServerError(null);
-    setIsSubmitting(true);
-    try {
-      await signInWithMagicLink(emailTrimmed, trimmedName);
-    } catch (err) {
-      setServerError(`${t('auth.error_magic_link')} ${translateAuthError(err)}`);
       setIsSubmitting(false);
     }
   };
@@ -210,12 +194,11 @@ export default function OnboardingPage() {
           <p className="text-sm text-muted-foreground">{t('onboarding.account_explainer')}</p>
         </div>
 
-        {/* Auth form — password (default) or login link (toggled) */}
+        {/* Account creation form — email + password */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (authMode === 'password') void handleCreateAccount();
-            else void handleSendLoginLink();
+            void handleCreateAccount();
           }}
           className="space-y-4"
           noValidate
@@ -234,25 +217,19 @@ export default function OnboardingPage() {
             />
           </div>
 
-          {authMode === 'password' ? (
-            <div className="space-y-1.5">
-              <Label htmlFor="onboarding-password">{t('auth.password')}</Label>
-              <Input
-                id="onboarding-password"
-                type="password"
-                autoComplete="new-password"
-                placeholder={t('auth.password_placeholder')}
-                className="h-11 bg-background"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">{t('auth.password_min_hint')}</p>
-            </div>
-          ) : (
-            <p className="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-              {t('auth.magic_link_hint')}
-            </p>
-          )}
+          <div className="space-y-1.5">
+            <Label htmlFor="onboarding-password">{t('auth.password')}</Label>
+            <Input
+              id="onboarding-password"
+              type="password"
+              autoComplete="new-password"
+              placeholder={t('auth.password_placeholder')}
+              className="h-11 bg-background"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">{t('auth.password_min_hint')}</p>
+          </div>
 
           {serverError && (
             <p className="rounded-md bg-destructive/10 px-3 py-2 text-center text-xs text-destructive">
@@ -263,31 +240,29 @@ export default function OnboardingPage() {
           <Button
             type="submit"
             className="h-11 w-full"
-            disabled={!accountFormValid || isSubmitting}
+            disabled={!emailLooksValid || !passwordValid || isSubmitting}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {t('auth.signing_in')}
               </>
-            ) : authMode === 'password' ? (
-              t('onboarding.create_account')
             ) : (
-              t('auth.magic_link_button')
+              t('onboarding.create_account')
             )}
           </Button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setServerError(null);
-              setAuthMode(authMode === 'password' ? 'login_link' : 'password');
-            }}
-            className="w-full py-1 text-center text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-          >
-            {t(authMode === 'password' ? 'auth.use_magic_link' : 'auth.use_password')}
-          </button>
         </form>
+
+        {/* Guest path — prominent, directly below the account form */}
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 h-11 w-full"
+          onClick={handleGuestStart}
+          disabled={isSubmitting}
+        >
+          {t('onboarding.start_as_guest')}
+        </Button>
 
         {/* Divider */}
         <div className="my-5 flex items-center gap-4">
@@ -298,23 +273,8 @@ export default function OnboardingPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        {/* Guest path — always enabled */}
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 w-full"
-          onClick={handleGuestStart}
-          disabled={isSubmitting}
-        >
-          {t('onboarding.start_as_guest')}
-        </Button>
-
-        {/* Google path — optional */}
-        {GOOGLE_LOGIN_ENABLED && (
-          <div className="mt-3">
-            <GoogleSignInButton />
-          </div>
-        )}
+        {/* Google path */}
+        {GOOGLE_LOGIN_ENABLED && <GoogleSignInButton />}
       </div>
 
       <EnvBadge />
