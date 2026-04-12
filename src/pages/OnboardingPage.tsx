@@ -38,6 +38,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+const GOOGLE_LOGIN_ENABLED = import.meta.env.VITE_ENABLE_GOOGLE_LOGIN === 'true';
 const NAME_MAX_LENGTH = 20;
 const PASSWORD_MIN_LENGTH = 6;
 
@@ -273,7 +274,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Google path */}
-        <GoogleSignInButton />
+        {GOOGLE_LOGIN_ENABLED && <GoogleSignInButton />}
       </div>
 
       <EnvBadge />
