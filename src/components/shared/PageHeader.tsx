@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { ArrowLeft, MoreVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { SharliMascot } from './EmptyState';
 
 type PageHeaderProps = {
   title: string;
@@ -86,10 +87,11 @@ type GreetingHeaderProps = {
 export function GreetingHeader({ name, greeting, className }: GreetingHeaderProps) {
   const { t } = useTranslation();
   return (
-    <header className={cn('px-5 pt-6 pb-2', className)}>
+    <header className={cn('flex items-center justify-between px-5 pt-6 pb-2', className)}>
       <h1 className="text-2xl font-bold text-foreground">
         {greeting ?? t('home.greeting', { name })}
       </h1>
+      <SharliMascot size="sm" className="opacity-80" />
     </header>
   );
 }
