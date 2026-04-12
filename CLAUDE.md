@@ -151,3 +151,16 @@ Details: `@docs/state-management.md`
 - “Invariants checked” list.
 - “Change surface” list grouped by Domain / Repository / SQL.
 - “Risk notes” for RLS, rounding, and context mixing.
+
+## Plan format — required sections
+
+Every implementation plan must open with these three sections **before** any technical detail:
+
+### Management Summary
+A plain-language explanation for a non-technical Product Owner: For Bugs:what is broken or missing, why it happens, and what the fix achieves. For new changes: How big is the change? Does it introduce or reduce any risks? (also for existing users on production?) No code references — just cause and effect in business terms.
+
+### Clean Architecture & Technical Debt
+Does the proposed change respect the dependency rules and layering of this project? Does it fix the root cause or only the symptom? Does it introduce or reduce technical debt? Does it consider that we need to maintain a clean and maintainable architecture?
+
+### UX Impact
+What does the user experience before and after? Any regressions, edge cases, or loading-state changes the PO should be aware of?

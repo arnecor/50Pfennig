@@ -12,7 +12,7 @@
  * Returns the newly created Group so the caller can navigate to its detail page.
  */
 
-import type { UserId } from '@domain/types';
+import type { Group, UserId } from '@domain/types';
 import { triggerGuestUpgradeReminderFromStore } from '@features/auth/hooks/useGuestUpgradeReminder';
 import { groupRepository } from '@repositories';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,7 +28,16 @@ export const useCreateGroup = () => {
   return useMutation({
     mutationFn: ({ name, memberIds }: CreateGroupInput) =>
       groupRepository.create({ name, memberIds: memberIds ?? [] }),
-    onSuccess: () => {
+    onSuccess: (newGroup: Group) => {
+      // Immediately seed the list cache so any consumer that mounts before the
+      // background refetch lands (e.g. ExpenseForm preselection) already sees
+      // the new group — avoids a race between navigation and cache invalidation.
+      queryClient.setQueryData<Group[]>(['groups'], (old) =>
+        old ? [...old, newGroup] : [newGroup],
+      );
+      // Seed the detail cache so GroupDetailPage doesn't show a loading flash.
+      queryClient.setQueryData(['groups', newGroup.id], newGroup);
+      // Invalidate to keep the server as the source of truth on next fetch.
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       triggerGuestUpgradeReminderFromStore();
     },
