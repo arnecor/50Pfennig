@@ -46,7 +46,7 @@ type Step = 'name' | 'account';
 export default function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signUp, signInWithMagicLink, signInAsGuest } = useAuth();
+  const { signUp, signInAsGuest } = useAuth();
 
   const [step, setStep] = useState<Step>('name');
   const [name, setName] = useState('');
@@ -89,18 +89,6 @@ export default function OnboardingPage() {
       await signUp(emailTrimmed, password, trimmedName);
     } catch (err) {
       setServerError(translateAuthError(err));
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSendLoginLink = async () => {
-    if (!emailLooksValid) return;
-    setServerError(null);
-    setIsSubmitting(true);
-    try {
-      await signInWithMagicLink(emailTrimmed, trimmedName);
-    } catch (err) {
-      setServerError(`${t('auth.error_magic_link')} ${translateAuthError(err)}`);
       setIsSubmitting(false);
     }
   };
@@ -284,51 +272,8 @@ export default function OnboardingPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        {/* Magic link path */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void handleSendLoginLink();
-          }}
-          className="space-y-3"
-          noValidate
-        >
-          <p className="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-            {t('auth.magic_link_hint')}
-          </p>
-          <div className="space-y-1.5">
-            <Label htmlFor="onboarding-email-magic">{t('auth.email')}</Label>
-            <Input
-              id="onboarding-email-magic"
-              type="email"
-              autoComplete="email"
-              placeholder={t('auth.email_placeholder')}
-              className="h-11 bg-background"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <Button
-            type="submit"
-            variant="outline"
-            className="h-11 w-full"
-            disabled={!emailLooksValid || isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('auth.signing_in')}
-              </>
-            ) : (
-              t('auth.magic_link_button')
-            )}
-          </Button>
-        </form>
-
-        {/* Google path — always shown */}
-        <div className="mt-3">
-          <GoogleSignInButton />
-        </div>
+        {/* Google path */}
+        <GoogleSignInButton />
       </div>
 
       <EnvBadge />
