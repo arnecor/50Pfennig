@@ -186,6 +186,7 @@ export default function FriendsPage() {
               <FriendCard
                 key={friend.userId}
                 name={friend.displayName}
+                avatarUrl={friend.avatarUrl}
                 balance={balance ?? ZERO}
                 onClick={() =>
                   navigate({

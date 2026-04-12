@@ -30,6 +30,7 @@ import { Capacitor } from '@capacitor/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useCallback } from 'react';
+import { resizeImage } from '../../../lib/image/resizeImage';
 import { supabase } from '../../../lib/supabase/client';
 import { useAuthStore } from '../authStore';
 
@@ -186,6 +187,47 @@ export const useAuth = () => {
     [session?.user?.id, queryClient],
   );
 
+  const uploadAvatar = useCallback(
+    async (file: Blob) => {
+      if (!session?.user?.id) throw new Error('Not authenticated');
+      const userId = session.user.id;
+
+      // Resize to 256×256 max and compress to JPEG (~30-50 KB)
+      const resized = await resizeImage(file);
+
+      const filePath = `${userId}/avatar`;
+
+      // Upload to Supabase Storage (upsert overwrites previous avatar)
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, resized, { upsert: true, contentType: 'image/jpeg' });
+      if (uploadError) throw uploadError;
+
+      // Get public URL and append cache-bust timestamp
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const avatarUrl = `${publicUrl}?t=${Date.now()}`;
+
+      // Update profiles table (source of truth for other users)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+      if (profileError) throw profileError;
+
+      // Dual-write to auth metadata (convenience for current user's own display)
+      await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } }).catch(() => {
+        // Non-critical — profiles table is the source of truth
+      });
+
+      // Invalidate caches so friends/groups refetch with new avatar
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+    },
+    [session?.user?.id, queryClient],
+  );
+
   return {
     user: session?.user ?? null,
     session,
@@ -199,5 +241,6 @@ export const useAuth = () => {
     upgradeGuestWithEmail,
     signOut,
     updateDisplayName,
+    uploadAvatar,
   };
 };
