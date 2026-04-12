@@ -53,7 +53,7 @@ export default function AppShell() {
                   onTouchStart={() => router.preloadRoute({ to })}
                   className={cn(
                     'flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all',
-                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                    isActive ? 'text-owed-to-you' : 'text-muted-foreground hover:text-foreground',
                   )}
                 >
                   <Icon
