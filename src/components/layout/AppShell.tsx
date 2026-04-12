@@ -20,7 +20,10 @@ export default function AppShell() {
   const guestReminderOpen = useUIStore((s) => s.guestReminderOpen);
   const setGuestReminderOpen = useUIStore((s) => s.setGuestReminderOpen);
 
-  const showNav = pathname !== '/login' && !pathname.startsWith('/auth/');
+  const showNav =
+    pathname !== '/login' &&
+    pathname !== '/onboarding' &&
+    !pathname.startsWith('/auth/');
 
   // Preload all tab routes on mount so lazy chunks are ready before the user
   // taps. On Capacitor, defaultPreload:'intent' fires on mouseenter (not
