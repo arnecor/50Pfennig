@@ -15,7 +15,10 @@
     "you_dative": "dir",
     "close": "Schließen",
     "today": "Heute",
-    "yesterday": "Gestern"
+    "yesterday": "Gestern",
+    "camera_prompt_header": "Foto auswählen",
+    "camera_prompt_photo": "Aus Fotos wählen",
+    "camera_prompt_picture": "Foto aufnehmen"
   },
   "auth": {
     "sign_in": "Anmelden",
@@ -114,7 +117,7 @@
     "event_member_left": "{{name}} hat die Gruppe verlassen",
     "edit_picture": "Bild bearbeiten",
     "choose_icon": "Icon wählen",
-    "upload_photo": "Foto hochladen",
+    "upload_photo": "Foto verwenden",
     "reset_to_default": "Auf Standard zurücksetzen",
     "edit_name": "Gruppenname bearbeiten",
     "edit_name_placeholder": "Gruppenname",
