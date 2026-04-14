@@ -110,6 +110,13 @@ export type Group = {
   readonly createdBy: UserId;
   readonly createdAt: Date;
   readonly members: readonly GroupMember[];
+  /**
+   * Display image for the group.
+   * - undefined/null  → default icon (Users)
+   * - 'icon:camping'  → predefined icon key
+   * - 'https://...'   → uploaded image URL
+   */
+  readonly imageUrl?: string;
 };
 
 /**

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import EmptyState from '@components/shared/EmptyState';
 import { FloatingActionButton } from '@components/shared/FloatingActionButton';
+import { GroupAvatar } from '@components/shared/GroupAvatar';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
 import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
@@ -183,6 +184,8 @@ export default function GroupDetailPage() {
         {...(group && { subtitle: `${group.members.length} ${t('groups.members')}` })}
         {...(group && { onSubtitleClick: handleOpenSettings })}
         onBack={handleBack}
+        avatar={<GroupAvatar imageUrl={group?.imageUrl} groupName={group?.name ?? ''} size="sm" />}
+        onAvatarClick={handleOpenSettings}
         onAction={() => setShowMemberOverlay(true)}
         actionIcon={<UserPlus className="w-5 h-5" />}
         actionLabel={t('groups.manage_members')}

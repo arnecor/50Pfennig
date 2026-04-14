@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useImagePicker } from '@lib/image/useImagePicker';
 import { useNavigate } from '@tanstack/react-router';
 import {
   Check,
@@ -35,7 +36,7 @@ import {
   Pencil,
   X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -107,7 +108,7 @@ export default function AccountPage() {
   const { user, isAnonymous, updateDisplayName, uploadAvatar, upgradeGuestWithEmail, signOut } =
     useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { pickImage, fileInputRef, onFileInputChange } = useImagePicker();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
 
@@ -115,8 +116,10 @@ export default function AccountPage() {
     user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
   const currentAvatarUrl: string | undefined = user?.user_metadata?.avatar_url ?? undefined;
 
-  const handleAvatarSelected = async (file: File) => {
+  const handleAvatarClick = async () => {
     setAvatarError(null);
+    const file = await pickImage();
+    if (!file) return;
     setIsUploadingAvatar(true);
     try {
       await uploadAvatar(file);
@@ -125,39 +128,6 @@ export default function AccountPage() {
     } finally {
       setIsUploadingAvatar(false);
     }
-  };
-
-  const handleAvatarClick = async () => {
-    // On native platforms, use Capacitor Camera for reliable camera/gallery access
-    if ((await import('@capacitor/core')).Capacitor.isNativePlatform()) {
-      try {
-        const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-        const photo = await Camera.getPhoto({
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Prompt,
-          quality: 80,
-        });
-        if (photo.webPath) {
-          const response = await fetch(photo.webPath);
-          const blob = await response.blob();
-          await handleAvatarSelected(new File([blob], 'avatar.jpg', { type: blob.type }));
-        }
-      } catch {
-        // User cancelled or permission denied — do nothing
-      }
-      return;
-    }
-    // On web, use the file input
-    fileInputRef.current?.click();
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      void handleAvatarSelected(file);
-    }
-    // Reset so selecting the same file again triggers onChange
-    e.target.value = '';
   };
 
   // --- Guest upgrade view -------------------------------------------------
@@ -218,14 +188,14 @@ export default function AccountPage() {
           >
             <Pencil className="h-3 w-3 text-primary-foreground" />
           </button>
-          {/* Hidden file input — web fallback for avatar upload */}
+          {/* Hidden file input — web fallback for image picker */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             className="sr-only"
             tabIndex={-1}
-            onChange={handleFileInputChange}
+            onChange={onFileInputChange}
           />
         </div>
         <p className="text-base font-semibold text-foreground">{currentDisplayName}</p>

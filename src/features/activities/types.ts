@@ -32,10 +32,12 @@ export type ActivityItem = {
       context: 'group' | 'friend';
       groupName?: string;
       groupId?: GroupId;
+      groupImageUrl?: string;
     }
   | {
       type: 'group_membership';
       groupId: GroupId;
       groupName: string;
+      groupImageUrl?: string;
     }
 );

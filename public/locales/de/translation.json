@@ -111,7 +111,18 @@
     "leave_group_confirm": "Möchtest du diese Gruppe wirklich verlassen?",
     "leave_blocked_hint": "Du kannst die Gruppe erst verlassen, wenn dein Guthaben ausgeglichen ist.",
     "event_member_joined": "{{name}} ist beigetreten",
-    "event_member_left": "{{name}} hat die Gruppe verlassen"
+    "event_member_left": "{{name}} hat die Gruppe verlassen",
+    "edit_picture": "Bild bearbeiten",
+    "choose_icon": "Icon wählen",
+    "upload_photo": "Foto hochladen",
+    "reset_to_default": "Auf Standard zurücksetzen",
+    "edit_name": "Gruppenname bearbeiten",
+    "edit_name_placeholder": "Gruppenname",
+    "image_upload_error": "Bild konnte nicht hochgeladen werden.",
+    "icon_camping": "Camping",
+    "icon_plane": "Flug",
+    "icon_vacation": "Urlaub",
+    "icon_group": "Gruppe"
   },
   "invites": {
     "link_label": "Einladungslink",

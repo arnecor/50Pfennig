@@ -51,7 +51,9 @@
       "Bash(npm run *)",
       "Bash(npx supabase *)",
       "Bash(echo *)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh repo:*)"
     ],
     "deny": [
       "Bash(npm run db:migrate:prod*)",
