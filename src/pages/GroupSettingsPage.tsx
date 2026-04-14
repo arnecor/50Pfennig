@@ -246,13 +246,13 @@ export default function GroupSettingsPage() {
             <button
               type="button"
               onClick={() => requireAuth(startEditName)}
-              className="flex items-center gap-1.5 group"
+              className="relative inline-flex items-center justify-center py-1 pl-8 pr-8 rounded-lg hover:bg-muted/50 active:bg-muted/80 transition-colors"
               aria-label={t('groups.edit_name')}
             >
-              <span className="text-base font-semibold text-foreground">
+              <span className="text-base font-semibold text-foreground max-w-[200px] truncate">
                 {groupLoading ? '…' : (group?.name ?? '')}
               </span>
-              <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Pencil className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground opacity-40" />
             </button>
           )}
           {nameError && <p className="text-destructive text-xs">{nameError}</p>}

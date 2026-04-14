@@ -14,7 +14,10 @@
     "you_dative": "you",
     "close": "Close",
     "today": "Today",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "camera_prompt_header": "Select Photo",
+    "camera_prompt_photo": "From Photos",
+    "camera_prompt_picture": "Take Picture"
   },
   "auth": {
     "sign_in": "Sign in",

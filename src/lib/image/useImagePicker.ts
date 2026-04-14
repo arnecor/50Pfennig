@@ -11,6 +11,7 @@
  */
 
 import { type ChangeEvent, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type UseImagePickerReturn = {
   /** Open the camera/gallery (native) or file dialog (web). Resolves with a File or null if cancelled. */
@@ -22,6 +23,7 @@ type UseImagePickerReturn = {
 };
 
 export function useImagePicker(): UseImagePickerReturn {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Resolve callback stored so the hidden input's onChange can resolve the promise
   const resolveRef = useRef<((file: File | null) => void) | null>(null);
@@ -36,6 +38,10 @@ export function useImagePicker(): UseImagePickerReturn {
           resultType: CameraResultType.Uri,
           source: CameraSource.Prompt,
           quality: 80,
+          promptLabelHeader: t('common.camera_prompt_header'),
+          promptLabelCancel: t('common.cancel'),
+          promptLabelPhoto: t('common.camera_prompt_photo'),
+          promptLabelPicture: t('common.camera_prompt_picture'),
         });
         if (!photo.webPath) return null;
         const response = await fetch(photo.webPath);
@@ -52,7 +58,7 @@ export function useImagePicker(): UseImagePickerReturn {
       resolveRef.current = resolve;
       fileInputRef.current?.click();
     });
-  }, []);
+  }, [t]);
 
   const onFileInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
