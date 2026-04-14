@@ -58,7 +58,7 @@ export function useImagePicker(): UseImagePickerReturn {
       resolveRef.current = resolve;
       fileInputRef.current?.click();
     });
-  }, []);
+  }, [t]);
 
   const onFileInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
