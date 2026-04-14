@@ -26,7 +26,7 @@ import type {
   GroupInviteRow,
   GroupMemberWithProfile,
 } from '../../lib/supabase/mappers';
-import type { CreateGroupInput, IGroupRepository } from '../types';
+import type { CreateGroupInput, IGroupRepository, UpdateGroupInput } from '../types';
 
 /** Select string that embeds the profiles join for display names */
 const GROUP_SELECT =
@@ -144,5 +144,32 @@ export class SupabaseGroupRepository implements IGroupRepository {
 
     if (error) throw error;
     return data as GroupId;
+  }
+
+  async update(id: GroupId, input: UpdateGroupInput): Promise<Group> {
+    const updateData: { name?: string; image_url?: string | null } = {};
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.imageUrl !== undefined) updateData.image_url = input.imageUrl;
+
+    const { error } = await supabase.from('groups').update(updateData).eq('id', id);
+    if (error) throw error;
+
+    return this.getById(id);
+  }
+
+  async uploadImage(id: GroupId, file: Blob): Promise<Group> {
+    const filePath = `groups/${id}/image`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true, contentType: 'image/jpeg' });
+    if (uploadError) throw uploadError;
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    const imageUrl = `${publicUrl}?t=${Date.now()}`;
+
+    return this.update(id, { imageUrl });
   }
 }

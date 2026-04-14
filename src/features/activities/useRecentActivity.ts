@@ -217,6 +217,11 @@ export function useRecentActivity(
       if (otherPartyId === null) continue;
 
       const isMePaying = netFromMe >= 0;
+      // Find the group for this settlement batch (if any)
+      const settlementGroupId = records[0]?.groupId ?? null;
+      const settlementGroup = settlementGroupId
+        ? groups.find((g) => (g.id as string) === (settlementGroupId as string))
+        : undefined;
       items.push({
         // biome-ignore lint/style/noNonNullAssertion: records is non-empty (grouped by batch, guaranteed ≥1 record)
         id: records[0]!.id,
@@ -225,7 +230,10 @@ export function useRecentActivity(
         amount: abs(money(netFromMe)),
         isMePaying,
         otherPartyName: getName(otherPartyId),
-        context: 'friend',
+        context: settlementGroup ? 'group' : 'friend',
+        ...(settlementGroup && { groupName: settlementGroup.name }),
+        ...(settlementGroup && { groupId: settlementGroup.id }),
+        ...(settlementGroup?.imageUrl && { groupImageUrl: settlementGroup.imageUrl }),
       });
     }
 
@@ -239,6 +247,7 @@ export function useRecentActivity(
           type: 'group_membership',
           groupId: group.id,
           groupName: group.name,
+          ...(group.imageUrl && { groupImageUrl: group.imageUrl }),
         });
       }
     }

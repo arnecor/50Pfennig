@@ -7,6 +7,7 @@
  */
 
 import { cn } from '@/lib/utils';
+import { GroupAvatar } from '@components/shared/GroupAvatar';
 import { calculateGroupBalances } from '@domain/balance';
 import { formatMoney, isNegative, isZero } from '@domain/money';
 import type { Group, UserId } from '@domain/types';
@@ -14,7 +15,7 @@ import { useAuthStore } from '@features/auth/authStore';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { useNavigate } from '@tanstack/react-router';
-import { ChevronRight, Users } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -56,10 +57,8 @@ export default function GroupCard({ group }: Props) {
           : 'bg-card border-border hover:bg-muted/50',
       )}
     >
-      {/* Icon badge */}
-      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
-        <Users className="w-6 h-6 text-foreground" />
-      </div>
+      {/* Group image / icon */}
+      <GroupAvatar imageUrl={group.imageUrl} groupName={group.name} size="lg" />
 
       {/* Name + members */}
       <div className="flex-1 min-w-0">

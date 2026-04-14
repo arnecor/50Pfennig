@@ -69,6 +69,7 @@ export const mapGroup = (row: GroupRow, members: GroupMemberWithProfile[]): Grou
   createdBy: row.created_by as UserId,
   createdAt: new Date(row.created_at),
   members: members.map(mapGroupMember),
+  ...(row.image_url ? { imageUrl: row.image_url } : {}),
 });
 
 export const mapExpenseSplitRecord = (row: ExpenseSplitRow): ExpenseSplitRecord => ({

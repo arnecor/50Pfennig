@@ -110,7 +110,18 @@
     "leave_group_confirm": "Do you really want to leave this group?",
     "leave_blocked_hint": "You can only leave the group once your balance is settled.",
     "event_member_joined": "{{name}} joined",
-    "event_member_left": "{{name}} left the group"
+    "event_member_left": "{{name}} left the group",
+    "edit_picture": "Edit picture",
+    "choose_icon": "Choose icon",
+    "upload_photo": "Upload photo",
+    "reset_to_default": "Reset to default",
+    "edit_name": "Edit group name",
+    "edit_name_placeholder": "Group name",
+    "image_upload_error": "Could not upload image.",
+    "icon_camping": "Camping",
+    "icon_plane": "Flight",
+    "icon_vacation": "Vacation",
+    "icon_group": "Group"
   },
   "invites": {
     "link_label": "Invite link",

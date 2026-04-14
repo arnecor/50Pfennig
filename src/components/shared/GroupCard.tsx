@@ -1,17 +1,9 @@
 import { cn } from '@/lib/utils';
+import { GroupAvatar } from '@components/shared/GroupAvatar';
 import { formatMoney, isNegative, isZero } from '@domain/money';
 import type { Money } from '@domain/types';
-import { BookOpen, ChevronRight, Flame, Home, Plane, Sparkles, Trophy, Users } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  home: Home,
-  plane: Plane,
-  trophy: Trophy,
-  flame: Flame,
-  sparkles: Sparkles,
-  book: BookOpen,
-  default: Users,
-};
 
 function formatMemberNames(names: string[], maxVisible = 3): string {
   if (names.length === 0) return '';
@@ -28,7 +20,10 @@ type GroupCardProps = {
   balance: Money;
   /** Label shown when balance is zero (e.g. "Ausgeglichen"). */
   settledLabel?: string;
+  /** Predefined icon key (legacy). imageUrl takes precedence when provided. */
   icon?: string;
+  /** Custom image URL or 'icon:X' predefined value from the group domain. */
+  imageUrl?: string;
   onClick?: () => void;
   className?: string;
 };
@@ -39,15 +34,16 @@ export function GroupCard({
   balance,
   settledLabel,
   icon,
+  imageUrl,
   onClick,
   className,
 }: GroupCardProps) {
   const { t } = useTranslation();
-  // biome-ignore lint/style/noNonNullAssertion: iconMap always has 'default' key
-  const Icon = iconMap[icon ?? 'default'] ?? iconMap.default!;
   const positive = !isNegative(balance);
   const settled = isZero(balance);
   const resolvedSettledLabel = settledLabel ?? t('groups.balanced');
+  // Resolve display image: prefer explicit imageUrl, fall back to legacy icon key
+  const resolvedImageUrl = imageUrl ?? (icon && icon !== 'default' ? `icon:${icon}` : undefined);
 
   return (
     <button
@@ -61,9 +57,7 @@ export function GroupCard({
       )}
       type="button"
     >
-      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
-        <Icon className="w-6 h-6 text-foreground" />
-      </div>
+      <GroupAvatar imageUrl={resolvedImageUrl} groupName={name} size="lg" />
 
       <div className="flex-1 min-w-0">
         <p
@@ -100,7 +94,10 @@ type GroupListItemProps = {
   memberNames: string[];
   balance: Money;
   settledLabel?: string;
+  /** Predefined icon key (legacy). imageUrl takes precedence when provided. */
   icon?: string;
+  /** Custom image URL or 'icon:X' predefined value from the group domain. */
+  imageUrl?: string;
   onClick?: () => void;
   className?: string;
 };
@@ -111,15 +108,15 @@ export function GroupListItem({
   balance,
   settledLabel,
   icon,
+  imageUrl,
   onClick,
   className,
 }: GroupListItemProps) {
   const { t } = useTranslation();
-  // biome-ignore lint/style/noNonNullAssertion: iconMap always has 'default' key
-  const Icon = iconMap[icon ?? 'default'] ?? iconMap.default!;
   const positive = !isNegative(balance);
   const settled = isZero(balance);
   const resolvedSettledLabel = settledLabel ?? t('groups.balanced');
+  const resolvedImageUrl = imageUrl ?? (icon && icon !== 'default' ? `icon:${icon}` : undefined);
 
   return (
     <button
@@ -131,9 +128,7 @@ export function GroupListItem({
       )}
       type="button"
     >
-      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-        <Icon className="w-5 h-5 text-foreground" />
-      </div>
+      <GroupAvatar imageUrl={resolvedImageUrl} groupName={name} size="md" />
 
       <div className="flex-1 min-w-0">
         <p

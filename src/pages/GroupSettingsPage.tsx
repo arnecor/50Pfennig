@@ -4,27 +4,38 @@
  * Route: /groups/:groupId/settings
  *
  * Shows:
- *   - Share section (link / QR placeholders, not yet implemented)
+ *   - Group image hero (editable, with predefined icons or custom photo)
+ *   - Editable group name
+ *   - Share section (link / QR placeholders)
  *   - Member list with per-member balance
  *   - "Gruppe verlassen" button (disabled when user's balance ≠ 0)
+ *
+ * Anonymous users are gated via GuestUpgradeDialog when they try to edit.
  */
 
-import { cn } from '@/lib/utils';
+import { GroupAvatar } from '@components/shared/GroupAvatar';
 import { PageHeader } from '@components/shared/PageHeader';
 import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
 import { calculateGroupBalances } from '@domain/balance';
+import { buildIconImageUrl } from '@domain/groupImage';
 import { formatMoney, isPositive, isZero } from '@domain/money';
 import { type GroupId, type UserId, ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
+import GuestUpgradeDialog from '@features/auth/components/GuestUpgradeDialog';
 import { useExpenses } from '@features/expenses/hooks/useExpenses';
 import { useFriends } from '@features/friends/hooks/useFriends';
 import AddMemberOverlay from '@features/groups/components/AddMemberOverlay';
+import GroupImagePicker from '@features/groups/components/GroupImagePicker';
 import { useAddGroupMembers } from '@features/groups/hooks/useAddGroupMembers';
 import { useGroup } from '@features/groups/hooks/useGroups';
 import { useLeaveGroup } from '@features/groups/hooks/useLeaveGroup';
+import { useUpdateGroup } from '@features/groups/hooks/useUpdateGroup';
+import { useUploadGroupImage } from '@features/groups/hooks/useUploadGroupImage';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
+import { cn } from '@lib/utils';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { LogOut, Share2, UserPlus } from 'lucide-react';
+import { Check, Loader2, LogOut, Pencil, Share2, UserPlus, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -34,6 +45,7 @@ export default function GroupSettingsPage() {
   const { groupId } = useParams({ strict: false }) as { groupId: string };
 
   const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
+  const isAnonymous = useAuthStore((s) => s.session?.user.is_anonymous ?? false);
 
   const { data: group, isLoading: groupLoading } = useGroup(groupId as GroupId);
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses(groupId as GroupId);
@@ -42,9 +54,22 @@ export default function GroupSettingsPage() {
   );
   const { data: friends = [] } = useFriends();
 
+  const updateGroup = useUpdateGroup();
+  const uploadGroupImage = useUploadGroupImage();
   const addMembers = useAddGroupMembers();
   const leaveGroup = useLeaveGroup();
+
   const [showMemberOverlay, setShowMemberOverlay] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [showAnonGate, setShowAnonGate] = useState(false);
+
+  // Name editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  // Image upload error
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const isLoading = groupLoading || expensesLoading || settlementsLoading;
 
@@ -80,6 +105,67 @@ export default function GroupSettingsPage() {
     });
   }
 
+  // --- Edit button guard (anonymous users) ---
+  function requireAuth(action: () => void) {
+    if (isAnonymous) {
+      setShowAnonGate(true);
+    } else {
+      action();
+    }
+  }
+
+  // --- Image picker callbacks ---
+  function handlePickIcon(key: string) {
+    if (!group) return;
+    setImageError(null);
+    updateGroup.mutate({ groupId: group.id, input: { imageUrl: buildIconImageUrl(key) } });
+  }
+
+  function handlePickFile(file: File) {
+    if (!group) return;
+    setImageError(null);
+    uploadGroupImage.mutate(
+      { groupId: group.id, file },
+      { onError: () => setImageError(t('groups.image_upload_error')) },
+    );
+  }
+
+  function handleResetImage() {
+    if (!group) return;
+    setImageError(null);
+    updateGroup.mutate({ groupId: group.id, input: { imageUrl: null } });
+  }
+
+  // --- Name editing callbacks ---
+  function startEditName() {
+    setNameValue(group?.name ?? '');
+    setNameError(null);
+    setIsEditingName(true);
+  }
+
+  function cancelEditName() {
+    setIsEditingName(false);
+    setNameError(null);
+  }
+
+  function submitName() {
+    const trimmed = nameValue.trim();
+    if (!trimmed) {
+      setNameError(t('groups.name_error_required'));
+      return;
+    }
+    if (!group) return;
+    updateGroup.mutate(
+      { groupId: group.id, input: { name: trimmed } },
+      {
+        onSuccess: () => setIsEditingName(false),
+        onError: () => setNameError(t('common.error_generic')),
+      },
+    );
+  }
+
+  const isImageLoading = uploadGroupImage.isPending || updateGroup.isPending;
+
   return (
     <div className="min-h-full pb-24">
       <PageHeader
@@ -89,6 +175,89 @@ export default function GroupSettingsPage() {
       />
 
       <div className="px-5 space-y-5">
+        {/* --- Group image hero + name --- */}
+        <div className="flex flex-col items-center gap-3 pt-2 pb-1">
+          {/* Avatar with edit button */}
+          <div className="relative">
+            {isImageLoading ? (
+              <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <GroupAvatar
+                imageUrl={group?.imageUrl}
+                groupName={group?.name ?? ''}
+                size="xl"
+                className="rounded-2xl"
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => requireAuth(() => setShowImagePicker(true))}
+              disabled={isImageLoading}
+              className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md border-2 border-background"
+              aria-label={t('groups.edit_picture')}
+            >
+              <Pencil className="h-3 w-3 text-primary-foreground" />
+            </button>
+          </div>
+
+          {imageError && <p className="text-destructive text-xs text-center">{imageError}</p>}
+
+          {/* Editable group name */}
+          {isEditingName ? (
+            <div className="flex items-center gap-2 w-full max-w-xs">
+              <Input
+                autoFocus
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submitName();
+                  if (e.key === 'Escape') cancelEditName();
+                }}
+                maxLength={100}
+                placeholder={t('groups.edit_name_placeholder')}
+                className="h-9 text-sm text-center"
+              />
+              <button
+                type="button"
+                onClick={submitName}
+                disabled={updateGroup.isPending}
+                aria-label={t('common.save')}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
+              >
+                {updateGroup.isPending ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Check className="h-4 w-4 text-primary" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditName}
+                disabled={updateGroup.isPending}
+                aria-label={t('common.cancel')}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => requireAuth(startEditName)}
+              className="flex items-center gap-1.5 group"
+              aria-label={t('groups.edit_name')}
+            >
+              <span className="text-base font-semibold text-foreground">
+                {groupLoading ? '…' : (group?.name ?? '')}
+              </span>
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          )}
+          {nameError && <p className="text-destructive text-xs">{nameError}</p>}
+        </div>
+
         {/* Share section */}
         <div className="bg-card rounded-2xl border border-border p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
@@ -195,6 +364,7 @@ export default function GroupSettingsPage() {
         </div>
       </div>
 
+      {/* Overlays */}
       {showMemberOverlay && group && (
         <AddMemberOverlay
           group={group}
@@ -203,6 +373,19 @@ export default function GroupSettingsPage() {
           isPending={addMembers.isPending}
           onClose={() => setShowMemberOverlay(false)}
         />
+      )}
+
+      {showImagePicker && (
+        <GroupImagePicker
+          onPickIcon={handlePickIcon}
+          onPickFile={handlePickFile}
+          onReset={handleResetImage}
+          onClose={() => setShowImagePicker(false)}
+        />
+      )}
+
+      {showAnonGate && (
+        <GuestUpgradeDialog variant="gate" onDismiss={() => setShowAnonGate(false)} />
       )}
     </div>
   );
