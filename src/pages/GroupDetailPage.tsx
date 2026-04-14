@@ -184,9 +184,7 @@ export default function GroupDetailPage() {
         {...(group && { subtitle: `${group.members.length} ${t('groups.members')}` })}
         {...(group && { onSubtitleClick: handleOpenSettings })}
         onBack={handleBack}
-        avatar={
-          <GroupAvatar imageUrl={group?.imageUrl} groupName={group?.name ?? ''} size="sm" />
-        }
+        avatar={<GroupAvatar imageUrl={group?.imageUrl} groupName={group?.name ?? ''} size="sm" />}
         onAvatarClick={handleOpenSettings}
         onAction={() => setShowMemberOverlay(true)}
         actionIcon={<UserPlus className="w-5 h-5" />}
