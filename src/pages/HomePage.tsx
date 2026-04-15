@@ -16,9 +16,11 @@ import type { ActivityItem } from '@/features/activities/types';
 import { useRecentActivity } from '@/features/activities/useRecentActivity';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTotalBalance } from '@/features/balances/hooks/useTotalBalance';
+import { App as CapacitorApp } from '@capacitor/app';
 import { BalanceCard } from '@components/shared/BalanceCard';
 import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import { GreetingHeader, SectionHeader } from '@components/shared/PageHeader';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -26,6 +28,11 @@ export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isAnonymous } = useAuth();
+
+  useBackHandler(() => {
+    void CapacitorApp.exitApp();
+    return true;
+  });
 
   const baseDisplayName: string =
     user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';

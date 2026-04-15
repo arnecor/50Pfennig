@@ -33,6 +33,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { App as CapacitorApp } from '@capacitor/app';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useState } from 'react';
@@ -50,6 +52,11 @@ export default function OnboardingPage() {
   const { signUp, signInAsGuest } = useAuth();
 
   const [step, setStep] = useState<Step>('name');
+
+  useBackHandler(() => {
+    void CapacitorApp.exitApp();
+    return true;
+  });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

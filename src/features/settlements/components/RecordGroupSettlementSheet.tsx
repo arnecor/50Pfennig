@@ -17,6 +17,7 @@ import { Label } from '@components/ui/label';
 import type { DebtInstruction, Group, Money, UserId } from '@domain/types';
 import { money } from '@domain/types';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { Circle, CircleDot, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -62,6 +63,11 @@ export default function RecordGroupSettlementSheet({
 }: Props) {
   const { t } = useTranslation();
   const createSettlement = useCreateSettlement();
+
+  useBackHandler(() => {
+    onClose();
+    return true;
+  });
 
   const defaultFrom = suggestion?.fromUserId ?? group.members[0]?.userId;
   const defaultTo = suggestion?.toUserId ?? group.members[1]?.userId;

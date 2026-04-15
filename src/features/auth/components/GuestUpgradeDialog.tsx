@@ -26,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -55,6 +56,11 @@ export default function GuestUpgradeDialog({ variant, onDismiss }: GuestUpgradeD
       router.history.back();
     }
   };
+
+  useBackHandler(() => {
+    handleDismiss();
+    return true;
+  });
 
   const handleCreateAccount = () => {
     void navigate({ to: '/account' });

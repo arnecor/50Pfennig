@@ -31,6 +31,7 @@ import {
   processFriendInviteToken,
   processGroupInviteToken,
 } from './features/invites/lib/processInviteAcceptance';
+import { initBackHandler } from './lib/capacitor/backHandler';
 import { type NotificationData, initPushNotifications } from './lib/capacitor/pushNotifications';
 import { initStatusBar } from './lib/capacitor/statusBar';
 import { checkInstallReferrer } from './lib/installReferrer';
@@ -90,6 +91,8 @@ export default function App() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect — captures stable module-level refs
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
+
+    initBackHandler();
 
     const handleDeepLinkUrl = async (url: string) => {
       try {

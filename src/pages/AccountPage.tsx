@@ -20,7 +20,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { App as CapacitorApp } from '@capacitor/app';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useImagePicker } from '@lib/image/useImagePicker';
 import { useNavigate } from '@tanstack/react-router';
 import {
@@ -111,6 +113,11 @@ export default function AccountPage() {
   const { pickImage, fileInputRef, onFileInputChange } = useImagePicker();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+
+  useBackHandler(() => {
+    void CapacitorApp.exitApp();
+    return true;
+  });
 
   const currentDisplayName: string =
     user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
