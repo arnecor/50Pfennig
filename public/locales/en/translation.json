@@ -127,7 +127,7 @@
     "icon_group": "Group",
     "archive_action": "Archive",
     "archive_confirm_title": "Archive group?",
-    "archive_confirm_body": "Do you want to archive this group? You can find it in the archive at any time and reactivate it.",
+    "archive_confirm_body": "You can find it in the archive at any time and reactivate it.",
     "archived_section_title": "Archived",
     "archived_banner_title": "Archived group",
     "archived_banner_body": "This group is archived. All activity is still visible.",
