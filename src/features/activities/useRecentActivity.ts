@@ -48,8 +48,24 @@ function resolveName(
   return userId;
 }
 
+function resolveAvatarUrl(
+  userId: string,
+  currentIdStr: string,
+  currentUserAvatarUrl: string | undefined,
+  groups: Group[],
+  friends: Friend[],
+): string | undefined {
+  if (userId === currentIdStr) return currentUserAvatarUrl;
+  for (const group of groups) {
+    const member = group.members.find((m) => (m.userId as string) === userId);
+    if (member?.avatarUrl) return member.avatarUrl;
+  }
+  return friends.find((f) => (f.userId as string) === userId)?.avatarUrl;
+}
+
 export function useRecentActivity(
   currentUserId: UserId | undefined,
+  currentUserAvatarUrl: string | undefined,
   youLabel: string,
   youDativeLabel: string,
   personsLabel: (count: number) => string,
@@ -84,6 +100,8 @@ export function useRecentActivity(
 
     const currentIdStr = currentUserId as string;
     const getName = (uid: string) => resolveName(uid, currentIdStr, youLabel, groups, friends);
+    const getAvatarUrl = (uid: string) =>
+      resolveAvatarUrl(uid, currentIdStr, currentUserAvatarUrl, groups, friends);
     const items: ActivityItem[] = [];
 
     // ── Group expenses ────────────────────────────────────────────────────────
@@ -110,6 +128,7 @@ export function useRecentActivity(
           totalAmount: expense.totalAmount,
           paidByCurrentUser,
           paidByName: getName(expense.paidBy as string),
+          paidByAvatarUrl: getAvatarUrl(expense.paidBy as string),
           myShare,
           sharedWithLabel: group.name,
           context: 'group',
@@ -146,6 +165,7 @@ export function useRecentActivity(
         totalAmount: expense.totalAmount,
         paidByCurrentUser,
         paidByName: getName(expense.paidBy as string),
+        paidByAvatarUrl: getAvatarUrl(expense.paidBy as string),
         myShare,
         sharedWithLabel,
         context: 'friend',
@@ -197,6 +217,11 @@ export function useRecentActivity(
       if (otherPartyId === null) continue;
 
       const isMePaying = netFromMe >= 0;
+      // Find the group for this settlement batch (if any)
+      const settlementGroupId = records[0]?.groupId ?? null;
+      const settlementGroup = settlementGroupId
+        ? groups.find((g) => (g.id as string) === (settlementGroupId as string))
+        : undefined;
       items.push({
         // biome-ignore lint/style/noNonNullAssertion: records is non-empty (grouped by batch, guaranteed ≥1 record)
         id: records[0]!.id,
@@ -205,7 +230,10 @@ export function useRecentActivity(
         amount: abs(money(netFromMe)),
         isMePaying,
         otherPartyName: getName(otherPartyId),
-        context: 'friend',
+        context: settlementGroup ? 'group' : 'friend',
+        ...(settlementGroup && { groupName: settlementGroup.name }),
+        ...(settlementGroup && { groupId: settlementGroup.id }),
+        ...(settlementGroup?.imageUrl && { groupImageUrl: settlementGroup.imageUrl }),
       });
     }
 
@@ -219,6 +247,7 @@ export function useRecentActivity(
           type: 'group_membership',
           groupId: group.id,
           groupName: group.name,
+          ...(group.imageUrl && { groupImageUrl: group.imageUrl }),
         });
       }
     }
@@ -227,6 +256,7 @@ export function useRecentActivity(
     return items;
   }, [
     currentUserId,
+    currentUserAvatarUrl,
     youLabel,
     youDativeLabel,
     personsLabel,

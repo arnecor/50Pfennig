@@ -51,6 +51,7 @@ export type Friend = {
   readonly userId: UserId;
   readonly displayName: string;
   readonly friendshipId: FriendshipId;
+  readonly avatarUrl?: string;
 };
 
 /** Construct a Money value. Throws if the value is not an integer. */
@@ -100,6 +101,7 @@ export type GroupMember = {
   readonly groupId: GroupId;
   readonly displayName: string;
   readonly joinedAt: Date;
+  readonly avatarUrl?: string;
 };
 
 export type Group = {
@@ -108,6 +110,17 @@ export type Group = {
   readonly createdBy: UserId;
   readonly createdAt: Date;
   readonly members: readonly GroupMember[];
+  /**
+   * Display image for the group.
+   * - undefined/null  → default icon (Users)
+   * - 'icon:camping'  → predefined icon key
+   * - 'https://...'   → uploaded image URL
+   */
+  readonly imageUrl?: string;
+  /** true when the group has been archived by any member */
+  readonly isArchived: boolean;
+  /** set when isArchived is true; undefined when the group is active */
+  readonly archivedAt?: Date;
 };
 
 /**

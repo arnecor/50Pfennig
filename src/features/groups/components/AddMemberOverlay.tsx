@@ -17,6 +17,7 @@ import { Button } from '@components/ui/button';
 import type { Friend, Group, GroupId, UserId } from '@domain/types';
 import { useCreateGroupInvite } from '@features/groups/hooks/useCreateGroupInvite';
 import { getInviteUrl } from '@features/invites/utils/getInviteUrl';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { CheckSquare, Square, UserPlus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +48,11 @@ export default function AddMemberOverlay({
   const { t } = useTranslation();
   const createGroupInvite = useCreateGroupInvite();
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+
+  useBackHandler(() => {
+    onClose();
+    return true;
+  });
 
   // Create invite token lazily on first mount of the share section
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect — mutation must run exactly once

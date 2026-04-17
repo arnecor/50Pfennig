@@ -94,11 +94,11 @@ export async function initPushNotifications(
       if (!raw?.type) return;
       onTap({
         type: raw.type as NotificationData['type'],
-        ...(raw.expenseId    !== undefined && { expenseId:    raw.expenseId }),
+        ...(raw.expenseId !== undefined && { expenseId: raw.expenseId }),
         ...(raw.settlementId !== undefined && { settlementId: raw.settlementId }),
-        ...(raw.batchId      !== undefined && { batchId:      raw.batchId }),
-        ...(raw.groupId      !== undefined && { groupId:      raw.groupId }),
-        ...(raw.friendId     !== undefined && { friendId:     raw.friendId }),
+        ...(raw.batchId !== undefined && { batchId: raw.batchId }),
+        ...(raw.groupId !== undefined && { groupId: raw.groupId }),
+        ...(raw.friendId !== undefined && { friendId: raw.friendId }),
       });
     },
   );

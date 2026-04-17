@@ -17,6 +17,7 @@ export type ActivityItem = {
       totalAmount: Money;
       paidByCurrentUser: boolean;
       paidByName: string;
+      paidByAvatarUrl?: string | undefined;
       myShare: Money;
       sharedWithLabel: string;
       context: 'group' | 'friend';
@@ -31,10 +32,12 @@ export type ActivityItem = {
       context: 'group' | 'friend';
       groupName?: string;
       groupId?: GroupId;
+      groupImageUrl?: string;
     }
   | {
       type: 'group_membership';
       groupId: GroupId;
       groupName: string;
+      groupImageUrl?: string;
     }
 );

@@ -7,12 +7,13 @@
  * Pagination: a "Load more" button appears when more items are available.
  */
 
+import { GroupAvatar } from '@components/shared/GroupAvatar';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { UnifiedExpenseItem } from '@components/shared/UnifiedExpenseItem';
 import { Button } from '@components/ui/button';
 import { negate, subtract } from '@domain/money';
 import type { Money } from '@domain/types';
-import { ArrowDownLeft, ArrowUpRight, Users } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ActivityItem } from './types';
 
@@ -160,6 +161,7 @@ export default function ActivityFeed({
                     key={item.id}
                     description={item.description}
                     paidByName={item.paidByName}
+                    paidByAvatarUrl={item.paidByAvatarUrl}
                     totalAmount={item.totalAmount}
                     shareAmount={signedShare}
                     paidByCurrentUser={item.paidByCurrentUser}
@@ -176,6 +178,19 @@ export default function ActivityFeed({
 
                 const secondary = item.groupName ?? t('friends.direct_expense');
                 const displayAmount: Money = item.isMePaying ? negate(item.amount) : item.amount;
+
+                const settlementIcon = item.groupName ? (
+                  <GroupAvatar
+                    imageUrl={item.groupImageUrl}
+                    groupName={item.groupName}
+                    size="sm"
+                    className="rounded-full"
+                  />
+                ) : item.isMePaying ? (
+                  <ArrowUpRight className="h-4 w-4 text-red-600" />
+                ) : (
+                  <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                );
 
                 return (
                   <div
@@ -195,14 +210,8 @@ export default function ActivityFeed({
                     tabIndex={onItemClick ? 0 : undefined}
                   >
                     <ActivityRow
-                      icon={
-                        item.isMePaying ? (
-                          <ArrowUpRight className="h-4 w-4 text-red-600" />
-                        ) : (
-                          <ArrowDownLeft className="h-4 w-4 text-green-600" />
-                        )
-                      }
-                      iconBg={item.isMePaying ? 'bg-red-50' : 'bg-green-50'}
+                      icon={settlementIcon}
+                      iconBg={item.groupName ? '' : item.isMePaying ? 'bg-red-50' : 'bg-green-50'}
                       primary={primary}
                       secondary={secondary}
                       amount={displayAmount}
@@ -217,8 +226,15 @@ export default function ActivityFeed({
               return (
                 <ActivityRow
                   key={item.id}
-                  icon={<Users className="h-4 w-4 text-muted-foreground" />}
-                  iconBg="bg-muted"
+                  icon={
+                    <GroupAvatar
+                      imageUrl={item.groupImageUrl}
+                      groupName={item.groupName}
+                      size="sm"
+                      className="rounded-full"
+                    />
+                  }
+                  iconBg=""
                   primary={t('home.activity_group_joined', { group: item.groupName })}
                   secondary=""
                 />

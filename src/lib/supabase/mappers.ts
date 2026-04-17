@@ -48,7 +48,7 @@ type FriendshipRow = Database['public']['Tables']['friendships']['Row'];
 
 /** Shape returned by group_members queries that embed profiles via FK join */
 export type GroupMemberWithProfile = GroupMemberRow & {
-  profiles: { display_name: string } | null;
+  profiles: { display_name: string; avatar_url: string | null } | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -60,6 +60,7 @@ export const mapGroupMember = (row: GroupMemberWithProfile): GroupMember => ({
   groupId: row.group_id as GroupId,
   displayName: row.profiles?.display_name ?? '',
   joinedAt: new Date(row.joined_at),
+  ...(row.profiles?.avatar_url ? { avatarUrl: row.profiles.avatar_url } : {}),
 });
 
 export const mapGroup = (row: GroupRow, members: GroupMemberWithProfile[]): Group => ({
@@ -68,6 +69,11 @@ export const mapGroup = (row: GroupRow, members: GroupMemberWithProfile[]): Grou
   createdBy: row.created_by as UserId,
   createdAt: new Date(row.created_at),
   members: members.map(mapGroupMember),
+  // biome-ignore lint/suspicious/noExplicitAny: is_archived/archived_at not yet in generated types — remove cast after next db:types run
+  isArchived: (row as any).is_archived ?? false,
+  // biome-ignore lint/suspicious/noExplicitAny: archived_at not yet in generated types
+  ...((row as any).archived_at ? { archivedAt: new Date((row as any).archived_at as string) } : {}),
+  ...(row.image_url ? { imageUrl: row.image_url } : {}),
 });
 
 export const mapExpenseSplitRecord = (row: ExpenseSplitRow): ExpenseSplitRecord => ({
@@ -99,18 +105,18 @@ export const mapExpense = (row: ExpenseRow, splitRows: ExpenseSplitRow[]): Expen
  * who the current user is (requester or addressee).
  */
 export type FriendshipWithProfiles = FriendshipRow & {
-  requester: { display_name: string } | null;
-  addressee: { display_name: string } | null;
+  requester: { display_name: string; avatar_url: string | null } | null;
+  addressee: { display_name: string; avatar_url: string | null } | null;
 };
 
 export const mapFriend = (row: FriendshipWithProfiles, currentUserId: UserId): Friend => {
   const iAmRequester = row.requester_id === currentUserId;
+  const profile = iAmRequester ? row.addressee : row.requester;
   return {
     userId: (iAmRequester ? row.addressee_id : row.requester_id) as UserId,
-    displayName: iAmRequester
-      ? (row.addressee?.display_name ?? '')
-      : (row.requester?.display_name ?? ''),
+    displayName: profile?.display_name ?? '',
     friendshipId: row.id as FriendshipId,
+    ...(profile?.avatar_url ? { avatarUrl: profile.avatar_url } : {}),
   };
 };
 

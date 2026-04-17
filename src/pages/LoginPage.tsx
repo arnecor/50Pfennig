@@ -8,6 +8,8 @@
  * Guarded by GuestGuard: redirects to /home if already authenticated.
  */
 
+import { App as CapacitorApp } from '@capacitor/app';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useTranslation } from 'react-i18next';
 import { SharliMascot } from '../components/shared/EmptyState';
 import { EnvBadge } from '../components/shared/EnvBadge';
@@ -15,6 +17,11 @@ import LoginForm from '../features/auth/components/LoginForm';
 
 export default function LoginPage() {
   const { t } = useTranslation();
+
+  useBackHandler(() => {
+    void CapacitorApp.exitApp();
+    return true;
+  });
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-6">

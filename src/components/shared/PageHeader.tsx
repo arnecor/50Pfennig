@@ -7,6 +7,8 @@ type PageHeaderProps = {
   subtitle?: string;
   onSubtitleClick?: () => void;
   onBack?: () => void;
+  avatar?: React.ReactNode;
+  onAvatarClick?: () => void;
   onAction?: () => void;
   actionIcon?: React.ReactNode;
   actionLabel?: string;
@@ -19,6 +21,8 @@ export function PageHeader({
   subtitle,
   onSubtitleClick,
   onBack,
+  avatar,
+  onAvatarClick,
   onAction,
   actionIcon,
   actionLabel = 'More options',
@@ -38,6 +42,20 @@ export function PageHeader({
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
         )}
+
+        {avatar &&
+          (onAvatarClick ? (
+            <button
+              type="button"
+              onClick={onAvatarClick}
+              className="shrink-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="Group settings"
+            >
+              {avatar}
+            </button>
+          ) : (
+            <div className="shrink-0">{avatar}</div>
+          ))}
 
         <div className="flex-1 min-w-0">
           <h1

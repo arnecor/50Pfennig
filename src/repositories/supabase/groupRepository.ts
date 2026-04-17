@@ -26,23 +26,22 @@ import type {
   GroupInviteRow,
   GroupMemberWithProfile,
 } from '../../lib/supabase/mappers';
-import type { CreateGroupInput, IGroupRepository } from '../types';
+import type { CreateGroupInput, IGroupRepository, UpdateGroupInput } from '../types';
 
 /** Select string that embeds the profiles join for display names */
-const GROUP_SELECT = '*, group_members(user_id, group_id, joined_at, profiles(display_name))';
+const GROUP_SELECT =
+  '*, group_members(user_id, group_id, joined_at, profiles(display_name, avatar_url))';
 
 export class SupabaseGroupRepository implements IGroupRepository {
   async getAll(): Promise<Group[]> {
-    const { data, error } = await supabase
-      .from('groups')
-      .select(GROUP_SELECT)
-      .order('created_at', { ascending: false });
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
+    const { data, error } = await (supabase.rpc as any)('get_groups_for_user').select(GROUP_SELECT);
 
     if (error) throw error;
 
-    return (data ?? []).map((row) => {
-      const members = (row as typeof row & { group_members: GroupMemberWithProfile[] })
-        .group_members;
+    // biome-ignore lint/suspicious/noExplicitAny: RPC result shape mirrors groups table — safe cast
+    return (data ?? []).map((row: any) => {
+      const members = row.group_members as GroupMemberWithProfile[];
       return mapGroup(row, members);
     });
   }
@@ -85,7 +84,7 @@ export class SupabaseGroupRepository implements IGroupRepository {
     // Fetch the full member row with display name
     const { data: memberRow, error: memberError } = await supabase
       .from('group_members')
-      .select('user_id, group_id, joined_at, profiles(display_name)')
+      .select('user_id, group_id, joined_at, profiles(display_name, avatar_url)')
       .eq('group_id', groupId)
       .eq('user_id', userId)
       .single();
@@ -143,5 +142,48 @@ export class SupabaseGroupRepository implements IGroupRepository {
 
     if (error) throw error;
     return data as GroupId;
+  }
+
+  async update(id: GroupId, input: UpdateGroupInput): Promise<Group> {
+    const updateData: { name?: string; image_url?: string | null } = {};
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.imageUrl !== undefined) updateData.image_url = input.imageUrl;
+
+    const { error } = await supabase.from('groups').update(updateData).eq('id', id);
+    if (error) throw error;
+
+    return this.getById(id);
+  }
+
+  async archiveGroup(groupId: GroupId): Promise<void> {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
+    const { error } = await (supabase.rpc as any)('archive_group', {
+      p_group_id: groupId,
+    });
+    if (error) throw error;
+  }
+
+  async unarchiveGroup(groupId: GroupId): Promise<void> {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
+    const { error } = await (supabase.rpc as any)('unarchive_group', {
+      p_group_id: groupId,
+    });
+    if (error) throw error;
+  }
+
+  async uploadImage(id: GroupId, file: Blob): Promise<Group> {
+    const filePath = `groups/${id}/image`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true, contentType: 'image/jpeg' });
+    if (uploadError) throw uploadError;
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    const imageUrl = `${publicUrl}?t=${Date.now()}`;
+
+    return this.update(id, { imageUrl });
   }
 }

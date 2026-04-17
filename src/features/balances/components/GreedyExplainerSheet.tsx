@@ -5,6 +5,7 @@
  * Opened via the HelpCircle icon next to the "So gleicht ihr aus" heading.
  */
 
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -69,6 +70,11 @@ const CLARA = { initial: 'C', bgColor: 'oklch(0.78 0.1 75)', textColor: 'oklch(0
 
 export default function GreedyExplainerSheet({ onClose }: Props) {
   const { t } = useTranslation();
+
+  useBackHandler(() => {
+    onClose();
+    return true;
+  });
 
   return (
     <>

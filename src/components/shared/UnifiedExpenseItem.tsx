@@ -1,17 +1,18 @@
 import { cn } from '@/lib/utils';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
+import { UserAvatar } from '@components/shared/UserAvatar';
 import type { Money } from '@domain/types';
-import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 type UnifiedExpenseItemProps = {
   description: string;
   paidByName: string;
+  paidByAvatarUrl?: string | undefined;
   totalAmount: Money;
   /** Signed: positive = owed to you, negative = you owe. */
   shareAmount: Money;
-  /** Controls icon direction: TrendingUp if true, TrendingDown if false. */
-  paidByCurrentUser: boolean;
+  /** Kept for callers — previously controlled arrow direction. */
+  paidByCurrentUser?: boolean;
   /** Optional group name appended to the subtitle — used by the home feed. */
   groupName?: string;
   onClick?: () => void;
@@ -21,9 +22,9 @@ type UnifiedExpenseItemProps = {
 export function UnifiedExpenseItem({
   description,
   paidByName,
+  paidByAvatarUrl,
   totalAmount,
   shareAmount,
-  paidByCurrentUser,
   groupName,
   onClick,
   className,
@@ -43,13 +44,7 @@ export function UnifiedExpenseItem({
         className,
       )}
     >
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-        {paidByCurrentUser ? (
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <TrendingDown className="h-4 w-4 text-muted-foreground" />
-        )}
-      </div>
+      <UserAvatar name={paidByName} avatarUrl={paidByAvatarUrl} size="sm" />
 
       <div className="flex-1 min-w-0">
         <p className="truncate text-sm font-medium text-foreground">{description}</p>

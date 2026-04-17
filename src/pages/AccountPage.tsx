@@ -20,7 +20,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { App as CapacitorApp } from '@capacitor/app';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useBackHandler } from '@lib/capacitor/backHandler';
+import { useImagePicker } from '@lib/image/useImagePicker';
 import { useNavigate } from '@tanstack/react-router';
 import {
   Check,
@@ -35,7 +38,7 @@ import {
   Pencil,
   X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -104,12 +107,35 @@ function SettingsGroup({ children }: { children: React.ReactNode }) {
 
 export default function AccountPage() {
   const { t, i18n } = useTranslation();
-  const { user, isAnonymous, updateDisplayName, upgradeGuestWithEmail, signOut } = useAuth();
+  const { user, isAnonymous, updateDisplayName, uploadAvatar, upgradeGuestWithEmail, signOut } =
+    useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { pickImage, fileInputRef, onFileInputChange } = useImagePicker();
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+
+  useBackHandler(() => {
+    void CapacitorApp.exitApp();
+    return true;
+  });
 
   const currentDisplayName: string =
     user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
+  const currentAvatarUrl: string | undefined = user?.user_metadata?.avatar_url ?? undefined;
+
+  const handleAvatarClick = async () => {
+    setAvatarError(null);
+    const file = await pickImage();
+    if (!file) return;
+    setIsUploadingAvatar(true);
+    try {
+      await uploadAvatar(file);
+    } catch {
+      setAvatarError(t('account.avatar_upload_error'));
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   // --- Guest upgrade view -------------------------------------------------
   if (isAnonymous) {
@@ -153,25 +179,34 @@ export default function AccountPage() {
       {/* Avatar hero */}
       <div className="flex flex-col items-center gap-2 pt-3 pb-3">
         <div className="relative">
-          <UserAvatar name={currentDisplayName} size="xl" />
+          {isUploadingAvatar ? (
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <UserAvatar name={currentDisplayName} avatarUrl={currentAvatarUrl} size="xl" />
+          )}
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => void handleAvatarClick()}
+            disabled={isUploadingAvatar}
             className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md border-2 border-background"
             aria-label={t('account.profile_picture_label')}
           >
             <Pencil className="h-3 w-3 text-primary-foreground" />
           </button>
-          {/* Hidden file input — wired up but no-op until backend supports it */}
+          {/* Hidden file input — web fallback for image picker */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             className="sr-only"
             tabIndex={-1}
+            onChange={onFileInputChange}
           />
         </div>
         <p className="text-base font-semibold text-foreground">{currentDisplayName}</p>
+        {avatarError && <p className="text-destructive text-xs text-center px-6">{avatarError}</p>}
       </div>
 
       {/* Profile section */}

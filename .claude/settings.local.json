@@ -3,10 +3,6 @@
     "ENABLE_LSP_TOOL": "1"
   },
   "permissions": {
-    "deny": [
-      "Bash(npm run db:migrate:prod*)",
-      "Bash(supabase db push *)"
-    ],
     "allow": [
       "Bash(ls)",
       "Bash(cd)",
@@ -54,12 +50,20 @@
       "Bash(grep *)",
       "Bash(npm run *)",
       "Bash(npx supabase *)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "Bash(xargs grep:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh repo:*)"
+    ],
+    "deny": [
+      "Bash(npm run db:migrate:prod*)",
+      "Bash(supabase db push *)"
     ]
   },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true
   },
+    "shell": "C:\\Windows\\System32\\wsl.exe",
   "companyAnnouncements": [
     "MOIN!"
   ]

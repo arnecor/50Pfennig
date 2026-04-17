@@ -31,7 +31,7 @@ function getInitials(name: string): string {
 
 type UserAvatarProps = {
   name: string;
-  avatarUrl?: string;
+  avatarUrl?: string | undefined;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showName?: boolean;
   className?: string;

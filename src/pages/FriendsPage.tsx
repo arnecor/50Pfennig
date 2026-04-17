@@ -16,6 +16,7 @@
  *   raw bilateral calculation that ignores third-party payers.
  */
 
+import { App as CapacitorApp } from '@capacitor/app';
 import EmptyState from '@components/shared/EmptyState';
 import { FriendCard } from '@components/shared/FriendCard';
 import { PageHeader } from '@components/shared/PageHeader';
@@ -40,6 +41,7 @@ import {
   friendSettlementsQueryOptions,
   settlementsQueryOptions,
 } from '@features/settlements/settlementQueries';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { UserPlus } from 'lucide-react';
@@ -62,6 +64,11 @@ function FriendSkeleton() {
 export default function FriendsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  useBackHandler(() => {
+    void CapacitorApp.exitApp();
+    return true;
+  });
 
   const { data: friends = [], isLoading: friendsLoading } = useFriends();
   const { data: friendExpenses = [], isLoading: friendExpensesLoading } = useQuery(
@@ -186,6 +193,7 @@ export default function FriendsPage() {
               <FriendCard
                 key={friend.userId}
                 name={friend.displayName}
+                avatarUrl={friend.avatarUrl}
                 balance={balance ?? ZERO}
                 onClick={() =>
                   navigate({

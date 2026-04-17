@@ -7,9 +7,11 @@
  * each with a net balance summary.
  */
 
+import { App as CapacitorApp } from '@capacitor/app';
 import { FloatingActionButton } from '@components/shared/FloatingActionButton';
 import { PageHeader } from '@components/shared/PageHeader';
 import GroupList from '@features/groups/components/GroupList';
+import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +19,11 @@ import { useTranslation } from 'react-i18next';
 export default function GroupsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  useBackHandler(() => {
+    void CapacitorApp.exitApp();
+    return true;
+  });
 
   const handleCreateGroup = () => navigate({ to: '/groups/new' });
 
