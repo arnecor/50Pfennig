@@ -125,7 +125,16 @@
     "icon_camping": "Camping",
     "icon_plane": "Flug",
     "icon_vacation": "Urlaub",
-    "icon_group": "Gruppe"
+    "icon_group": "Gruppe",
+    "archive_action": "Archivieren",
+    "archive_confirm_title": "Gruppe archivieren?",
+    "archive_confirm_body": "Du kannst sie jederzeit im Archiv finden und wieder reaktivieren.",
+    "archived_section_title": "Archiviert",
+    "archived_banner_title": "Archivierte Gruppe",
+    "archived_banner_body": "Diese Gruppe ist archiviert. Alle Aktivitäten sind noch einsehbar.",
+    "archived_settings_hint": "Diese Gruppe ist archiviert. Reaktiviere sie, um wieder Ausgaben hinzuzufügen.",
+    "reactivate": "Reaktivieren",
+    "archived_badge": "Archiviert"
   },
   "invites": {
     "link_label": "Einladungslink",

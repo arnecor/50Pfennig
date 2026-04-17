@@ -89,6 +89,18 @@ export interface IGroupRepository {
   update(id: GroupId, input: UpdateGroupInput): Promise<Group>;
 
   /**
+   * Archive a group. Any member may call this.
+   * Archived groups become read-only in the UI and sink to a collapsed section.
+   */
+  archiveGroup(groupId: GroupId): Promise<void>;
+
+  /**
+   * Reactivate an archived group. Any member may call this.
+   * The group returns to the active list and editing is re-enabled.
+   */
+  unarchiveGroup(groupId: GroupId): Promise<void>;
+
+  /**
    * Upload a (pre-resized) image blob to storage, build a cache-busted public URL,
    * persist it on the group row, and return the updated Group.
    * Callers are responsible for resizing before calling this.

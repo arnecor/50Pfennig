@@ -117,6 +117,10 @@ export type Group = {
    * - 'https://...'   → uploaded image URL
    */
   readonly imageUrl?: string;
+  /** true when the group has been archived by any member */
+  readonly isArchived: boolean;
+  /** set when isArchived is true; undefined when the group is active */
+  readonly archivedAt?: Date;
 };
 
 /**
