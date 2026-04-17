@@ -34,8 +34,10 @@ import {
 import { initBackHandler } from './lib/capacitor/backHandler';
 import { type NotificationData, initPushNotifications } from './lib/capacitor/pushNotifications';
 import { initStatusBar } from './lib/capacitor/statusBar';
+import { initConnectivityService } from './lib/connectivity/connectivityService';
 import { checkInstallReferrer } from './lib/installReferrer';
 import { subscribeRealtime } from './lib/realtime/realtimeService';
+import { clearOfflineQueue } from './lib/storage/offlineQueue';
 import { CACHE_MAX_AGE, idbPersister } from './lib/storage/queryPersister';
 import { initSyncService } from './lib/storage/syncService';
 import { supabase } from './lib/supabase/client';
@@ -84,6 +86,26 @@ export default function App() {
   // Automatically updates when the user switches dark/light mode.
   useEffect(() => {
     void initStatusBar();
+  }, []);
+
+  // Start connectivity detection on mount so the offline banner works on the
+  // login screen (when no session exists yet) and for anonymous users.
+  // The service subscribes to OS network changes and periodically probes
+  // Supabase reachability — see lib/connectivity/connectivityService.ts.
+  useEffect(() => {
+    let cleanup: (() => void) | null = null;
+    let cancelled = false;
+    void initConnectivityService().then((fn) => {
+      if (cancelled) {
+        fn();
+      } else {
+        cleanup = fn;
+      }
+    });
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
   }, []);
 
   // Handle deep links from email confirmation (custom URI scheme: com.pfennig50.app://auth/callback).
@@ -172,6 +194,8 @@ export default function App() {
 
       // Start realtime + sync service as soon as a session is available.
       // Guard with null-check so TOKEN_REFRESHED events don't re-subscribe.
+      // Connectivity detection is started separately at app mount so the
+      // offline banner works on the login screen too.
       if (session && cleanupRealtime.current === null) {
         cleanupRealtime.current = subscribeRealtime(queryClient);
         void initSyncService(queryClient).then((cleanup) => {
@@ -192,10 +216,12 @@ export default function App() {
           void deletePushToken(currentPushToken.current);
           currentPushToken.current = null;
         }
-        // Wipe the in-memory cache and the IndexedDB snapshot so the next
-        // user never sees stale data from the previous session.
+        // Wipe the in-memory cache, the IndexedDB snapshot, and the offline
+        // mutation queue so the next user never sees stale data — or has
+        // their mutations replayed — from the previous session.
         queryClient.clear();
         idbPersister.removeClient();
+        void clearOfflineQueue();
       }
       setSession(session);
       setHydrated();

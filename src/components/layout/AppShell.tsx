@@ -1,3 +1,4 @@
+import OfflineBanner from '@/components/OfflineBanner';
 import GuestUpgradeDialog from '@/features/auth/components/GuestUpgradeDialog';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/uiStore';
@@ -34,6 +35,7 @@ export default function AppShell() {
 
   return (
     <div className="flex flex-col min-h-dvh bg-background text-foreground safe-top">
+      <OfflineBanner />
       <main className={cn('flex-1 overflow-auto', showNav && 'pb-16')}>
         <Outlet />
       </main>

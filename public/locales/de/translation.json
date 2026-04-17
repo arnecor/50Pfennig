@@ -18,7 +18,18 @@
     "yesterday": "Gestern",
     "camera_prompt_header": "Foto auswählen",
     "camera_prompt_photo": "Aus Fotos wählen",
-    "camera_prompt_picture": "Foto aufnehmen"
+    "camera_prompt_picture": "Foto aufnehmen",
+    "requires_internet": "Benötigt Internet"
+  },
+  "offline": {
+    "banner_hard": "Offline – Änderungen werden synchronisiert, sobald du wieder online bist.",
+    "banner_soft": "Schwache Verbindung – Änderungen werden synchronisiert, sobald das Signal besser wird.",
+    "pending_sync": "Wird synchronisiert, sobald du wieder online bist",
+    "sync_error": "Synchronisierung fehlgeschlagen",
+    "pending_changes_title": "Ausstehende Änderungen",
+    "pending_changes_empty": "Alle Änderungen sind synchronisiert.",
+    "pending_changes_retry": "Erneut versuchen",
+    "pending_changes_discard": "Verwerfen"
   },
   "auth": {
     "sign_in": "Anmelden",

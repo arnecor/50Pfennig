@@ -17,7 +17,18 @@
     "yesterday": "Yesterday",
     "camera_prompt_header": "Select Photo",
     "camera_prompt_photo": "From Photos",
-    "camera_prompt_picture": "Take Picture"
+    "camera_prompt_picture": "Take Picture",
+    "requires_internet": "Requires internet"
+  },
+  "offline": {
+    "banner_hard": "Offline — changes will sync when you're back online.",
+    "banner_soft": "Weak connection — changes will sync when the signal improves.",
+    "pending_sync": "Will sync when you're back online",
+    "sync_error": "Sync failed",
+    "pending_changes_title": "Pending changes",
+    "pending_changes_empty": "All changes are synced.",
+    "pending_changes_retry": "Retry",
+    "pending_changes_discard": "Discard"
   },
   "auth": {
     "sign_in": "Sign in",
