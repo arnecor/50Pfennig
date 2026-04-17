@@ -34,16 +34,14 @@ const GROUP_SELECT =
 
 export class SupabaseGroupRepository implements IGroupRepository {
   async getAll(): Promise<Group[]> {
-    const { data, error } = await supabase
-      .from('groups')
-      .select(GROUP_SELECT)
-      .order('created_at', { ascending: false });
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
+    const { data, error } = await (supabase.rpc as any)('get_groups_for_user').select(GROUP_SELECT);
 
     if (error) throw error;
 
-    return (data ?? []).map((row) => {
-      const members = (row as typeof row & { group_members: GroupMemberWithProfile[] })
-        .group_members;
+    // biome-ignore lint/suspicious/noExplicitAny: RPC result shape mirrors groups table — safe cast
+    return (data ?? []).map((row: any) => {
+      const members = row.group_members as GroupMemberWithProfile[];
       return mapGroup(row, members);
     });
   }
@@ -155,6 +153,22 @@ export class SupabaseGroupRepository implements IGroupRepository {
     if (error) throw error;
 
     return this.getById(id);
+  }
+
+  async archiveGroup(groupId: GroupId): Promise<void> {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
+    const { error } = await (supabase.rpc as any)('archive_group', {
+      p_group_id: groupId,
+    });
+    if (error) throw error;
+  }
+
+  async unarchiveGroup(groupId: GroupId): Promise<void> {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC not yet in generated types — remove cast after next db:types run
+    const { error } = await (supabase.rpc as any)('unarchive_group', {
+      p_group_id: groupId,
+    });
+    if (error) throw error;
   }
 
   async uploadImage(id: GroupId, file: Blob): Promise<Group> {

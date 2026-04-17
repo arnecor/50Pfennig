@@ -16,6 +16,14 @@
 import { GroupAvatar } from '@components/shared/GroupAvatar';
 import { PageHeader } from '@components/shared/PageHeader';
 import { Button } from '@components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@components/ui/dialog';
 import { Input } from '@components/ui/input';
 import { calculateGroupBalances } from '@domain/balance';
 import { buildIconImageUrl } from '@domain/groupImage';
@@ -28,14 +36,26 @@ import { useFriends } from '@features/friends/hooks/useFriends';
 import AddMemberOverlay from '@features/groups/components/AddMemberOverlay';
 import GroupImagePicker from '@features/groups/components/GroupImagePicker';
 import { useAddGroupMembers } from '@features/groups/hooks/useAddGroupMembers';
+import { useArchiveGroup } from '@features/groups/hooks/useArchiveGroup';
 import { useGroup } from '@features/groups/hooks/useGroups';
 import { useLeaveGroup } from '@features/groups/hooks/useLeaveGroup';
+import { useUnarchiveGroup } from '@features/groups/hooks/useUnarchiveGroup';
 import { useUpdateGroup } from '@features/groups/hooks/useUpdateGroup';
 import { useUploadGroupImage } from '@features/groups/hooks/useUploadGroupImage';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
 import { cn } from '@lib/utils';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Check, Loader2, LogOut, Pencil, Share2, UserPlus, X } from 'lucide-react';
+import {
+  Archive,
+  ArchiveRestore,
+  Check,
+  Loader2,
+  LogOut,
+  Pencil,
+  Share2,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -58,10 +78,13 @@ export default function GroupSettingsPage() {
   const uploadGroupImage = useUploadGroupImage();
   const addMembers = useAddGroupMembers();
   const leaveGroup = useLeaveGroup();
+  const archiveGroup = useArchiveGroup();
+  const unarchiveGroup = useUnarchiveGroup();
 
   const [showMemberOverlay, setShowMemberOverlay] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showAnonGate, setShowAnonGate] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
 
   // Name editing state
   const [isEditingName, setIsEditingName] = useState(false);
@@ -113,6 +136,30 @@ export default function GroupSettingsPage() {
       action();
     }
   }
+
+  // --- Archive / reactivate ---
+  function handleArchive() {
+    requireAuth(() => setShowArchiveDialog(true));
+  }
+
+  function handleConfirmArchive() {
+    if (!group) return;
+    archiveGroup.mutate(group.id, {
+      onSuccess: () => {
+        setShowArchiveDialog(false);
+        navigate({ to: '/groups' });
+      },
+    });
+  }
+
+  function handleReactivate() {
+    if (!group) return;
+    unarchiveGroup.mutate(group.id, {
+      onSuccess: () => navigate({ to: '/groups/$groupId', params: { groupId } }),
+    });
+  }
+
+  const isArchived = group?.isArchived ?? false;
 
   // --- Image picker callbacks ---
   function handlePickIcon(key: string) {
@@ -177,7 +224,7 @@ export default function GroupSettingsPage() {
       <div className="px-5 space-y-5">
         {/* --- Group image hero + name --- */}
         <div className="flex flex-col items-center gap-3 pt-2 pb-1">
-          {/* Avatar with edit button */}
+          {/* Avatar — edit button hidden for archived groups */}
           <div className="relative">
             {isImageLoading ? (
               <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center">
@@ -191,21 +238,27 @@ export default function GroupSettingsPage() {
                 className="rounded-2xl"
               />
             )}
-            <button
-              type="button"
-              onClick={() => requireAuth(() => setShowImagePicker(true))}
-              disabled={isImageLoading}
-              className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md border-2 border-background"
-              aria-label={t('groups.edit_picture')}
-            >
-              <Pencil className="h-3 w-3 text-primary-foreground" />
-            </button>
+            {!isArchived && (
+              <button
+                type="button"
+                onClick={() => requireAuth(() => setShowImagePicker(true))}
+                disabled={isImageLoading}
+                className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md border-2 border-background"
+                aria-label={t('groups.edit_picture')}
+              >
+                <Pencil className="h-3 w-3 text-primary-foreground" />
+              </button>
+            )}
           </div>
 
           {imageError && <p className="text-destructive text-xs text-center">{imageError}</p>}
 
-          {/* Editable group name */}
-          {isEditingName ? (
+          {/* Group name — read-only display for archived groups */}
+          {isArchived ? (
+            <span className="text-base font-semibold text-muted-foreground max-w-[200px] truncate py-1">
+              {groupLoading ? '…' : (group?.name ?? '')}
+            </span>
+          ) : isEditingName ? (
             <div className="flex items-center gap-2 w-full max-w-xs">
               <Input
                 autoFocus
@@ -258,20 +311,22 @@ export default function GroupSettingsPage() {
           {nameError && <p className="text-destructive text-xs">{nameError}</p>}
         </div>
 
-        {/* Share section */}
-        <div className="bg-card rounded-2xl border border-border p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-            {t('groups.share_group')}
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowMemberOverlay(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm font-medium transition-colors hover:bg-muted active:opacity-80"
-          >
-            <Share2 className="h-4 w-4" />
-            {t('groups.share_invite_link')}
-          </button>
-        </div>
+        {/* Share section — hidden for archived groups */}
+        {!isArchived && (
+          <div className="bg-card rounded-2xl border border-border p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+              {t('groups.share_group')}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowMemberOverlay(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm font-medium transition-colors hover:bg-muted active:opacity-80"
+            >
+              <Share2 className="h-4 w-4" />
+              {t('groups.share_invite_link')}
+            </button>
+          </div>
+        )}
 
         {/* Members section */}
         <div>
@@ -280,14 +335,16 @@ export default function GroupSettingsPage() {
               {t('groups.members')}
               {group ? ` (${group.members.length})` : ''}
             </p>
-            <button
-              type="button"
-              onClick={() => setShowMemberOverlay(true)}
-              className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              {t('groups.add_members')}
-            </button>
+            {!isArchived && (
+              <button
+                type="button"
+                onClick={() => setShowMemberOverlay(true)}
+                className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                {t('groups.add_members')}
+              </button>
+            )}
           </div>
 
           <div className="bg-card rounded-2xl border border-border overflow-hidden px-4">
@@ -345,22 +402,48 @@ export default function GroupSettingsPage() {
           </div>
         </div>
 
-        {/* Leave group section */}
-        <div>
-          {!canLeave && !isLoading && !isZero(myBalance) && (
-            <p className="text-xs text-muted-foreground text-center mb-3 px-2">
-              {t('groups.leave_blocked_hint')}
-            </p>
+        {/* Archive / Reactivate / Leave section */}
+        <div className="space-y-3">
+          {isArchived ? (
+            /* Archived group — show reactivate hint + button, hide leave */
+            <>
+              <p className="text-xs text-muted-foreground text-center px-2">
+                {t('groups.archived_settings_hint')}
+              </p>
+              <Button
+                variant="default"
+                className="w-full"
+                onClick={handleReactivate}
+                disabled={unarchiveGroup.isPending}
+              >
+                <ArchiveRestore className="mr-2 h-4 w-4" />
+                {unarchiveGroup.isPending ? t('common.loading') : t('groups.reactivate')}
+              </Button>
+            </>
+          ) : (
+            /* Active group — archive button + leave button */
+            <>
+              <Button variant="outline" className="w-full" onClick={handleArchive}>
+                <Archive className="mr-2 h-4 w-4" />
+                {t('groups.archive_action')}
+              </Button>
+
+              {!canLeave && !isLoading && !isZero(myBalance) && (
+                <p className="text-xs text-muted-foreground text-center px-2">
+                  {t('groups.leave_blocked_hint')}
+                </p>
+              )}
+              <Button
+                variant="destructive"
+                className="w-full"
+                disabled={!canLeave || leaveGroup.isPending}
+                onClick={handleLeave}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {leaveGroup.isPending ? t('common.loading') : t('groups.leave_group')}
+              </Button>
+            </>
           )}
-          <Button
-            variant="destructive"
-            className="w-full"
-            disabled={!canLeave || leaveGroup.isPending}
-            onClick={handleLeave}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            {leaveGroup.isPending ? t('common.loading') : t('groups.leave_group')}
-          </Button>
         </div>
       </div>
 
@@ -387,6 +470,33 @@ export default function GroupSettingsPage() {
       {showAnonGate && (
         <GuestUpgradeDialog variant="gate" onDismiss={() => setShowAnonGate(false)} />
       )}
+
+      {/* Archive confirmation dialog */}
+      <Dialog
+        open={showArchiveDialog}
+        onOpenChange={(open) => {
+          if (!open) setShowArchiveDialog(false);
+        }}
+      >
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t('groups.archive_confirm_title')}</DialogTitle>
+            <DialogDescription>{t('groups.archive_confirm_body')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowArchiveDialog(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmArchive}
+              disabled={archiveGroup.isPending}
+            >
+              {archiveGroup.isPending ? t('common.loading') : t('groups.archive_action')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
