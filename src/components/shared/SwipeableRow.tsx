@@ -94,13 +94,14 @@ export function SwipeableRow({
         {action}
       </div>
 
-      {/* Content layer — slides left to reveal the action */}
+      {/* Content layer — solid background ensures the action never bleeds through */}
       <div
         ref={contentRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
+        className="bg-background"
         style={{ transform: 'translateX(0)', willChange: 'transform' }}
       >
         {children}
