@@ -124,7 +124,16 @@
     "icon_camping": "Camping",
     "icon_plane": "Flight",
     "icon_vacation": "Vacation",
-    "icon_group": "Group"
+    "icon_group": "Group",
+    "archive_action": "Archive",
+    "archive_confirm_title": "Archive group?",
+    "archive_confirm_body": "You can find it in the archive at any time and reactivate it.",
+    "archived_section_title": "Archived",
+    "archived_banner_title": "Archived group",
+    "archived_banner_body": "This group is archived. All activity is still visible.",
+    "archived_settings_hint": "This group is archived. Reactivate it to start adding expenses again.",
+    "reactivate": "Reactivate",
+    "archived_badge": "Archived"
   },
   "invites": {
     "link_label": "Invite link",

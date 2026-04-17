@@ -69,6 +69,10 @@ export const mapGroup = (row: GroupRow, members: GroupMemberWithProfile[]): Grou
   createdBy: row.created_by as UserId,
   createdAt: new Date(row.created_at),
   members: members.map(mapGroupMember),
+  // biome-ignore lint/suspicious/noExplicitAny: is_archived/archived_at not yet in generated types — remove cast after next db:types run
+  isArchived: (row as any).is_archived ?? false,
+  // biome-ignore lint/suspicious/noExplicitAny: archived_at not yet in generated types
+  ...((row as any).archived_at ? { archivedAt: new Date((row as any).archived_at as string) } : {}),
   ...(row.image_url ? { imageUrl: row.image_url } : {}),
 });
 
