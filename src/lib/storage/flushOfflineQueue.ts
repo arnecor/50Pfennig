@@ -71,15 +71,17 @@ function errorMessage(err: unknown): string {
 }
 
 /**
- * Rewrites any queued mutation that still carries a stale temp id so the
- * next replay uses the server-assigned id. Called after a CREATE_* succeeds.
+ * Rewrites references in *other* queued mutations that still carry a stale
+ * temp id, so the next replay uses the server-assigned id.
+ * Called after a CREATE_* succeeds and its own item has already been removed
+ * from the queue via complete(). We must NOT rewrite the completed item's own
+ * id here — it is already gone, and doing so caused an infinite replay loop
+ * (the id change made complete()'s filter miss the item, leaving it in the
+ * queue to be replayed on every subsequent flush trigger).
  */
 function rewriteParentIds(tempId: string, serverId: string): void {
   const items = useOfflineQueue.getState().items;
   const updated = items.map((m) => {
-    if (m.id === tempId) {
-      return { ...m, id: serverId };
-    }
     // CREATE_EXPENSE can reference a temp group id
     if (m.type === 'CREATE_EXPENSE' && m.payload.groupId === tempId) {
       return { ...m, payload: { ...m.payload, groupId: serverId } };
@@ -217,8 +219,12 @@ export async function flushOfflineQueue(queryClient: QueryClient): Promise<Flush
           }
         }
 
-        if (serverId) rewriteParentIds(m.id, serverId);
+        // Remove the item first (while its id still matches tempId), then
+        // rewrite references in any remaining items. Reversed order prevents
+        // the completed item from surviving the filter when its own id gets
+        // rewritten from tempId → serverId by rewriteParentIds.
         useOfflineQueue.getState().complete(m.id);
+        if (serverId) rewriteParentIds(m.id, serverId);
         outcome.succeeded += 1;
       } catch (err) {
         const kind = classifyError(err);

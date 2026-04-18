@@ -73,6 +73,13 @@ export default function App() {
             staleTime: 1000 * 30, // 30 s — fallback freshness; realtime + app-resume handle the rest
             gcTime: CACHE_MAX_AGE,
           },
+          mutations: {
+            // Always run mutationFn regardless of network state so the offline-aware
+            // repositories can decide between Supabase and the queue. The TanStack
+            // Query default ('online') would pause mutations while offline, preventing
+            // OfflineAwareExpenseRepository.create() from ever being called.
+            networkMode: 'offlineFirst',
+          },
         },
       }),
   );
