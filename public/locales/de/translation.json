@@ -29,7 +29,16 @@
     "pending_changes_title": "Ausstehende Änderungen",
     "pending_changes_empty": "Alle Änderungen sind synchronisiert.",
     "pending_changes_retry": "Erneut versuchen",
-    "pending_changes_discard": "Verwerfen"
+    "pending_changes_discard": "Verwerfen",
+    "pending_changes_failed_heading": "Benötigen deine Aufmerksamkeit",
+    "pending_changes_inflight_heading": "Warten auf Synchronisierung",
+    "pending_changes_link": "Ausstehende Änderungen ansehen",
+    "retry_count": "{{count}} Versuche",
+    "reason_unknown": "Unbekannter Fehler",
+    "mutation_create_expense": "Ausgabe erstellen",
+    "mutation_update_expense": "Ausgabe bearbeiten",
+    "mutation_delete_expense": "Ausgabe löschen",
+    "mutation_create_group": "Gruppe erstellen"
   },
   "auth": {
     "sign_in": "Anmelden",
