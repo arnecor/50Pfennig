@@ -10,10 +10,10 @@
   --background: oklch(0.98 0.005 240);
   --foreground: oklch(0.35 0.025 250);
 
-  /* Card - Warm off-white with subtle peach tint */
-  --card: oklch(0.985 0.012 45);
+  /* Card - Pure White with subtle cool tint */
+  --card: oklch(0.995 0.002 240);
   --card-foreground: oklch(0.35 0.025 250);
-  --popover: oklch(0.985 0.012 45);
+  --popover: oklch(0.995 0.002 240);
   --popover-foreground: oklch(0.35 0.025 250);
 
   /* Primary - Ice Blue (brand color, matches app icon) */
@@ -86,10 +86,10 @@
   --background: oklch(0.18 0.015 250);
   --foreground: oklch(0.94 0.008 240);
 
-  /* Card - Slate with subtle warm undertone */
-  --card: oklch(0.22 0.018 35);
+  /* Card - Slightly Lighter Slate */
+  --card: oklch(0.22 0.015 250);
   --card-foreground: oklch(0.94 0.008 240);
-  --popover: oklch(0.22 0.018 35);
+  --popover: oklch(0.22 0.015 250);
   --popover-foreground: oklch(0.94 0.008 240);
 
   /* Primary - Ice Blue (brighter for dark mode) */
