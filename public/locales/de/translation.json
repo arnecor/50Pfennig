@@ -38,7 +38,8 @@
     "mutation_create_expense": "Ausgabe erstellen",
     "mutation_update_expense": "Ausgabe bearbeiten",
     "mutation_delete_expense": "Ausgabe löschen",
-    "mutation_create_group": "Gruppe erstellen"
+    "mutation_create_group": "Gruppe erstellen",
+    "balance_unavailable": "Du bist aktuell offline. Gehe wieder online, um diese Ansicht zu sehen."
   },
   "auth": {
     "sign_in": "Anmelden",

@@ -40,6 +40,18 @@ import { useAuthStore } from '@features/auth/authStore';
 import { useOfflineQueue } from './offlineQueue';
 
 /**
+ * Returns true for fetch-level network failures (no TCP connection, DNS failure,
+ * request aborted). Returns false for HTTP-level errors (4xx, 5xx) which carry
+ * meaningful server responses and should not be silently queued.
+ */
+function isNetworkError(err: unknown): boolean {
+  return (
+    err instanceof TypeError &&
+    /failed to fetch|network request failed|load failed/i.test((err as TypeError).message)
+  );
+}
+
+/**
  * Builds the optimistic Expense snapshot returned by create() while offline.
  * It carries a temp id (prefixed `tmp_`) so the cache can display it and
  * flushOfflineQueue can later swap parent ids if dependent mutations follow.
@@ -82,6 +94,15 @@ export class OfflineAwareExpenseRepository implements IExpenseRepository {
     return useConnectivityStore.getState().status !== 'online';
   }
 
+  /**
+   * Marks the OS as disconnected so subsequent shouldQueue() calls return true,
+   * then queues the write. Called when a live Supabase call fails with a network
+   * error mid-session (soft-offline: OS still reports connected but packets lost).
+   */
+  private markOffline(): void {
+    useConnectivityStore.getState().setOsConnected(false);
+  }
+
   getById(id: ExpenseId): Promise<Expense> {
     return this.inner.getById(id);
   }
@@ -99,8 +120,20 @@ export class OfflineAwareExpenseRepository implements IExpenseRepository {
   }
 
   async create(input: CreateExpenseInput): Promise<Expense> {
-    if (!this.shouldQueue()) return this.inner.create(input);
+    if (this.shouldQueue()) return this.createOffline(input);
 
+    try {
+      return await this.inner.create(input);
+    } catch (err) {
+      if (isNetworkError(err) && isOfflineModeEnabled()) {
+        this.markOffline();
+        return this.createOffline(input);
+      }
+      throw err;
+    }
+  }
+
+  private createOffline(input: CreateExpenseInput): Expense {
     const createdBy = currentUserId();
     const optimistic = buildOptimisticExpense(input, createdBy);
 
@@ -130,8 +163,20 @@ export class OfflineAwareExpenseRepository implements IExpenseRepository {
   }
 
   async update(id: ExpenseId, input: UpdateExpenseInput): Promise<Expense> {
-    if (!this.shouldQueue()) return this.inner.update(id, input);
+    if (this.shouldQueue()) return this.updateOffline(id, input);
 
+    try {
+      return await this.inner.update(id, input);
+    } catch (err) {
+      if (isNetworkError(err) && isOfflineModeEnabled()) {
+        this.markOffline();
+        return this.updateOffline(id, input);
+      }
+      throw err;
+    }
+  }
+
+  private updateOffline(id: ExpenseId, input: UpdateExpenseInput): Expense {
     // Offline updates require the caller to pass the *full* merged snapshot
     // (totalAmount, split, paidBy, description, participants). The hook owns
     // the current expense from its TanStack cache and merges before calling
@@ -193,8 +238,20 @@ export class OfflineAwareExpenseRepository implements IExpenseRepository {
   }
 
   async delete(id: ExpenseId): Promise<void> {
-    if (!this.shouldQueue()) return this.inner.delete(id);
+    if (this.shouldQueue()) return this.deleteOffline(id);
 
+    try {
+      return await this.inner.delete(id);
+    } catch (err) {
+      if (isNetworkError(err) && isOfflineModeEnabled()) {
+        this.markOffline();
+        return this.deleteOffline(id);
+      }
+      throw err;
+    }
+  }
+
+  private deleteOffline(id: ExpenseId): void {
     useOfflineQueue.getState().enqueue({
       id: id as string,
       type: 'DELETE_EXPENSE',

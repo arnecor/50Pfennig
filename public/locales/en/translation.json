@@ -37,7 +37,8 @@
     "mutation_create_expense": "Create expense",
     "mutation_update_expense": "Edit expense",
     "mutation_delete_expense": "Delete expense",
-    "mutation_create_group": "Create group"
+    "mutation_create_group": "Create group",
+    "balance_unavailable": "You're offline. Go back online to see balances."
   },
   "auth": {
     "sign_in": "Sign in",

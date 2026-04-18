@@ -21,6 +21,18 @@ import { useAuthStore } from '@features/auth/authStore';
 
 import { useOfflineQueue } from './offlineQueue';
 
+/**
+ * Returns true for fetch-level network failures (no TCP connection, DNS failure,
+ * request aborted). Returns false for HTTP-level errors (4xx, 5xx) which carry
+ * meaningful server responses and should not be silently queued.
+ */
+function isNetworkError(err: unknown): boolean {
+  return (
+    err instanceof TypeError &&
+    /failed to fetch|network request failed|load failed/i.test((err as TypeError).message)
+  );
+}
+
 function currentUserId(): UserId {
   const session = useAuthStore.getState().session;
   if (!session) {
@@ -43,6 +55,15 @@ export class OfflineAwareGroupRepository implements IGroupRepository {
     return useConnectivityStore.getState().status !== 'online';
   }
 
+  /**
+   * Marks the OS as disconnected so subsequent shouldQueue() calls return true,
+   * then queues the write. Called when a live Supabase call fails with a network
+   * error mid-session (soft-offline: OS still reports connected but packets lost).
+   */
+  private markOffline(): void {
+    useConnectivityStore.getState().setOsConnected(false);
+  }
+
   getAll(): Promise<Group[]> {
     return this.inner.getAll();
   }
@@ -51,8 +72,20 @@ export class OfflineAwareGroupRepository implements IGroupRepository {
   }
 
   async create(input: CreateGroupInput): Promise<Group> {
-    if (!this.shouldQueue()) return this.inner.create(input);
+    if (this.shouldQueue()) return this.createOffline(input);
 
+    try {
+      return await this.inner.create(input);
+    } catch (err) {
+      if (isNetworkError(err) && isOfflineModeEnabled()) {
+        this.markOffline();
+        return this.createOffline(input);
+      }
+      throw err;
+    }
+  }
+
+  private createOffline(input: CreateGroupInput): Group {
     const createdBy = currentUserId();
     const tempId = generateTempId() as GroupId;
     const now = new Date();
@@ -69,7 +102,7 @@ export class OfflineAwareGroupRepository implements IGroupRepository {
     // Optimistic Group with just the creator as a member. Any extra members
     // will appear after the replay refetch — they require server-side
     // friendship checks, which we can't safely do offline.
-    const optimistic: Group = {
+    return {
       id: tempId,
       name: input.name,
       createdBy,
@@ -84,7 +117,6 @@ export class OfflineAwareGroupRepository implements IGroupRepository {
       ],
       isArchived: false,
     };
-    return optimistic;
   }
 
   // ---- Tier 2 operations — require network today ----

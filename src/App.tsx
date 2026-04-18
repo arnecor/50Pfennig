@@ -67,6 +67,9 @@ export default function App() {
       new QueryClient({
         defaultOptions: {
           queries: {
+            // Always run queryFn regardless of network state so IndexedDB-persisted
+            // cache is served immediately when offline instead of pausing the query.
+            networkMode: 'offlineFirst',
             staleTime: 1000 * 30, // 30 s — fallback freshness; realtime + app-resume handle the rest
             gcTime: CACHE_MAX_AGE,
           },

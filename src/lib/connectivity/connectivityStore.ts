@@ -32,11 +32,14 @@ type ConnectivityState = {
   setProbeResult: (reachable: boolean) => void;
 };
 
+// Derive initial state synchronously from navigator.onLine so writes during the
+// async Capacitor probe window are correctly queued on hard-offline boot.
+// The probe refines this to 'soft_offline' / 'online' once it completes.
+const initialOnline = typeof navigator === 'undefined' || navigator.onLine;
+
 export const useConnectivityStore = create<ConnectivityState>((set) => ({
-  // Optimistic default: assume online until proven otherwise. The connectivity
-  // service updates this within milliseconds of app start via Network.getStatus().
-  status: 'online',
-  osConnected: true,
+  status: initialOnline ? 'online' : 'hard_offline',
+  osConnected: initialOnline,
   lastProbeAt: null,
   lastProbeSucceeded: null,
   setOsConnected: (connected) =>
