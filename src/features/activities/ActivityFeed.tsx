@@ -165,6 +165,7 @@ export default function ActivityFeed({
                     totalAmount={item.totalAmount}
                     shareAmount={signedShare}
                     paidByCurrentUser={item.paidByCurrentUser}
+                    expenseId={item.id}
                     {...(item.groupName !== undefined && { groupName: item.groupName })}
                     {...(onItemClick && { onClick: () => onItemClick(item) })}
                   />

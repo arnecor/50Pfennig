@@ -18,6 +18,7 @@ import type { DebtInstruction, Group, Money, UserId } from '@domain/types';
 import { money } from '@domain/types';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
 import { useBackHandler } from '@lib/capacitor/backHandler';
+import { useRequireOnline } from '@lib/connectivity/useRequireOnline';
 import { Circle, CircleDot, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -63,6 +64,7 @@ export default function RecordGroupSettlementSheet({
 }: Props) {
   const { t } = useTranslation();
   const createSettlement = useCreateSettlement();
+  const { disabled: offlineDisabled, hint: offlineHint } = useRequireOnline();
 
   useBackHandler(() => {
     onClose();
@@ -249,13 +251,20 @@ export default function RecordGroupSettlementSheet({
               size="lg"
               className="flex-1"
               disabled={
-                !fromUserId || !toUserId || fromUserId === toUserId || createSettlement.isPending
+                !fromUserId ||
+                !toUserId ||
+                fromUserId === toUserId ||
+                createSettlement.isPending ||
+                offlineDisabled
               }
               onClick={handleSubmit}
             >
               {createSettlement.isPending ? t('common.loading') : t('settlements.submit')}
             </Button>
           </div>
+          {offlineHint && (
+            <p className="mt-2 text-center text-xs text-muted-foreground">{offlineHint}</p>
+          )}
           {createSettlement.isError && (
             <p className="mt-2 text-center text-xs text-destructive">{t('common.error_generic')}</p>
           )}

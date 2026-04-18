@@ -18,7 +18,28 @@
     "yesterday": "Gestern",
     "camera_prompt_header": "Foto auswählen",
     "camera_prompt_photo": "Aus Fotos wählen",
-    "camera_prompt_picture": "Foto aufnehmen"
+    "camera_prompt_picture": "Foto aufnehmen",
+    "requires_internet": "Benötigt Internet"
+  },
+  "offline": {
+    "banner_hard": "Offline – Änderungen werden synchronisiert, sobald du wieder online bist.",
+    "banner_soft": "Schwache Verbindung – Änderungen werden synchronisiert, sobald das Signal besser wird.",
+    "pending_sync": "Wird synchronisiert, sobald du wieder online bist",
+    "sync_error": "Synchronisierung fehlgeschlagen",
+    "pending_changes_title": "Ausstehende Änderungen",
+    "pending_changes_empty": "Alle Änderungen sind synchronisiert.",
+    "pending_changes_retry": "Erneut versuchen",
+    "pending_changes_discard": "Verwerfen",
+    "pending_changes_failed_heading": "Benötigen deine Aufmerksamkeit",
+    "pending_changes_inflight_heading": "Warten auf Synchronisierung",
+    "pending_changes_link": "Ausstehende Änderungen ansehen",
+    "retry_count": "{{count}} Versuche",
+    "reason_unknown": "Unbekannter Fehler",
+    "mutation_create_expense": "Ausgabe erstellen",
+    "mutation_update_expense": "Ausgabe bearbeiten",
+    "mutation_delete_expense": "Ausgabe löschen",
+    "mutation_create_group": "Gruppe erstellen",
+    "balance_unavailable": "Du bist aktuell offline. Gehe wieder online, um diese Ansicht zu sehen."
   },
   "auth": {
     "sign_in": "Anmelden",

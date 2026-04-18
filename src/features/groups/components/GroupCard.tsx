@@ -7,6 +7,7 @@
  */
 
 import { cn } from '@/lib/utils';
+import PendingSyncMarker from '@components/PendingSyncMarker';
 import { GroupAvatar } from '@components/shared/GroupAvatar';
 import { Badge } from '@components/ui/badge';
 import { calculateGroupBalances } from '@domain/balance';
@@ -66,11 +67,12 @@ export default function GroupCard({ group }: Props) {
       <div className="flex-1 min-w-0">
         <p
           className={cn(
-            'font-semibold truncate',
+            'font-semibold truncate flex items-center gap-1.5',
             archived || settled ? 'text-muted-foreground' : 'text-foreground',
           )}
         >
-          {group.name}
+          <span className="truncate">{group.name}</span>
+          <PendingSyncMarker id={String(group.id)} />
         </p>
         <p className="text-xs text-muted-foreground mt-0.5 truncate">
           {formatMemberNames(memberNames, 3)}

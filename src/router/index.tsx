@@ -59,6 +59,7 @@ const GroupSettingsPage = lazy(() => import('../pages/GroupSettingsPage'));
 const ImprintPage = lazy(() => import('../pages/ImprintPage'));
 const LoginPage = lazy(() => import('../pages/LoginPage'));
 const OnboardingPage = lazy(() => import('../pages/OnboardingPage'));
+const PendingChangesPage = lazy(() => import('../pages/PendingChangesPage'));
 const SettlementDetailPage = lazy(() => import('../pages/SettlementDetailPage'));
 const SettlementsPage = lazy(() => import('../pages/SettlementsPage'));
 
@@ -265,6 +266,13 @@ const imprintRoute = createRoute({
   component: ImprintPage,
 });
 
+const pendingChangesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account/pending-changes',
+  beforeLoad: requireAuth,
+  component: PendingChangesPage,
+});
+
 // ---------------------------------------------------------------------------
 // Route tree + router instance
 // ---------------------------------------------------------------------------
@@ -292,6 +300,7 @@ const routeTree = rootRoute.addChildren([
   friendDetailRoute,
   accountRoute,
   imprintRoute,
+  pendingChangesRoute,
 ]);
 
 export const router = createRouter({

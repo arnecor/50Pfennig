@@ -43,6 +43,7 @@ import { useUnarchiveGroup } from '@features/groups/hooks/useUnarchiveGroup';
 import { useUpdateGroup } from '@features/groups/hooks/useUpdateGroup';
 import { useUploadGroupImage } from '@features/groups/hooks/useUploadGroupImage';
 import { useSettlements } from '@features/settlements/hooks/useSettlements';
+import { useRequireOnline } from '@lib/connectivity/useRequireOnline';
 import { cn } from '@lib/utils';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import {
@@ -80,6 +81,7 @@ export default function GroupSettingsPage() {
   const leaveGroup = useLeaveGroup();
   const archiveGroup = useArchiveGroup();
   const unarchiveGroup = useUnarchiveGroup();
+  const { disabled: offlineDisabled, hint: offlineHint } = useRequireOnline();
 
   const [showMemberOverlay, setShowMemberOverlay] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
@@ -423,10 +425,18 @@ export default function GroupSettingsPage() {
           ) : (
             /* Active group — archive button + leave button */
             <>
-              <Button variant="outline" className="w-full" onClick={handleArchive}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleArchive}
+                disabled={offlineDisabled}
+              >
                 <Archive className="mr-2 h-4 w-4" />
                 {t('groups.archive_action')}
               </Button>
+              {offlineHint && (
+                <p className="text-center text-xs text-muted-foreground">{offlineHint}</p>
+              )}
 
               {!canLeave && !isLoading && !isZero(myBalance) && (
                 <p className="text-xs text-muted-foreground text-center px-2">
@@ -490,7 +500,7 @@ export default function GroupSettingsPage() {
             <Button
               variant="destructive"
               onClick={handleConfirmArchive}
-              disabled={archiveGroup.isPending}
+              disabled={archiveGroup.isPending || offlineDisabled}
             >
               {archiveGroup.isPending ? t('common.loading') : t('groups.archive_action')}
             </Button>

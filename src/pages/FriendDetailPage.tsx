@@ -451,6 +451,7 @@ export default function FriendDetailPage() {
                                 totalAmount={expense.totalAmount}
                                 shareAmount={signedShare}
                                 paidByCurrentUser={paidByCurrentUser}
+                                expenseId={String(expense.id)}
                                 onClick={() =>
                                   navigate({
                                     to: '/expenses/$expenseId',

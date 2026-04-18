@@ -330,6 +330,7 @@ export default function GroupDetailPage() {
                           totalAmount={expense.totalAmount}
                           shareAmount={signedShare}
                           paidByCurrentUser={paidByCurrentUser}
+                          expenseId={String(expense.id)}
                           onClick={() =>
                             navigate({
                               to: '/expenses/$expenseId',
