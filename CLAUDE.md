@@ -7,6 +7,9 @@ Full architectural rationale lives in [docs/adr/](docs/adr/).
 
 ## General coding guidelines
 Always act like a professional Senior Developer. Do not take shortcuts or do dirty fixes. A clean architecture needs to be maintained. You code will be reviewed by codex.
+
+## Technical debt — single source of truth
+All known technical debt is tracked in [docs/TECH_DEBT.md](docs/TECH_DEBT.md). Whenever a change consciously leaves debt behind (a deferred refactor, a workaround, a partial solution), you MUST add an entry to that file using the template at the top — do not bury the trade-off only in commit messages or PR descriptions. When debt is paid down, move the entry to the Resolved section rather than deleting it.
 ## Code Quality
 Prefer correct, complete implementations over minimal ones.
 - Use appropriate data structures and algorithms - don't brute-force what has a known better solution. - When fixing a bug, fix the root cause, not the symptom.

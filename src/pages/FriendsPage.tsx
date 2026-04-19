@@ -26,7 +26,7 @@ import {
   extractSimplifiedDebt,
   simplifyDebts,
 } from '@domain/balance';
-import { add } from '@domain/money';
+import { add, isZero as isZeroMoney } from '@domain/money';
 import { isSameUser } from '@domain/types';
 import type { UserId } from '@domain/types';
 import { ZERO } from '@domain/types';
@@ -98,48 +98,65 @@ export default function FriendsPage() {
   const friendsWithData = useMemo(() => {
     if (!currentUserId) return [];
 
-    return friends
-      .map((friend) => {
-        let balance = ZERO;
+    return (
+      friends
+        .map((friend) => {
+          let balance = ZERO;
 
-        // Group contributions: use simplified group debts
-        for (let i = 0; i < groups.length; i++) {
-          // biome-ignore lint/style/noNonNullAssertion: loop bound guarantees i is in range
-          const group = groups[i]!;
-          const isMember = group.members.some((m) => isSameUser(m.userId, friend.userId));
-          if (!isMember) continue;
+          // Group contributions: use simplified group debts
+          for (let i = 0; i < groups.length; i++) {
+            // biome-ignore lint/style/noNonNullAssertion: loop bound guarantees i is in range
+            const group = groups[i]!;
+            const isMember = group.members.some((m) => isSameUser(m.userId, friend.userId));
+            if (!isMember) continue;
 
-          const groupExpenses = groupExpensesResults[i]?.data ?? [];
-          const groupSettlements = groupSettlementsResults[i]?.data ?? [];
-          const balanceMap = calculateGroupBalances(groupExpenses, groupSettlements, group.members);
-          const instructions = simplifyDebts(balanceMap);
-          balance = add(balance, extractSimplifiedDebt(instructions, currentUserId, friend.userId));
-        }
+            const groupExpenses = groupExpensesResults[i]?.data ?? [];
+            const groupSettlements = groupSettlementsResults[i]?.data ?? [];
+            const balanceMap = calculateGroupBalances(
+              groupExpenses,
+              groupSettlements,
+              group.members,
+            );
+            const instructions = simplifyDebts(balanceMap);
+            balance = add(
+              balance,
+              extractSimplifiedDebt(instructions, currentUserId, friend.userId),
+            );
+          }
 
-        // Direct contributions: bilateral on friend-only data
-        const directExpenses = friendExpenses.filter(
-          (e) =>
-            isSameUser(e.paidBy, friend.userId) ||
-            e.splits.some((s) => isSameUser(s.userId, friend.userId)),
-        );
-        const directSettlements = allFriendSettlements.filter(
-          (s) => isSameUser(s.fromUserId, friend.userId) || isSameUser(s.toUserId, friend.userId),
-        );
-        balance = add(
-          balance,
-          computeBilateralBalance(directExpenses, directSettlements, currentUserId, friend.userId),
-        );
+          // Direct contributions: bilateral on friend-only data
+          const directExpenses = friendExpenses.filter(
+            (e) =>
+              isSameUser(e.paidBy, friend.userId) ||
+              e.splits.some((s) => isSameUser(s.userId, friend.userId)),
+          );
+          const directSettlements = allFriendSettlements.filter(
+            (s) => isSameUser(s.fromUserId, friend.userId) || isSameUser(s.toUserId, friend.userId),
+          );
+          balance = add(
+            balance,
+            computeBilateralBalance(
+              directExpenses,
+              directSettlements,
+              currentUserId,
+              friend.userId,
+            ),
+          );
 
-        // Use last direct expense date for sorting (group expenses not relevant here)
-        const lastExpenseDate = directExpenses[0]?.createdAt;
-        return { friend, balance, lastExpenseDate };
-      })
-      .sort((a, b) => {
-        if (!a.lastExpenseDate && !b.lastExpenseDate) return 0;
-        if (!a.lastExpenseDate) return 1;
-        if (!b.lastExpenseDate) return -1;
-        return b.lastExpenseDate.getTime() - a.lastExpenseDate.getTime();
-      });
+          // Use last direct expense date for sorting (group expenses not relevant here)
+          const lastExpenseDate = directExpenses[0]?.createdAt;
+          return { friend, balance, lastExpenseDate };
+        })
+        // Deleted friends linger only while there's still an open balance to
+        // reconcile; once settled they disappear from the list entirely.
+        .filter(({ friend, balance }) => !(friend.isDeleted && isZeroMoney(balance)))
+        .sort((a, b) => {
+          if (!a.lastExpenseDate && !b.lastExpenseDate) return 0;
+          if (!a.lastExpenseDate) return 1;
+          if (!b.lastExpenseDate) return -1;
+          return b.lastExpenseDate.getTime() - a.lastExpenseDate.getTime();
+        })
+    );
   }, [
     friends,
     groups,
@@ -195,6 +212,7 @@ export default function FriendsPage() {
                 name={friend.displayName}
                 avatarUrl={friend.avatarUrl}
                 balance={balance ?? ZERO}
+                isDeleted={friend.isDeleted}
                 onClick={() =>
                   navigate({
                     to: '/friends/$friendId',

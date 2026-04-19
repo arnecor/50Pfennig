@@ -113,6 +113,7 @@ export class OfflineAwareGroupRepository implements IGroupRepository {
           groupId: tempId,
           displayName: currentUserDisplayName(),
           joinedAt: now,
+          isDeleted: false,
         },
       ],
       isArchived: false,

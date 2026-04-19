@@ -16,6 +16,7 @@
 import { OfflineAwareExpenseRepository } from '../lib/storage/offlineAwareExpenseRepository';
 import { OfflineAwareGroupRepository } from '../lib/storage/offlineAwareGroupRepository';
 import { SupabaseFriendRepository } from './supabase/friendRepository';
+import { SupabaseProfileRepository } from './supabase/profileRepository';
 import { SupabaseSettlementRepository } from './supabase/settlementRepository';
 
 // Tier 1 writes (create expense/group, edit/delete own expense) are wrapped
@@ -26,3 +27,4 @@ export const groupRepository = new OfflineAwareGroupRepository();
 export const expenseRepository = new OfflineAwareExpenseRepository();
 export const settlementRepository = new SupabaseSettlementRepository();
 export const friendRepository = new SupabaseFriendRepository();
+export const profileRepository = new SupabaseProfileRepository();

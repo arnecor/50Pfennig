@@ -50,9 +50,9 @@ export default function SettlementsPage() {
 
   const memberName = (id: UserId) => {
     if ((id as string) === (currentUserId as string)) return t('common.you');
-    return (
-      group?.members.find((m) => (m.userId as string) === (id as string))?.displayName ?? String(id)
-    );
+    const member = group?.members.find((m) => (m.userId as string) === (id as string));
+    if (!member) return String(id);
+    return member.isDeleted ? t('common.deleted_user') : member.displayName;
   };
 
   const handleOpenSheet = (s?: DebtInstruction) => {

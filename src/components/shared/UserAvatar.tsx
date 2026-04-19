@@ -1,10 +1,19 @@
 import { cn } from '@/lib/utils';
+import { UserX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const sizeClasses = {
   sm: 'w-8 h-8 text-xs',
   md: 'w-10 h-10 text-sm',
   lg: 'w-12 h-12 text-base',
   xl: 'w-16 h-16 text-lg',
+} as const;
+
+const iconSizeClasses = {
+  sm: 'h-4 w-4',
+  md: 'h-5 w-5',
+  lg: 'h-6 w-6',
+  xl: 'h-8 w-8',
 } as const;
 
 /**
@@ -35,6 +44,12 @@ type UserAvatarProps = {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showName?: boolean;
   className?: string;
+  /**
+   * When true, renders a neutral grey placeholder with a UserX icon instead
+   * of initials/avatar, and shows the localised "Gelöschter Nutzer" label
+   * when showName is set. Used for accounts that have been hard-deleted.
+   */
+  isDeleted?: boolean;
 };
 
 export function UserAvatar({
@@ -43,7 +58,29 @@ export function UserAvatar({
   size = 'md',
   showName = false,
   className,
+  isDeleted = false,
 }: UserAvatarProps) {
+  const { t } = useTranslation();
+
+  if (isDeleted) {
+    const label = t('common.deleted_user');
+    return (
+      <div className={cn('flex items-center gap-2', className)}>
+        <div
+          className={cn(
+            'rounded-full flex items-center justify-center bg-muted text-muted-foreground shrink-0',
+            sizeClasses[size],
+          )}
+          aria-label={label}
+          title={label}
+        >
+          <UserX className={iconSizeClasses[size]} />
+        </div>
+        {showName && <span className="font-medium text-muted-foreground italic">{label}</span>}
+      </div>
+    );
+  }
+
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <div

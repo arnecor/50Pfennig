@@ -18,6 +18,7 @@ import { UserAvatar } from '@/components/shared/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -36,6 +37,7 @@ import {
   MailCheck,
   MessageSquare,
   Pencil,
+  Trash2,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -113,6 +115,7 @@ export default function AccountPage() {
   const { pickImage, fileInputRef, onFileInputChange } = useImagePicker();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useBackHandler(() => {
     void CapacitorApp.exitApp();
@@ -330,6 +333,21 @@ export default function AccountPage() {
           {t('auth.sign_out')}
         </button>
       </div>
+
+      {/* Delete account — placed at the very bottom to de-emphasise it and
+          separate it from the more common sign-out action above. */}
+      <div className="mx-4 mt-4">
+        <button
+          type="button"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          className="w-full flex items-center justify-center gap-2 py-3 text-xs font-medium text-muted-foreground underline-offset-4 hover:text-destructive hover:underline transition-colors"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          {t('account.delete_section_title')}
+        </button>
+      </div>
+
+      <DeleteAccountDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} />
     </div>
   );
 }

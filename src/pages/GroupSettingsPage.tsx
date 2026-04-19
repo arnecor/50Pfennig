@@ -374,8 +374,17 @@ export default function GroupSettingsPage() {
                     className="flex items-center gap-3 py-3 border-b border-border last:border-0"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {isMe ? t('common.you') : member.displayName}
+                      <p
+                        className={cn(
+                          'text-sm font-medium truncate',
+                          member.isDeleted ? 'text-muted-foreground italic' : 'text-foreground',
+                        )}
+                      >
+                        {isMe
+                          ? t('common.you')
+                          : member.isDeleted
+                            ? t('common.deleted_user')
+                            : member.displayName}
                         {isMe && (
                           <span className="ml-1.5 text-xs font-normal text-muted-foreground">
                             ({member.displayName})

@@ -55,6 +55,7 @@ export default function HomePage() {
     t('common.you'),
     t('common.you_dative'),
     (n) => t('expenses.x_people', { count: n }),
+    t('common.deleted_user'),
   );
 
   const handleActivityClick = (item: ActivityItem) => {

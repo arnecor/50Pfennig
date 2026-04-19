@@ -32,6 +32,7 @@ import { useRouter } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { resizeImage } from '../../../lib/image/resizeImage';
 import { supabase } from '../../../lib/supabase/client';
+import { profileRepository } from '../../../repositories';
 import { useAuthStore } from '../authStore';
 
 export const useAuth = () => {
@@ -162,6 +163,19 @@ export const useAuth = () => {
     await router.navigate({ to: '/login' });
   }, [router]);
 
+  /**
+   * Permanently deletes the current user's account.
+   * Server-side work (profile anonymisation, avatar removal, auth.users hard
+   * delete) runs in the `delete-account` Edge Function. On success the user is
+   * signed out locally — the existing SIGNED_OUT handler in App.tsx clears the
+   * push token, IndexedDB cache and offline queue, so no manual cleanup here.
+   */
+  const deleteAccount = useCallback(async () => {
+    await profileRepository.deleteOwnAccount();
+    await supabase.auth.signOut();
+    await router.navigate({ to: '/login' });
+  }, [router]);
+
   const updateDisplayName = useCallback(
     async (name: string) => {
       const trimmed = name.trim();
@@ -240,6 +254,7 @@ export const useAuth = () => {
     signInAsGuest,
     upgradeGuestWithEmail,
     signOut,
+    deleteAccount,
     updateDisplayName,
     uploadAvatar,
   };

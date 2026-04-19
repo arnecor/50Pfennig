@@ -82,10 +82,12 @@ export default function RecordGroupSettlementSheet({
   const [note, setNote] = useState('');
   const [amountError, setAmountError] = useState('');
 
-  const memberName = (id: UserId) =>
-    id === currentUserId
-      ? t('common.you')
-      : (group.members.find((m) => m.userId === id)?.displayName ?? String(id));
+  const memberName = (id: UserId) => {
+    if (id === currentUserId) return t('common.you');
+    const member = group.members.find((m) => m.userId === id);
+    if (!member) return String(id);
+    return member.isDeleted ? t('common.deleted_user') : member.displayName;
+  };
 
   const handleSubmit = async () => {
     const cents = parseAmountCents(amountStr);

@@ -67,9 +67,10 @@ export default function AddMemberOverlay({
     [group.members],
   );
 
-  // Friends not yet in the group
+  // Friends not yet in the group. Deleted users are never offered as
+  // candidates — they cannot be invited to new groups.
   const addableFriends = useMemo(
-    () => friends.filter((f) => !existingMemberIds.has(f.userId)),
+    () => friends.filter((f) => !f.isDeleted && !existingMemberIds.has(f.userId)),
     [friends, existingMemberIds],
   );
 

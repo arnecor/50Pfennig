@@ -30,7 +30,7 @@ import type { CreateGroupInput, IGroupRepository, UpdateGroupInput } from '../ty
 
 /** Select string that embeds the profiles join for display names */
 const GROUP_SELECT =
-  '*, group_members(user_id, group_id, joined_at, profiles(display_name, avatar_url))';
+  '*, group_members(user_id, group_id, joined_at, profiles(display_name, avatar_url, deleted_at))';
 
 export class SupabaseGroupRepository implements IGroupRepository {
   async getAll(): Promise<Group[]> {
@@ -84,13 +84,14 @@ export class SupabaseGroupRepository implements IGroupRepository {
     // Fetch the full member row with display name
     const { data: memberRow, error: memberError } = await supabase
       .from('group_members')
-      .select('user_id, group_id, joined_at, profiles(display_name, avatar_url)')
+      .select('user_id, group_id, joined_at, profiles(display_name, avatar_url, deleted_at)')
       .eq('group_id', groupId)
       .eq('user_id', userId)
       .single();
 
     if (memberError) throw memberError;
-    return mapGroupMember(memberRow as GroupMemberWithProfile);
+    // deleted_at not yet in generated types — remove the unknown cast after next db:types run
+    return mapGroupMember(memberRow as unknown as GroupMemberWithProfile);
   }
 
   async removeMember(groupId: GroupId, userId: UserId): Promise<void> {
@@ -116,7 +117,9 @@ export class SupabaseGroupRepository implements IGroupRepository {
     // biome-ignore lint/suspicious/noExplicitAny: group_events table not yet in generated types — remove cast after next db:types run
     const { data, error } = await (supabase as any)
       .from('group_events')
-      .select('id, group_id, user_id, event_type, metadata, created_at, profiles(display_name)')
+      .select(
+        'id, group_id, user_id, event_type, metadata, created_at, profiles(display_name, deleted_at)',
+      )
       .eq('group_id', groupId)
       .order('created_at', { ascending: false });
 
