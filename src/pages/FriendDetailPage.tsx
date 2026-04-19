@@ -474,7 +474,9 @@ export default function FriendDetailPage() {
                           // settlement row
                           const { batch } = item;
                           const friendName = friend
-                            ? (friend.isDeleted ? t('common.deleted_user') : friend.displayName)
+                            ? friend.isDeleted
+                              ? t('common.deleted_user')
+                              : friend.displayName
                             : '…';
                           const label = batch.iMePaying
                             ? t('settlements.you_paid_friend', { name: friendName })

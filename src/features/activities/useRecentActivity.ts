@@ -101,7 +101,8 @@ export function useRecentActivity(
     if (!currentUserId) return [];
 
     const currentIdStr = currentUserId as string;
-    const getName = (uid: string) => resolveName(uid, currentIdStr, youLabel, deletedLabel, groups, friends);
+    const getName = (uid: string) =>
+      resolveName(uid, currentIdStr, youLabel, deletedLabel, groups, friends);
     const getAvatarUrl = (uid: string) =>
       resolveAvatarUrl(uid, currentIdStr, currentUserAvatarUrl, groups, friends);
     const items: ActivityItem[] = [];
@@ -260,6 +261,7 @@ export function useRecentActivity(
     currentUserId,
     currentUserAvatarUrl,
     youLabel,
+    deletedLabel,
     youDativeLabel,
     personsLabel,
     groups,
