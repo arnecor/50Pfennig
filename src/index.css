@@ -250,11 +250,3 @@
 .amount-negative {
   @apply text-destructive font-semibold;
 }
-
-/* QR scanner: make WebView transparent so the native camera layer shows through */
-html.barcode-scanner-active,
-html.barcode-scanner-active body,
-html.barcode-scanner-active #root,
-html.barcode-scanner-active #root > div {
-  background: transparent !important;
-}

@@ -31,7 +31,6 @@
     "icon": "node scripts/generate-android-icons.mjs"
   },
   "dependencies": {
-    "@capacitor-mlkit/barcode-scanning": "^6.2.0",
     "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^6.0.0",
     "@capacitor/browser": "^6.0.6",
