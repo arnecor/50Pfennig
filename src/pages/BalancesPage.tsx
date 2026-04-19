@@ -39,7 +39,9 @@ export default function BalancesPage() {
 
   const memberName = (id: UserId) => {
     if (currentUserId && isSameUser(id, currentUserId)) return t('common.you');
-    return group?.members.find((m) => isSameUser(m.userId, id))?.displayName ?? String(id);
+    const member = group?.members.find((m) => isSameUser(m.userId, id));
+    if (!member) return String(id);
+    return member.isDeleted ? t('common.deleted_user') : member.displayName;
   };
 
   const handleOpenSheet = (s: DebtInstruction) => {
