@@ -59,6 +59,7 @@ const toMember = (userId: UserId): GroupMember => ({
   groupId: GID,
   displayName: userId as string,
   joinedAt: new Date('2024-01-01'),
+  isDeleted: false,
 });
 
 /** Sum all values in a BalanceMap (plain number for easy assertions). */
