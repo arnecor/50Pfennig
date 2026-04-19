@@ -110,8 +110,8 @@ BEGIN
       deleted_at   = COALESCE(deleted_at, now())
   WHERE id = v_user;
 
-  DELETE FROM public.push_tokens     WHERE user_id    = v_user;
-  DELETE FROM public.friend_invites  WHERE inviter_id = v_user OR used_by = v_user;
+  DELETE FROM public.push_tokens    WHERE user_id    = v_user;
+  DELETE FROM public.friend_invites WHERE inviter_id = v_user;
 END;
 $$;
 
