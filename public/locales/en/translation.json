@@ -18,7 +18,8 @@
     "camera_prompt_header": "Select Photo",
     "camera_prompt_photo": "From Photos",
     "camera_prompt_picture": "Take Picture",
-    "requires_internet": "Requires internet"
+    "requires_internet": "Requires internet",
+    "deleted_user": "Deleted user"
   },
   "offline": {
     "banner_hard": "Offline — changes will sync when you're back online.",
@@ -333,7 +334,15 @@
     "imprint_address_line1_placeholder": "Henriettenstr. 23",
     "imprint_address_line2_placeholder": "20259 Hamburg",
     "imprint_country_placeholder": "Germany",
-    "imprint_email_placeholder": "info@sharli.app"
+    "imprint_email_placeholder": "info@sharli.app",
+    "delete_section_title": "Delete account",
+    "delete_button": "Delete account",
+    "delete_warning_title": "Permanently delete account?",
+    "delete_warning_body": "You can delete your account at any time. All your personal data will be permanently erased. If you're still in groups with open entries, those entries may continue to appear to other group members in anonymised form.\n\n<strong>Please settle any outstanding balances before deleting your account.</strong>",
+    "delete_cancel": "Cancel",
+    "delete_confirm": "Permanently delete account",
+    "delete_in_progress": "Deleting account…",
+    "delete_failed": "Deletion failed. Please try again."
   },
   "payment_detail": {
     "expense_title": "Expense Details",

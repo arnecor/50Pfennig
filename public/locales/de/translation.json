@@ -19,7 +19,8 @@
     "camera_prompt_header": "Foto auswählen",
     "camera_prompt_photo": "Aus Fotos wählen",
     "camera_prompt_picture": "Foto aufnehmen",
-    "requires_internet": "Benötigt Internet"
+    "requires_internet": "Benötigt Internet",
+    "deleted_user": "Gelöschter Nutzer"
   },
   "offline": {
     "banner_hard": "Offline – Änderungen werden synchronisiert, sobald du wieder online bist.",
@@ -334,7 +335,15 @@
     "imprint_address_line1_placeholder": "Henriettenstr. 23",
     "imprint_address_line2_placeholder": "20259 Hamburg",
     "imprint_country_placeholder": "Deutschland",
-    "imprint_email_placeholder": "info@sharli.app"
+    "imprint_email_placeholder": "info@sharli.app",
+    "delete_section_title": "Account löschen",
+    "delete_button": "Account löschen",
+    "delete_warning_title": "Account unwiderruflich löschen?",
+    "delete_warning_body": "Du kannst deinen Account jederzeit löschen. Dabei werden alle deine persönlichen Daten dauerhaft gelöscht. Wenn du noch in Gruppen mit offenen Einträgen bist, werden diese Einträge für die übrigen Gruppenmitglieder ggf. in anonymisierter Form weiter angezeigt.\n\n<strong>Bitte gleiche ausstehende Zahlungen vor dem Löschen deines Accounts aus.</strong>",
+    "delete_cancel": "Abbrechen",
+    "delete_confirm": "Account unwiderruflich löschen",
+    "delete_in_progress": "Account wird gelöscht…",
+    "delete_failed": "Löschen fehlgeschlagen. Bitte erneut versuchen."
   },
   "payment_detail": {
     "expense_title": "Ausgabe Details",
