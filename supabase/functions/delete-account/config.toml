@@ -1,0 +1,5 @@
+[functions.delete-account]
+# The Edge Function runtime only supports HS256 JWT verification, but this
+# project uses ES256 (asymmetric) JWTs. Disable runtime-level verification here
+# and let the function verify the caller via supabase.auth.getUser() instead.
+verify_jwt = false
