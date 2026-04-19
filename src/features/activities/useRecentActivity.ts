@@ -35,16 +35,17 @@ function resolveName(
   userId: string,
   currentIdStr: string,
   youLabel: string,
+  deletedLabel: string,
   groups: Group[],
   friends: Friend[],
 ): string {
   if (userId === currentIdStr) return youLabel;
   for (const group of groups) {
     const member = group.members.find((m) => (m.userId as string) === userId);
-    if (member?.displayName) return member.displayName;
+    if (member) return member.isDeleted ? deletedLabel : member.displayName;
   }
   const friend = friends.find((f) => (f.userId as string) === userId);
-  if (friend) return friend.displayName;
+  if (friend) return friend.isDeleted ? deletedLabel : friend.displayName;
   return userId;
 }
 
@@ -69,6 +70,7 @@ export function useRecentActivity(
   youLabel: string,
   youDativeLabel: string,
   personsLabel: (count: number) => string,
+  deletedLabel: string,
 ) {
   const [page, setPage] = useState(1);
 
@@ -99,7 +101,7 @@ export function useRecentActivity(
     if (!currentUserId) return [];
 
     const currentIdStr = currentUserId as string;
-    const getName = (uid: string) => resolveName(uid, currentIdStr, youLabel, groups, friends);
+    const getName = (uid: string) => resolveName(uid, currentIdStr, youLabel, deletedLabel, groups, friends);
     const getAvatarUrl = (uid: string) =>
       resolveAvatarUrl(uid, currentIdStr, currentUserAvatarUrl, groups, friends);
     const items: ActivityItem[] = [];
