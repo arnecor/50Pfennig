@@ -129,10 +129,11 @@ export default function RecordFriendSettlementSheet({
   };
 
   const youLabel = currentUserDisplayName ?? t('common.you');
-  const fromName = fromUserId === currentUserId ? t('common.you') : friend.displayName;
-  const toName = toUserId === currentUserId ? t('common.you') : friend.displayName;
-  const fromAvatar = fromUserId === currentUserId ? youLabel : friend.displayName;
-  const toAvatar = toUserId === currentUserId ? youLabel : friend.displayName;
+  const friendName = friend.isDeleted ? t('common.deleted_user') : friend.displayName;
+  const fromName = fromUserId === currentUserId ? t('common.you') : friendName;
+  const toName = toUserId === currentUserId ? t('common.you') : friendName;
+  const fromAvatar = fromUserId === currentUserId ? youLabel : friendName;
+  const toAvatar = toUserId === currentUserId ? youLabel : friendName;
 
   return (
     <>

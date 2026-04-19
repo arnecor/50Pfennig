@@ -15,8 +15,9 @@ if (process.env.VITE_APP_ENV === 'production') {
  *                     ↳ expense_splits cascade from expenses automatically
  *   3. Groups       — created_by ref auth.users (no cascade)
  *                     ↳ group_members cascade from groups automatically
- *   4. Auth users   — cascades to: profiles → friendships, friend_invites,
- *                     group_members (if any remain); push_tokens
+ *   4. Friendships  — user_id / friend_id ref profiles (explicit, no reliable cascade)
+ *   5. Profiles     — id refs auth.users (explicit, avoids cascade timing issues)
+ *   6. Auth users   — cascades to: friend_invites, group_members (if any remain); push_tokens
  *
  * Usage:
  *   npm run db:remove-val-users
@@ -193,8 +194,39 @@ async function main() {
     console.log(`  ✓  Deleted ${count ?? 0} group(s)`);
   }
 
-  // ── Step 6: Delete auth users ──────────────────────────────────────────────
-  // Cascades: profiles → friendships, friend_invites, group_members; push_tokens.
+  // ── Step 6: Delete friendships ────────────────────────────────────────────
+  // friendships.user_id / friend_id reference profiles — no reliable cascade.
+  console.log('\n🤝  Deleting friendships…');
+  {
+    const { error: e1, count: c1 } = await supabase
+      .from('friendships')
+      .delete({ count: 'exact' })
+      .in('user_id', valUserIds);
+    if (e1) { console.error('✗ friendships (user_id):', e1); process.exit(1); }
+    console.log(`  ✓  Deleted ${c1 ?? 0} friendship(s) where val user is requester`);
+  }
+  {
+    const { error: e2, count: c2 } = await supabase
+      .from('friendships')
+      .delete({ count: 'exact' })
+      .in('friend_id', valUserIds);
+    if (e2) { console.error('✗ friendships (friend_id):', e2); process.exit(1); }
+    console.log(`  ✓  Deleted ${c2 ?? 0} friendship(s) where val user is recipient`);
+  }
+
+  // ── Step 7: Delete profiles ────────────────────────────────────────────────
+  // profiles.id references auth.users — explicit deletion avoids cascade timing issues.
+  console.log('\n🪪  Deleting profiles…');
+  {
+    const { error, count } = await supabase
+      .from('profiles')
+      .delete({ count: 'exact' })
+      .in('id', valUserIds);
+    if (error) { console.error('✗ profiles:', error); process.exit(1); }
+    console.log(`  ✓  Deleted ${count ?? 0} profile(s)`);
+  }
+
+  // ── Step 8: Delete auth users ──────────────────────────────────────────────
   console.log('\n👤  Deleting auth users…');
 
   for (const user of valUsers) {
