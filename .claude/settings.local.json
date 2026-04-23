@@ -53,7 +53,8 @@
       "Bash(echo *)",
       "Bash(xargs grep:*)",
       "Bash(gh issue:*)",
-      "Bash(gh repo:*)"
+      "Bash(gh repo:*)",
+      "WebFetch(domain:developers.google.com)"
     ],
     "deny": [
       "Bash(npm run db:migrate:prod*)",
@@ -63,8 +64,8 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true
   },
-    "shell": "C:\\Windows\\System32\\wsl.exe",
   "companyAnnouncements": [
     "MOIN!"
-  ]
+  ],
+  "shell": "C:\\Windows\\System32\\wsl.exe"
 }
