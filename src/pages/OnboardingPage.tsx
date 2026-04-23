@@ -161,6 +161,20 @@ export default function OnboardingPage() {
               {t('common.continue')}
             </Button>
 
+            {GOOGLE_LOGIN_ENABLED && (
+              <>
+                <div className="flex items-center gap-4">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                    {t('auth.or_divider')}
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                <GoogleSignInButton />
+              </>
+            )}
+
             <button
               type="button"
               onClick={handleGoToLogin}
