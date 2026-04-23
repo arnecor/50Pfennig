@@ -34,6 +34,11 @@ export function SwipeableRow({
   const startXRef = useRef(0);
   const currentOffsetRef = useRef(0);
   const isDraggingRef = useRef(false);
+  const hasCapturedRef = useRef(false);
+
+  // Horizontal movement required before we commit to a swipe gesture.
+  // Keeps taps from being swallowed by pointer capture.
+  const SWIPE_THRESHOLD = 8;
 
   function applyOffset(offset: number, animate: boolean) {
     const el = contentRef.current;
@@ -48,13 +53,20 @@ export function SwipeableRow({
     // Ignore multi-touch secondary pointers
     if (e.isPrimary === false) return;
     isDraggingRef.current = true;
+    hasCapturedRef.current = false;
     startXRef.current = e.clientX + currentOffsetRef.current;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    // Do NOT capture here — wait for movement threshold so taps pass through
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!isDraggingRef.current || !enabled) return;
     const rawDelta = startXRef.current - e.clientX;
+    if (!hasCapturedRef.current) {
+      if (Math.abs(rawDelta) < SWIPE_THRESHOLD) return;
+      // Committed to a horizontal swipe — capture the pointer now
+      e.currentTarget.setPointerCapture(e.pointerId);
+      hasCapturedRef.current = true;
+    }
     // Only allow left swipe (positive delta), cap at actionWidth + 8px overscroll
     const clamped = Math.max(0, Math.min(rawDelta, actionWidth + 8));
     applyOffset(clamped, false);
@@ -63,6 +75,7 @@ export function SwipeableRow({
   function handlePointerUp() {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
+    hasCapturedRef.current = false;
     const offset = currentOffsetRef.current;
     if (offset >= actionWidth * 0.5) {
       // Snap open
@@ -76,6 +89,7 @@ export function SwipeableRow({
   function handlePointerCancel() {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
+    hasCapturedRef.current = false;
     applyOffset(0, true);
   }
 
