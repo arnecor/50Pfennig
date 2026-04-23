@@ -65,7 +65,7 @@ export function GroupAvatar({ imageUrl, groupName, size = 'md', className }: Gro
   const Icon = iconMap[image.key] ?? iconMap.default ?? Users;
   return (
     <div className={containerClass}>
-      <Icon className={cn('text-foreground', iconSizeClasses[size])} />
+      <Icon className={cn('text-primary', iconSizeClasses[size])} />
     </div>
   );
 }
