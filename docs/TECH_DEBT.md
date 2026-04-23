@@ -41,4 +41,6 @@ This is the single, authoritative log of known technical debt in Sharli. Wheneve
 
 ## Resolved
 
-<!-- Move closed entries here with: resolution date and PR/commit reference. -->
+### Install referrer stub (deferred deep links broken on Android)
+- **Date added:** 2026-04-23 (retroactive — stub existed since Capacitor 6 migration)
+- **Resolved:** 2026-04-23 — replaced stub in `src/lib/installReferrer.ts` with a custom Capacitor plugin (`InstallReferrerPlugin.java`) wrapping Google's official `com.android.installreferrer:installreferrer:2.2` library. No third-party npm package. iOS returns null gracefully; Swift implementation can be added later.

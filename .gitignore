@@ -19,7 +19,7 @@ supabase/.branches
 supabase/.temp
 
 # Capacitor
-android/
+# android/ is tracked — hand-edited files (plugins, manifest, resources) must not be lost
 ios/
 
 # Editor
