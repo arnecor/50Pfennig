@@ -238,7 +238,7 @@ export default function RecordGroupSettlementSheet({
         </div>
 
         {/* Footer */}
-        <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="border-t px-4 pt-4 pb-safe">
           <div className="flex gap-3">
             <Button
               size="lg"

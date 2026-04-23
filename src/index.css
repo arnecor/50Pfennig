@@ -237,6 +237,15 @@
   padding-right: env(safe-area-inset-right, 0px);
 }
 
+/*
+ * Use .pb-safe on the innermost scrollable/content div of every bottom sheet.
+ * calc() guarantees 1.5rem of breathing room *above* the nav bar on all devices.
+ * Never use pb-safe-bottom (does not exist) or ad-hoc max()/calc() inline styles.
+ */
+.pb-safe {
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* Custom scrollbar for mobile feel */
 ::-webkit-scrollbar {
   width: 0px;

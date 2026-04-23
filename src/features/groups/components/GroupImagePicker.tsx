@@ -73,7 +73,7 @@ export default function GroupImagePicker({
       />
 
       {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-background pb-safe-bottom shadow-xl">
+      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-background shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
           <p className="text-sm font-semibold text-foreground">{t('groups.edit_picture')}</p>
@@ -87,7 +87,7 @@ export default function GroupImagePicker({
           </button>
         </div>
 
-        <div className="px-5 pb-6 space-y-4">
+        <div className="px-5 pb-safe space-y-4">
           {/* Predefined icon grid */}
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
