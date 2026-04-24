@@ -15,6 +15,7 @@
  * Imported by: repositories/index.ts (factory binding)
  */
 
+import { convertToBase } from '../../domain/money';
 import { splitExpense } from '../../domain/splitting';
 import { type ExpenseSplit, type UserId, money } from '../../domain/types';
 import type { Expense, ExpenseId, GroupId } from '../../domain/types';
@@ -67,29 +68,34 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
   }
 
   async create(input: CreateExpenseInput): Promise<Expense> {
-    // Compute the per-user split snapshot using the domain algorithm.
-    // This snapshot is stored in expense_splits and is immutable history.
-    const splitAmounts = splitExpense(input.totalAmount, input.participants, input.split);
+    const fxRate = input.fxRate ?? 1.0;
+    const baseTotalAmount = input.baseTotalAmount ?? convertToBase(input.totalAmount, fxRate);
+
+    // Splits are computed on baseTotalAmount (in group base currency) to preserve
+    // allocate() rounding guarantees. See plan §Phase 2 "Splitting — important detail".
+    const splitAmounts = splitExpense(baseTotalAmount, input.participants, input.split);
     const splits = input.participants.map((userId) => ({
       userId,
       // biome-ignore lint/style/noNonNullAssertion: splitExpense guarantees a value for every participant
       amount: splitAmounts[userId]!,
     }));
 
-    // Write expense + splits atomically in one Postgres transaction.
-    const { data: expenseRow, error } = await supabase.rpc('create_expense', {
-      p_group_id: (input.groupId ?? null) as string, // null is valid; generated types don't reflect nullable param
+    // biome-ignore lint/suspicious/noExplicitAny: currency RPC params not yet in generated types — remove after next db:types run
+    const { data: expenseRow, error } = await (supabase.rpc as any)('create_expense', {
+      p_group_id: (input.groupId ?? null) as string,
       p_description: input.description,
       p_total_amount: input.totalAmount,
       p_paid_by: input.paidBy,
       p_split_type: input.split.type,
       p_split_config: serialiseSplitConfig(input.split),
       p_splits: serialiseSplits(splits),
+      p_currency: input.currency ?? 'EUR',
+      p_fx_rate: fxRate,
+      p_base_total_amount: baseTotalAmount,
     });
 
     if (error) throw error;
 
-    // Fetch the persisted splits to build the full domain Expense.
     const { data: splitRows, error: splitError } = await supabase
       .from('expense_splits')
       .select('*')
@@ -101,7 +107,6 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
   }
 
   async update(id: ExpenseId, input: UpdateExpenseInput): Promise<Expense> {
-    // Fetch the current expense so we can fill in any omitted fields.
     const { data: current, error: fetchError } = await supabase
       .from('expenses')
       .select('*, expense_splits(*)')
@@ -114,23 +119,26 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
       current as typeof current & { expense_splits: Array<{ user_id: string }> }
     ).expense_splits;
 
-    // Merge new values with current — only provided fields are updated.
     const totalAmount = input.totalAmount ?? money(current.total_amount);
     const split = input.split ?? (current.split_config as unknown as ExpenseSplit);
     const paidBy = input.paidBy ?? (current.paid_by as UserId);
     const description = input.description ?? current.description;
     const participants = input.participants ?? currentSplits.map((s) => s.user_id as UserId);
 
-    // Recompute the split snapshot.
-    const splitAmounts = splitExpense(totalAmount, participants, split);
+    // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types
+    const fxRate = input.fxRate ?? (current as any).fx_rate ?? 1.0;
+    const baseTotalAmount = input.baseTotalAmount ?? convertToBase(totalAmount, fxRate);
+
+    // Splits computed on baseTotalAmount (base currency) to preserve allocate() guarantees.
+    const splitAmounts = splitExpense(baseTotalAmount, participants, split);
     const splits = participants.map((userId) => ({
       userId,
       // biome-ignore lint/style/noNonNullAssertion: splitExpense guarantees a value for every participant
       amount: splitAmounts[userId]!,
     }));
 
-    // Write atomically — deletes old splits and inserts new ones in one transaction.
-    const { data: expenseRow, error } = await supabase.rpc('update_expense', {
+    // biome-ignore lint/suspicious/noExplicitAny: currency RPC params not yet in generated types — remove after next db:types run
+    const { data: expenseRow, error } = await (supabase.rpc as any)('update_expense', {
       p_expense_id: id,
       p_description: description,
       p_total_amount: totalAmount,
@@ -138,6 +146,10 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
       p_split_type: split.type,
       p_split_config: serialiseSplitConfig(split),
       p_splits: serialiseSplits(splits),
+      // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types
+      p_currency: input.currency ?? (current as any).currency ?? 'EUR',
+      p_fx_rate: fxRate,
+      p_base_total_amount: baseTotalAmount,
     });
 
     if (error) throw error;

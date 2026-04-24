@@ -15,9 +15,11 @@
  */
 
 import type {
+  CurrencyCode,
   Expense,
   ExpenseId,
   ExpenseSplit,
+  FxRate,
   Friend,
   FriendshipId,
   Group,
@@ -38,6 +40,8 @@ import type {
 export type CreateGroupInput = {
   name: string;
   memberIds: UserId[];
+  baseCurrency?: CurrencyCode;
+  defaultCurrency?: CurrencyCode;
 };
 
 export type UpdateGroupInput = {
@@ -151,12 +155,15 @@ export interface IFriendRepository {
 // ---------------------------------------------------------------------------
 
 export type CreateExpenseInput = {
-  groupId: GroupId | null; // null = friend expense (not in a group)
+  groupId: GroupId | null;
   description: string;
   totalAmount: Money;
   paidBy: UserId;
   split: ExpenseSplit;
   participants: UserId[];
+  currency?: CurrencyCode;
+  fxRate?: FxRate;
+  baseTotalAmount?: Money;
 };
 
 export type UpdateExpenseInput = Partial<Omit<CreateExpenseInput, 'groupId'>>;
@@ -203,11 +210,14 @@ export interface IExpenseRepository {
 // ---------------------------------------------------------------------------
 
 export type CreateSettlementInput = {
-  groupId: GroupId | null; // null = friend settlement (not in a group)
+  groupId: GroupId | null;
   fromUserId: UserId;
   toUserId: UserId;
   amount: Money;
   note?: string;
+  currency?: CurrencyCode;
+  fxRate?: FxRate;
+  baseAmount?: Money;
 };
 
 /** Input for creating a settlement batch — one real-world payment split across contexts (ADR-0012) */
@@ -220,6 +230,9 @@ export type CreateSettlementBatchInput = {
     fromUserId: UserId;
     toUserId: UserId;
     amount: Money;
+    currency?: CurrencyCode;
+    fxRate?: FxRate;
+    baseAmount?: Money;
   }>;
 };
 

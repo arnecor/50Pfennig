@@ -71,7 +71,11 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
         to_user_id: input.toUserId,
         amount: input.amount,
         note: input.note ?? null,
-      })
+        // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types — remove after next db:types run
+        currency: input.currency ?? 'EUR',
+        fx_rate: input.fxRate ?? 1.0,
+        base_amount: input.baseAmount ?? input.amount,
+      } as any)
       .select()
       .single();
 
@@ -85,6 +89,9 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
       from_user_id: a.fromUserId,
       to_user_id: a.toUserId,
       amount: a.amount,
+      currency: a.currency ?? 'EUR',
+      fx_rate: a.fxRate ?? 1.0,
+      base_amount: a.baseAmount ?? a.amount,
     }));
 
     const { data: batchId, error } = await supabase.rpc('create_settlement_batch', {
