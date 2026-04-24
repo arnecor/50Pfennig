@@ -14,6 +14,7 @@
  * See ADR-0003 for rationale on integer cents + basis points.
  */
 
+import type { FxRate } from './currency';
 import { type Money, ZERO, money } from './types';
 
 export { money, ZERO } from './types';
@@ -67,6 +68,20 @@ export const allocate = (total: Money, ratios: readonly number[]): Money[] => {
   }
 
   return floored.map(money);
+};
+
+/**
+ * Converts an amount from an original currency to the base currency.
+ *
+ * @param originalCents - Amount in the original currency (integer cents)
+ * @param fxRate        - Units of original currency per 1 unit of base currency
+ *                        (e.g. 1 EUR = 37.85 THB → fxRate = 37.85)
+ * @returns             Amount in base currency cents, rounded to nearest integer
+ */
+export const convertToBase = (originalCents: Money, fxRate: FxRate): Money => {
+  if (fxRate <= 0) throw new Error(`FX rate must be positive, got ${fxRate}`);
+  if (fxRate === 1) return originalCents;
+  return money(Math.round(originalCents / fxRate));
 };
 
 /**

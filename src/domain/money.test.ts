@@ -3,6 +3,7 @@ import {
   abs,
   add,
   allocate,
+  convertToBase,
   formatMoney,
   isNegative,
   isPositive,
@@ -174,6 +175,57 @@ describe('allocate', () => {
 });
 
 // ---------------------------------------------------------------------------
+// convertToBase — FX conversion
+// ---------------------------------------------------------------------------
+
+describe('convertToBase', () => {
+  it('returns the same amount when fxRate is 1', () => {
+    expect(convertToBase(money(1000), 1)).toBe(money(1000));
+  });
+
+  it('converts correctly: 1500 THB at rate 37.85 → ~40 EUR (3963 cents)', () => {
+    // 150000 cents (THB stored as ×100) / 37.85 = 3963.01… → rounds to 3963
+    expect(convertToBase(money(150000), 37.85)).toBe(money(3963));
+  });
+
+  it('converts correctly: 100 USD at rate 1.08 → ~93 EUR', () => {
+    // 10000 / 1.08 = 9259.259… → rounds to 9259
+    expect(convertToBase(money(10000), 1.08)).toBe(money(9259));
+  });
+
+  it('rounds to nearest integer cent', () => {
+    // 1 / 3 = 0.333… → rounds to 0
+    expect(convertToBase(money(1), 3)).toBe(money(0));
+    // 2 / 3 = 0.666… → rounds to 1
+    expect(convertToBase(money(2), 3)).toBe(money(1));
+    // 5 / 2 = 2.5 → rounds to 3 (banker's rounding not used — Math.round)
+    expect(convertToBase(money(5), 2)).toBe(money(3));
+  });
+
+  it('handles rate < 1 (base currency worth less than original)', () => {
+    // 1000 / 0.5 = 2000 — original currency is weaker
+    expect(convertToBase(money(1000), 0.5)).toBe(money(2000));
+  });
+
+  it('handles very large amounts without overflow', () => {
+    // 10,000,000 cents at rate 1.5
+    expect(convertToBase(money(10_000_000), 1.5)).toBe(money(6_666_667));
+  });
+
+  it('throws on zero rate', () => {
+    expect(() => convertToBase(money(1000), 0)).toThrow();
+  });
+
+  it('throws on negative rate', () => {
+    expect(() => convertToBase(money(1000), -1.5)).toThrow();
+  });
+
+  it('handles zero amount correctly', () => {
+    expect(convertToBase(ZERO, 1.5)).toBe(ZERO);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // formatMoney
 // ---------------------------------------------------------------------------
 
@@ -195,5 +247,17 @@ describe('formatMoney', () => {
     const result = formatMoney(money(-500));
     expect(result).toContain('5');
     expect(result).toContain('€');
+  });
+
+  it('formats in USD when currency is specified', () => {
+    const result = formatMoney(money(1000), 'en-US', 'USD');
+    expect(result).toContain('10');
+    expect(result).toContain('$');
+  });
+
+  it('formats JPY without decimal places', () => {
+    // JPY 5000 stored as 500000 cents → displayed as 5,000
+    const result = formatMoney(money(500000), 'ja-JP', 'JPY');
+    expect(result).toContain('5,000');
   });
 });
