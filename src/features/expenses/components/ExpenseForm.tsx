@@ -11,15 +11,21 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, ChevronDown, ChevronRight, Users, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronRight, Pencil, Users, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button } from '@components/ui/button';
+import { CurrencyButton } from '@components/shared/CurrencyPicker';
+import CurrencyPicker from '@components/shared/CurrencyPicker';
+import type { CurrencyCode } from '@domain/currency';
+import { currencyCode, isSameCurrency } from '@domain/currency';
+import { convertToBase, formatMoney } from '@domain/money';
 import { money } from '@domain/types';
 import type { Friend, Group, GroupId, GroupMember, Money, UserId } from '@domain/types';
+import { useFxRate } from '@/lib/fx';
 import { useCreateExpense } from '../hooks/useCreateExpense';
 import ParticipantPicker, { type ParticipantSelection } from './ParticipantPicker';
 import CustomSplitEditor, { type SplitShare } from './SplitEditor/CustomSplitEditor';
@@ -67,10 +73,11 @@ export default function ExpenseForm({
   preselectedGroupId,
   onSuccess,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [paidByUserId, setPaidByUserId] = useState<UserId>(currentUserId);
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
 
   // Split editor state
   const [splitShares, setSplitShares] = useState<SplitShare[]>([]);
@@ -99,14 +106,37 @@ export default function ExpenseForm({
   );
   const [selectionError, setSelectionError] = useState<string | null>(null);
 
+  // Currency state — defaults to group's defaultCurrency or EUR for friend expenses
+  const baseCurrency: CurrencyCode = selection?.type === 'group'
+    ? selection.group.baseCurrency
+    : currencyCode('EUR');
+  const groupDefaultCurrency: CurrencyCode = selection?.type === 'group'
+    ? selection.group.defaultCurrency
+    : currencyCode('EUR');
+  const [expenseCurrency, setExpenseCurrency] = useState<CurrencyCode>(groupDefaultCurrency);
+  const needsFx = !isSameCurrency(expenseCurrency, baseCurrency);
+  const { rate: autoFxRate, isLoading: fxLoading, isOffline: fxOffline } = useFxRate(expenseCurrency, baseCurrency);
+  const [manualFxRate, setManualFxRate] = useState<string>('');
+  const [editingFxRate, setEditingFxRate] = useState(false);
+
+  const effectiveFxRate = manualFxRate
+    ? Number.parseFloat(manualFxRate.replace(',', '.'))
+    : (autoFxRate ?? 1);
+  const validFxRate = Number.isFinite(effectiveFxRate) && effectiveFxRate > 0 ? effectiveFxRate : 1;
+
   const handleSelectionChange = (next: ParticipantSelection | null) => {
     setSelection(next);
-    // If the previously chosen payer is no longer among the new participants, reset to self.
     if (next === null) {
       setPaidByUserId(currentUserId);
+      setExpenseCurrency(currencyCode('EUR'));
+      setManualFxRate('');
       return;
     }
-    // Use selectedMemberIds for groups (only selected members participate)
+    // Reset currency to the new group's default
+    if (next.type === 'group') {
+      setExpenseCurrency(next.group.defaultCurrency);
+      setManualFxRate('');
+    }
     const nextIds: UserId[] =
       next.type === 'group' ? next.selectedMemberIds : [currentUserId, ...next.userIds];
     if (!nextIds.includes(paidByUserId)) {
@@ -200,6 +230,9 @@ export default function ExpenseForm({
         splitShares.map((s) => [s.userId, money(s.amountCents)]),
       ) as Record<UserId, Money>;
 
+      const fxRate = needsFx ? validFxRate : 1;
+      const baseTotalAmount = needsFx ? convertToBase(totalAmount, fxRate) : totalAmount;
+
       await createExpense.mutateAsync({
         groupId,
         description,
@@ -207,6 +240,9 @@ export default function ExpenseForm({
         paidBy: paidByUserId,
         split: allEqual ? { type: 'equal' } : { type: 'exact', amounts: exactAmounts },
         participants,
+        currency: expenseCurrency,
+        fxRate,
+        baseTotalAmount,
       });
 
       onSuccess(groupId);
@@ -227,7 +263,11 @@ export default function ExpenseForm({
 
           {/* Large currency + input row */}
           <div className="flex items-center justify-center gap-1 w-full">
-            <span className="text-3xl font-bold text-primary/60 leading-none select-none">€</span>
+            <CurrencyButton
+              currency={expenseCurrency}
+              onClick={() => setCurrencyPickerOpen(true)}
+              disabled={selection?.type !== 'group'}
+            />
             <input
               id="amountInput"
               inputMode="decimal"
@@ -244,6 +284,50 @@ export default function ExpenseForm({
               {...register('amountInput')}
             />
           </div>
+
+          {/* FX rate section — only when expense currency ≠ base currency */}
+          {needsFx && totalAmountCents > 0 && (
+            <div className="w-full bg-muted/30 rounded-lg px-3 py-2 mt-1">
+              {editingFxRate || fxOffline ? (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">1 {baseCurrency as string} =</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={manualFxRate}
+                    onChange={(e) => setManualFxRate(e.target.value)}
+                    placeholder={autoFxRate?.toFixed(2) ?? '0,00'}
+                    className="w-20 rounded border border-border bg-background px-2 py-1 text-sm outline-none focus:border-ring"
+                    autoFocus
+                  />
+                  <span className="text-muted-foreground">{expenseCurrency as string}</span>
+                  {editingFxRate && (
+                    <button
+                      type="button"
+                      onClick={() => { setEditingFxRate(false); setManualFxRate(''); }}
+                      className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              ) : fxLoading ? (
+                <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditingFxRate(true)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span>1 {baseCurrency as string} = {validFxRate.toFixed(2)} {expenseCurrency as string}</span>
+                  <Pencil className="h-3 w-3" />
+                </button>
+              )}
+              <p className="text-sm font-semibold mt-1">
+                = {formatMoney(convertToBase(totalAmountCents, validFxRate), i18n.language === 'de' ? 'de-DE' : 'en-GB', baseCurrency as string)}
+              </p>
+            </div>
+          )}
 
           {/* Inline amount error */}
           {errors.amountInput && (
@@ -435,6 +519,15 @@ export default function ExpenseForm({
           onChange={handleSelectionChange}
           onClose={() => setPickerOpen(false)}
           paidByUserId={paidByUserId}
+        />
+      )}
+
+      {/* CurrencyPicker overlay */}
+      {currencyPickerOpen && (
+        <CurrencyPicker
+          value={expenseCurrency}
+          onChange={(code) => { setExpenseCurrency(code); setManualFxRate(''); }}
+          onClose={() => setCurrencyPickerOpen(false)}
         />
       )}
     </>

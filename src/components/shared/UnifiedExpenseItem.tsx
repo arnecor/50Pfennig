@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import PendingSyncMarker from '@components/PendingSyncMarker';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { UserAvatar } from '@components/shared/UserAvatar';
-import type { Money } from '@domain/types';
+import type { CurrencyCode, Money } from '@domain/types';
 import { useTranslation } from 'react-i18next';
 
 type UnifiedExpenseItemProps = {
@@ -22,6 +22,10 @@ type UnifiedExpenseItemProps = {
    * clock/warning marker next to the description.
    */
   expenseId?: string;
+  /** Currency of the original expense amount (e.g. THB). */
+  currency?: CurrencyCode;
+  /** Base currency for the share amount (e.g. EUR). */
+  baseCurrency?: CurrencyCode;
   onClick?: () => void;
   className?: string;
 };
@@ -34,6 +38,8 @@ export function UnifiedExpenseItem({
   shareAmount,
   groupName,
   expenseId,
+  currency,
+  baseCurrency,
   onClick,
   className,
 }: UnifiedExpenseItemProps) {
@@ -63,10 +69,10 @@ export function UnifiedExpenseItem({
       </div>
 
       <div className="shrink-0 text-right">
-        <MoneyDisplay amount={totalAmount} className="block text-sm font-semibold tabular-nums" />
+        <MoneyDisplay amount={totalAmount} currency={currency} className="block text-sm font-semibold tabular-nums" />
         <span className="text-xs text-muted-foreground">
           {t('expenses.my_share')}:{' '}
-          <MoneyDisplay amount={shareAmount} showSign colored className="text-xs tabular-nums" />
+          <MoneyDisplay amount={shareAmount} currency={baseCurrency} showSign colored className="text-xs tabular-nums" />
         </span>
       </div>
     </button>

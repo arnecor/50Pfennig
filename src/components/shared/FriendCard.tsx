@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils';
+import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { UserAvatar } from '@components/shared/UserAvatar';
-import { formatMoney, isNegative, isZero } from '@domain/money';
-import type { Money } from '@domain/types';
+import { isNegative, isZero } from '@domain/money';
+import type { CurrencyCode, Money } from '@domain/types';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,6 +17,8 @@ type FriendCardProps = {
   settledLabel?: string;
   /** When true, renders the "Gelöschter Nutzer" placeholder instead of name/avatar. */
   isDeleted?: boolean;
+  /** Currency for the balance display. Defaults to EUR. */
+  currency?: CurrencyCode;
   onClick?: () => void;
   className?: string;
 };
@@ -27,6 +30,7 @@ export function FriendCard({
   balanceLabel,
   settledLabel,
   isDeleted = false,
+  currency,
   onClick,
   className,
 }: FriendCardProps) {
@@ -71,10 +75,13 @@ export function FriendCard({
         {settled ? (
           <p className="text-xs font-medium text-muted-foreground">{resolvedSettledLabel}</p>
         ) : (
-          <p className={cn('font-bold text-base', positive ? 'text-owed-to-you' : 'text-you-owe')}>
-            {positive ? '+' : ''}
-            {formatMoney(balance)}
-          </p>
+          <MoneyDisplay
+            amount={balance}
+            currency={currency}
+            showSign
+            colored
+            className="font-bold text-base"
+          />
         )}
       </div>
 
@@ -88,6 +95,7 @@ type FriendListItemProps = {
   avatarUrl?: string | undefined;
   balance: Money;
   settledLabel?: string;
+  currency?: CurrencyCode;
   onClick?: () => void;
   showCheckbox?: boolean;
   isSelected?: boolean;
@@ -99,6 +107,7 @@ export function FriendListItem({
   avatarUrl,
   balance,
   settledLabel,
+  currency,
   onClick,
   showCheckbox = false,
   isSelected = false,
@@ -150,14 +159,17 @@ export function FriendListItem({
 
       {!showCheckbox && (
         <>
-          <p
-            className={cn(
-              'font-semibold shrink-0',
-              settled ? 'text-muted-foreground' : positive ? 'text-owed-to-you' : 'text-you-owe',
-            )}
-          >
-            {settled ? resolvedSettledLabel : `${positive ? '+' : ''}${formatMoney(balance)}`}
-          </p>
+          {settled ? (
+            <p className="font-semibold shrink-0 text-muted-foreground">{resolvedSettledLabel}</p>
+          ) : (
+            <MoneyDisplay
+              amount={balance}
+              currency={currency}
+              showSign
+              colored
+              className="font-semibold shrink-0"
+            />
+          )}
           <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
         </>
       )}

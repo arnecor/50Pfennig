@@ -261,6 +261,7 @@ export default function GroupDetailPage() {
                     <MoneyDisplay
                       amount={totalGroupSpending}
                       colored={false}
+                      currency={group?.baseCurrency}
                       className="text-xl font-bold tabular-nums"
                     />
                   </div>
@@ -284,7 +285,7 @@ export default function GroupDetailPage() {
                     >
                       {balanceSettled
                         ? '—'
-                        : `${balancePositive ? '+' : ''}${formatMoney(netBalance)}`}
+                        : `${balancePositive ? '+' : ''}${formatMoney(netBalance, i18n.language === 'de' ? 'de-DE' : 'en-GB', (group?.baseCurrency as string) ?? 'EUR')}`}
                     </p>
                   </div>
                 </div>
@@ -331,6 +332,8 @@ export default function GroupDetailPage() {
                           shareAmount={signedShare}
                           paidByCurrentUser={paidByCurrentUser}
                           expenseId={String(expense.id)}
+                          currency={expense.currency}
+                          baseCurrency={group?.baseCurrency}
                           onClick={() =>
                             navigate({
                               to: '/expenses/$expenseId',

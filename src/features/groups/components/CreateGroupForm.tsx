@@ -20,10 +20,13 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
+import CurrencyPicker, { CurrencyButton } from '@components/shared/CurrencyPicker';
 import { UserAvatar } from '@components/shared/UserAvatar';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
+import type { CurrencyCode } from '@domain/currency';
+import { currencyCode } from '@domain/currency';
 import type { Friend, GroupId, UserId } from '@domain/types';
 import { useCreateGroup } from '../hooks/useCreateGroup';
 
@@ -71,6 +74,11 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
   const { t } = useTranslation();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedFriends, setSelectedFriends] = useState<UserId[]>([]);
+  const [expandedCurrency, setExpandedCurrency] = useState(false);
+  const [singleCurrency, setSingleCurrency] = useState<CurrencyCode>(currencyCode('EUR'));
+  const [baseCurrency, setBaseCurrency] = useState<CurrencyCode>(currencyCode('EUR'));
+  const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>(currencyCode('EUR'));
+  const [currencyPickerTarget, setCurrencyPickerTarget] = useState<'single' | 'base' | 'default' | null>(null);
 
   const createGroup = useCreateGroup();
 
@@ -99,9 +107,13 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
   const onSubmit = async (values: FormValues) => {
     setSubmitError(null);
     try {
+      const finalBase = expandedCurrency ? baseCurrency : singleCurrency;
+      const finalDefault = expandedCurrency ? defaultCurrency : singleCurrency;
       const group = await createGroup.mutateAsync({
         name: values.name.trim(),
         ...(selectedFriends.length > 0 && { memberIds: selectedFriends }),
+        baseCurrency: finalBase,
+        defaultCurrency: finalDefault,
       });
       onSuccess(group.id as GroupId);
     } catch (err) {
@@ -129,6 +141,62 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
             <AlertCircle className="h-3.5 w-3.5" />
             {t('groups.name_error_required')}
           </p>
+        )}
+      </div>
+
+      {/* Currency section */}
+      <div className="flex flex-col gap-1.5">
+        <Label>{t('currency.group_label')}</Label>
+
+        {!expandedCurrency ? (
+          <>
+            <CurrencyButton
+              currency={singleCurrency}
+              onClick={() => setCurrencyPickerTarget('single')}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setBaseCurrency(singleCurrency);
+                setDefaultCurrency(singleCurrency);
+                setExpandedCurrency(true);
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left"
+            >
+              {t('currency.expand_different')} ▾
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">{t('currency.default_label')}</span>
+                <p className="text-xs text-muted-foreground">{t('currency.default_hint')}</p>
+                <CurrencyButton
+                  currency={defaultCurrency}
+                  onClick={() => setCurrencyPickerTarget('default')}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">{t('currency.base_label')}</span>
+                <p className="text-xs text-muted-foreground">{t('currency.base_hint')}</p>
+                <CurrencyButton
+                  currency={baseCurrency}
+                  onClick={() => setCurrencyPickerTarget('base')}
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setExpandedCurrency(false);
+                setSingleCurrency(baseCurrency);
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left"
+            >
+              {t('currency.collapse_single')} ▴
+            </button>
+          </>
         )}
       </div>
 
@@ -201,6 +269,23 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
       >
         {isPending ? t('groups.creating') : t('groups.create_button')}
       </Button>
+
+      {/* Currency picker overlay */}
+      {currencyPickerTarget && (
+        <CurrencyPicker
+          value={
+            currencyPickerTarget === 'single' ? singleCurrency
+              : currencyPickerTarget === 'base' ? baseCurrency
+              : defaultCurrency
+          }
+          onChange={(code) => {
+            if (currencyPickerTarget === 'single') setSingleCurrency(code);
+            else if (currencyPickerTarget === 'base') setBaseCurrency(code);
+            else setDefaultCurrency(code);
+          }}
+          onClose={() => setCurrencyPickerTarget(null)}
+        />
+      )}
     </form>
   );
 }
