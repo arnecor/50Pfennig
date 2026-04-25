@@ -6,24 +6,33 @@ React + Capacitor hybrid (Android-first, iOS later). German UI (de default, en s
 Full architectural rationale lives in [docs/adr/](docs/adr/).
 
 ## General coding guidelines
-Always act like a professional Senior Developer. Do not take shortcuts or do dirty fixes. A clean architecture needs to be maintained. You code will be reviewed by codex.
+ Do not take shortcuts or do dirty fixes. A clean architecture needs to be maintained.
+ Prioritize:
+- correctness over speed
+- root-cause fixes over patches
+- maintainability over cleverness
 
 ## Technical debt — single source of truth
-All known technical debt is tracked in [docs/TECH_DEBT.md](docs/TECH_DEBT.md). Whenever a change consciously leaves debt behind (a deferred refactor, a workaround, a partial solution), you MUST add an entry to that file using the template at the top — do not bury the trade-off only in commit messages or PR descriptions. When debt is paid down, move the entry to the Resolved section rather than deleting it.
+When leaving technical debt:
+- explicitly describe it in your output
+- suggest an entry for [docs/TECH_DEBT.md](docs/TECH_DEBT.md) (do not modify automatically)
+
 ## Code Quality
 Prefer correct, complete implementations over minimal ones.
 - Use appropriate data structures and algorithms - don't brute-force what has a known better solution. - When fixing a bug, fix the root cause, not the symptom.
 - If something I asked for requires error handling or validation to work reliably, include it without asking.
 
 ## Code Changes 
-When fixing TypeScript or lint errors, verify the fix doesn't break existing functionality. Run `npx tsc --noEmit` after edits and avoid changing dependency arrays or logic beyond the scope of the fix.
+Ensure TypeScript correctness:
+- no new type errors introduced
+- no implicit any
 
 ## Supabase
 When generating or modifying SQL migrations, always use `DROP POLICY IF EXISTS` before `CREATE POLICY`, and verify function/table ordering so that referenced objects exist before they are used.
 
 ## Supabase Workflow
 - This project uses a REMOTE Supabase instance only - never suggest `--local` flags
-- For type generation, ask the user to run the type generation command rather than hand-reconstructing types.gen.ts from migrations
+- For type generation, use `npm run db:types`
 - The Supabase project ref is not in config.toml; ask the user when needed
 
 ## Tech Stack
@@ -86,39 +95,8 @@ Specifically: finding a type/function definition → `goToDefinition`,
 finding all usages → `findReferences`, discovering symbols → `workspaceSymbol`,
 checking types → `hover`, listing file symbols → `documentSymbol`.
 
-Grep/Glob is only acceptable for: comments, string literals, config files,
-non-TypeScript files, or when LSP returns no results.
-
-After writing or editing code, check LSP diagnostics before
-moving on. Fix any type errors or missing imports immediately.
-
-## UI Components
-
-Installed shadcn/ui components: `badge`, `button`, `card`, `dialog`, `input`, `label`.
-No toast / sonner / select. Use inline error state for form errors. If you want to add more components, ask the user.
- 
- ## UI Designs & Creating new UIs
- This is a Capacitor mobile app targeting Android. Always test UI fixes against safe area insets, nav bar overlap, and keyboard behavior. Status bar config uses Capacitor's Style enum.
- 
- When changing or creating UIs act as a professional UX Designer. Consider best practices and care for a minimalistic, clean and easy understanable Design
-
-## Safe Area Insets — Bottom Sheets
-
-Every bottom sheet / overlay that is fixed to the bottom of the screen MUST clear the Android navigation bar.
-
-**Rule:** Apply `pb-safe` to the innermost content div or footer of every bottom sheet.  
-Defined in `src/index.css`: `padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))`.
-
-```tsx
-// ✅ correct
-<div className="px-5 pt-4 pb-safe">…</div>
-
-// ❌ wrong — pb-safe-bottom does not exist (silently ignored by Tailwind)
-<div className="pb-safe-bottom">…</div>
-
-// ❌ wrong — ad-hoc inline styles or arbitrary Tailwind max()/calc() values
-<div style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
-```
+## UI/UX Rules and Guidelines
+When implementing or changing UIs, you must consider [docs/ui-rules.md](docs/ui-rules.md)
 
 ## Dependency Rule — Non-Negotiable
 
@@ -175,7 +153,7 @@ Details: `@docs/state-management.md`
 
 ## Plan format — required sections
 
-Every implementation plan must open with these three sections **before** any technical detail:
+Every implementation plan open with these three sections **before** any technical detail (only required for non-trivial changes):
 
 ### Management Summary
 A plain-language explanation for a non-technical Product Owner: For Bugs:what is broken or missing, why it happens, and what the fix achieves. For new changes: How big is the change? Does it introduce or reduce any risks? (also for existing users on production?) No code references — just cause and effect in business terms.

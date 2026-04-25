@@ -1,5 +1,4 @@
 {
-  "model": "claude-opus-4-6",
   "env": {
     "ENABLE_LSP_TOOL": "1"
   },
@@ -55,7 +54,9 @@
       "Bash(xargs grep:*)",
       "Bash(gh issue:*)",
       "Bash(gh repo:*)",
-      "WebFetch(domain:developers.google.com)"
+      "Bash(git add *)",
+      "Bash(iconv -f UTF-16LE -t UTF-8 /mnt/c/Privat/50Pfennig/src/lib/supabase/types.gen.ts)",
+      "WebFetch(*)"
     ],
     "deny": [
       "Bash(npm run db:migrate:prod*)",
