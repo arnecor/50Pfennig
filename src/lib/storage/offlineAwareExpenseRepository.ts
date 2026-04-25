@@ -13,12 +13,14 @@
  * reconciliation".
  */
 
+import { currencyCode } from '@domain/currency';
 import { splitExpense } from '@domain/splitting';
 import type {
   Expense,
   ExpenseId,
   ExpenseSplit,
   ExpenseSplitRecord,
+  FxRate,
   GroupId,
   Money,
   UserId,
@@ -75,6 +77,9 @@ function buildOptimisticExpense(input: CreateExpenseInput, createdBy: UserId): E
     createdBy,
     createdAt: now,
     updatedAt: now,
+    currency: input.currency ?? currencyCode('EUR'),
+    fxRate: (input.fxRate ?? 1) as FxRate,
+    baseTotalAmount: input.baseTotalAmount ?? input.totalAmount,
   };
 }
 
@@ -234,6 +239,9 @@ export class OfflineAwareExpenseRepository implements IExpenseRepository {
       createdBy: currentUserId(),
       createdAt: now,
       updatedAt: now,
+      currency: input.currency ?? currencyCode('EUR'),
+      fxRate: (input.fxRate ?? 1) as FxRate,
+      baseTotalAmount: input.baseTotalAmount ?? totalAmount,
     };
   }
 

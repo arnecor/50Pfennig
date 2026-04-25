@@ -15,13 +15,49 @@
  * Imported by: repositories/index.ts (factory binding)
  */
 
-import { convertToBase } from '../../domain/money';
+import { allocate, convertToBase } from '../../domain/money';
 import { splitExpense } from '../../domain/splitting';
-import { type ExpenseSplit, type UserId, money } from '../../domain/types';
+import { type ExpenseSplit, type Money, type UserId, money } from '../../domain/types';
 import type { Expense, ExpenseId, GroupId } from '../../domain/types';
 import { supabase } from '../../lib/supabase/client';
 import { mapExpense, serialiseSplitConfig, serialiseSplits } from '../../lib/supabase/mappers';
 import type { CreateExpenseInput, IExpenseRepository, UpdateExpenseInput } from '../types';
+
+/**
+ * Computes per-user split amounts in base currency.
+ *
+ * For equal/percentage splits: delegates to splitExpense(baseTotalAmount) so
+ * allocate() distributes the base total with correct rounding.
+ *
+ * For exact splits with FX: the amounts in split.amounts are in the original
+ * expense currency. We validate their sum against totalAmount (original
+ * currency), then re-distribute baseTotalAmount proportionally using those
+ * amounts as ratios — allocate() guarantees the sum invariant.
+ */
+function computeSplitsInBaseCurrency(
+  totalAmount: Money,
+  baseTotalAmount: Money,
+  fxRate: number,
+  participants: readonly UserId[],
+  split: ExpenseSplit,
+): Record<UserId, Money> {
+  if (split.type === 'exact' && fxRate !== 1.0) {
+    const sum = participants.reduce(
+      (acc, userId) => acc + ((split.amounts[userId] as number) ?? 0),
+      0,
+    );
+    if (sum !== (totalAmount as number)) {
+      throw new Error(`Exact split amounts sum to ${sum} cents but total is ${totalAmount} cents`);
+    }
+    const ratios = participants.map((userId) => (split.amounts[userId] as number) ?? 0);
+    const shares = allocate(baseTotalAmount, ratios);
+    return Object.fromEntries(participants.map((userId, i) => [userId, shares[i]])) as Record<
+      UserId,
+      Money
+    >;
+  }
+  return splitExpense(baseTotalAmount, participants, split);
+}
 
 export class SupabaseExpenseRepository implements IExpenseRepository {
   async getById(id: ExpenseId): Promise<Expense> {
@@ -71,9 +107,13 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
     const fxRate = input.fxRate ?? 1.0;
     const baseTotalAmount = input.baseTotalAmount ?? convertToBase(input.totalAmount, fxRate);
 
-    // Splits are computed on baseTotalAmount (in group base currency) to preserve
-    // allocate() rounding guarantees. See plan §Phase 2 "Splitting — important detail".
-    const splitAmounts = splitExpense(baseTotalAmount, input.participants, input.split);
+    const splitAmounts = computeSplitsInBaseCurrency(
+      input.totalAmount,
+      baseTotalAmount,
+      fxRate,
+      input.participants,
+      input.split,
+    );
     const splits = input.participants.map((userId) => ({
       userId,
       // biome-ignore lint/style/noNonNullAssertion: splitExpense guarantees a value for every participant
@@ -129,8 +169,13 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
     const fxRate = input.fxRate ?? (current as any).fx_rate ?? 1.0;
     const baseTotalAmount = input.baseTotalAmount ?? convertToBase(totalAmount, fxRate);
 
-    // Splits computed on baseTotalAmount (base currency) to preserve allocate() guarantees.
-    const splitAmounts = splitExpense(baseTotalAmount, participants, split);
+    const splitAmounts = computeSplitsInBaseCurrency(
+      totalAmount,
+      baseTotalAmount,
+      fxRate,
+      participants,
+      split,
+    );
     const splits = participants.map((userId) => ({
       userId,
       // biome-ignore lint/style/noNonNullAssertion: splitExpense guarantees a value for every participant

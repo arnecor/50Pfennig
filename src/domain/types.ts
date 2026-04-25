@@ -11,7 +11,8 @@
  * - No persistence concerns, no framework concerns — pure data shapes
  */
 
-export type { CurrencyCode, FxRate } from './currency';
+import type { CurrencyCode, FxRate } from './currency';
+export type { CurrencyCode, FxRate };
 
 // ---------------------------------------------------------------------------
 // Branded primitive types

@@ -16,7 +16,7 @@ type Props = {
   showSign?: boolean;
   colored?: boolean;
   className?: string;
-  currency?: CurrencyCode;
+  currency?: CurrencyCode | undefined;
 };
 
 export default function MoneyDisplay({

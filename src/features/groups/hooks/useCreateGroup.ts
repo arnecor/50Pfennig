@@ -29,7 +29,12 @@ export const useCreateGroup = () => {
 
   return useMutation({
     mutationFn: ({ name, memberIds, baseCurrency, defaultCurrency }: CreateGroupInput) =>
-      groupRepository.create({ name, memberIds: memberIds ?? [], baseCurrency, defaultCurrency }),
+      groupRepository.create({
+        name,
+        memberIds: memberIds ?? [],
+        ...(baseCurrency !== undefined ? { baseCurrency } : {}),
+        ...(defaultCurrency !== undefined ? { defaultCurrency } : {}),
+      }),
     onSuccess: (newGroup: Group) => {
       // Immediately seed the list cache so any consumer that mounts before the
       // background refetch lands (e.g. ExpenseForm preselection) already sees

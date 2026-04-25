@@ -447,6 +447,9 @@ describe('computeBilateralBalance — third-party immunity', () => {
             createdBy: carol,
             createdAt: new Date('2024-01-01'),
             updatedAt: new Date('2024-01-01'),
+            currency: 'EUR' as CurrencyCode,
+            fxRate: 1,
+            baseTotalAmount: total,
           };
 
           const balance = computeBilateralBalance([carolsExpense], [], alice, bob);

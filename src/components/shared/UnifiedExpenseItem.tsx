@@ -23,9 +23,9 @@ type UnifiedExpenseItemProps = {
    */
   expenseId?: string;
   /** Currency of the original expense amount (e.g. THB). */
-  currency?: CurrencyCode;
+  currency?: CurrencyCode | undefined;
   /** Base currency for the share amount (e.g. EUR). */
-  baseCurrency?: CurrencyCode;
+  baseCurrency?: CurrencyCode | undefined;
   onClick?: () => void;
   className?: string;
 };

@@ -9,7 +9,7 @@
 
 import type { CurrencyCode } from '@domain/currency';
 
-const CACHE_TTL_MS = 60 * 60 * 1000 * 24; // 24 hours caching 
+const CACHE_TTL_MS = 60 * 60 * 1000 * 24; // 24 hours caching
 type PairCacheEntry = { rate: number; fetchedAt: number };
 const cache = new Map<string, PairCacheEntry>();
 

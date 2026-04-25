@@ -302,15 +302,15 @@ export default function GroupDetailPage() {
             )}
 
             {/* Activity list grouped by date */}
-            {dateGroups.map((group, groupIdx) => (
-              <div key={group.label}>
+            {dateGroups.map((section, groupIdx) => (
+              <div key={section.label}>
                 <p
                   className={`px-1 pb-1 text-xs font-medium text-muted-foreground ${groupIdx === 0 ? '' : 'pt-4'}`}
                 >
-                  {group.label}
+                  {section.label}
                 </p>
                 <div className="bg-card rounded-2xl border border-border overflow-hidden px-4 mb-0">
-                  {group.items.map((item) => {
+                  {section.items.map((item) => {
                     if (item.kind === 'expense') {
                       const expense = item.data;
                       const paidByCurrentUser =
@@ -333,7 +333,7 @@ export default function GroupDetailPage() {
                           paidByCurrentUser={paidByCurrentUser}
                           expenseId={String(expense.id)}
                           currency={expense.currency}
-                          baseCurrency={group?.baseCurrency}
+                          baseCurrency={group?.baseCurrency ?? undefined}
                           onClick={() =>
                             navigate({
                               to: '/expenses/$expenseId',
