@@ -12,7 +12,7 @@
  * Returns the newly created Group so the caller can navigate to its detail page.
  */
 
-import type { Group, UserId } from '@domain/types';
+import type { CurrencyCode, Group, UserId } from '@domain/types';
 import { triggerGuestUpgradeReminderFromStore } from '@features/auth/hooks/useGuestUpgradeReminder';
 import { groupRepository } from '@repositories';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -20,14 +20,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 export type CreateGroupInput = {
   name: string;
   memberIds?: UserId[];
+  baseCurrency?: CurrencyCode;
+  defaultCurrency?: CurrencyCode;
 };
 
 export const useCreateGroup = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ name, memberIds }: CreateGroupInput) =>
-      groupRepository.create({ name, memberIds: memberIds ?? [] }),
+    mutationFn: ({ name, memberIds, baseCurrency, defaultCurrency }: CreateGroupInput) =>
+      groupRepository.create({
+        name,
+        memberIds: memberIds ?? [],
+        ...(baseCurrency !== undefined ? { baseCurrency } : {}),
+        ...(defaultCurrency !== undefined ? { defaultCurrency } : {}),
+      }),
     onSuccess: (newGroup: Group) => {
       // Immediately seed the list cache so any consumer that mounts before the
       // background refetch lands (e.g. ExpenseForm preselection) already sees

@@ -14,6 +14,7 @@ import { UserAvatar } from '@components/shared/UserAvatar';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
+import { getCurrencySymbol } from '@domain/currency';
 import type { DebtInstruction, Group, Money, UserId } from '@domain/types';
 import { money } from '@domain/types';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
@@ -208,7 +209,7 @@ export default function RecordGroupSettlementSheet({
             <Label htmlFor="settlement-amount">{t('settlements.amount_label')}</Label>
             <div className="relative">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                €
+                {getCurrencySymbol(group.baseCurrency)}
               </span>
               <Input
                 id="settlement-amount"

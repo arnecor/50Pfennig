@@ -13,6 +13,7 @@
  * once the upgrade is confirmed and `is_anonymous` flips to false.
  */
 
+import CurrencyPicker from '@/components/shared/CurrencyPicker';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { UserAvatar } from '@/components/shared/UserAvatar';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,8 @@ import { DeleteAccountDialog } from '@/features/account/components/DeleteAccount
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { App as CapacitorApp } from '@capacitor/app';
+import type { CurrencyCode } from '@domain/currency';
+import { SUPPORTED_CURRENCIES, currencyCode, isSameCurrency } from '@domain/currency';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useImagePicker } from '@lib/image/useImagePicker';
@@ -109,13 +112,24 @@ function SettingsGroup({ children }: { children: React.ReactNode }) {
 
 export default function AccountPage() {
   const { t, i18n } = useTranslation();
-  const { user, isAnonymous, updateDisplayName, uploadAvatar, upgradeGuestWithEmail, signOut } =
-    useAuth();
+  const {
+    user,
+    isAnonymous,
+    updateDisplayName,
+    updateDefaultCurrency,
+    uploadAvatar,
+    upgradeGuestWithEmail,
+    signOut,
+  } = useAuth();
   const navigate = useNavigate();
   const { pickImage, fileInputRef, onFileInputChange } = useImagePicker();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
+  const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>(
+    currencyCode((user?.user_metadata?.default_currency as string | undefined) ?? 'EUR'),
+  );
 
   useBackHandler(() => {
     void CapacitorApp.exitApp();
@@ -298,6 +312,27 @@ export default function AccountPage() {
           </div>
         </label>
       </SettingsGroup>
+
+      {/* Currency section */}
+      <SectionLabel label={t('currency.settings_section')} />
+      <SettingsGroup>
+        <SettingsRow
+          label={t('currency.default_currency_label')}
+          value={`${SUPPORTED_CURRENCIES.find((c) => isSameCurrency(c.code, defaultCurrency))?.flag ?? ''} ${defaultCurrency as string}`}
+          onClick={() => setCurrencyPickerOpen(true)}
+        />
+      </SettingsGroup>
+
+      {currencyPickerOpen && (
+        <CurrencyPicker
+          value={defaultCurrency}
+          onChange={async (code) => {
+            setDefaultCurrency(code);
+            await updateDefaultCurrency(code);
+          }}
+          onClose={() => setCurrencyPickerOpen(false)}
+        />
+      )}
 
       {/* Help section */}
       <SectionLabel label={t('account.help_section_title')} />

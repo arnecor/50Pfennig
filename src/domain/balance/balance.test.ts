@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { CurrencyCode } from '../currency';
 import { ZERO, money } from '../money';
 import type {
   BalanceMap,
@@ -21,6 +22,7 @@ const uid = (s: string) => s as UserId;
 const gid = 'group-1' as GroupId;
 const eid = (s: string) => s as ExpenseId;
 const sid = (s: string) => s as SettlementId;
+const EUR = 'EUR' as CurrencyCode;
 
 const alice = uid('alice');
 const bob = uid('bob');
@@ -36,12 +38,17 @@ const member = (userId: UserId): GroupMember => ({
 
 const members = [member(alice), member(bob), member(carol)];
 
-/** Build a minimal Expense — only supply what each test needs. */
+/**
+ * Build a minimal Expense.
+ * By default: same currency (EUR), fxRate 1, baseTotalAmount = totalAmount.
+ * Override with opts for multi-currency tests.
+ */
 const makeExpense = (
   id: string,
   paidBy: UserId,
   totalAmount: number,
   splits: Array<{ userId: UserId; amount: number }>,
+  opts?: { currency?: CurrencyCode; fxRate?: number; baseTotalAmount?: number },
 ): Expense => ({
   id: eid(id),
   groupId: gid,
@@ -53,10 +60,22 @@ const makeExpense = (
   createdBy: paidBy,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
+  currency: opts?.currency ?? EUR,
+  fxRate: opts?.fxRate ?? 1.0,
+  baseTotalAmount: money(opts?.baseTotalAmount ?? totalAmount),
 });
 
-/** Build a minimal Settlement. */
-const makeSettlement = (id: string, from: UserId, to: UserId, amount: number): Settlement => ({
+/**
+ * Build a minimal Settlement.
+ * By default: EUR, fxRate 1, baseAmount = amount.
+ */
+const makeSettlement = (
+  id: string,
+  from: UserId,
+  to: UserId,
+  amount: number,
+  opts?: { currency?: CurrencyCode; fxRate?: number; baseAmount?: number },
+): Settlement => ({
   id: sid(id),
   batchId: null,
   groupId: gid,
@@ -64,6 +83,9 @@ const makeSettlement = (id: string, from: UserId, to: UserId, amount: number): S
   toUserId: to,
   amount: money(amount),
   createdAt: new Date('2024-01-01'),
+  currency: opts?.currency ?? EUR,
+  fxRate: opts?.fxRate ?? 1.0,
+  baseAmount: money(opts?.baseAmount ?? amount),
 });
 
 /** Returns the sum of all values in a BalanceMap. */
@@ -193,6 +215,100 @@ describe('calculateGroupBalances', () => {
     ]);
     const settlement = makeSettlement('s1', bob, alice, 500);
     const result = calculateGroupBalances([exp1, exp2], [settlement], members);
+    expect(balanceSum(result)).toBe(0);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Multi-currency: balances use baseTotalAmount, not totalAmount
+  // ---------------------------------------------------------------------------
+
+  it('uses baseTotalAmount for payer credit, not totalAmount', () => {
+    // Alice pays 1500 THB (totalAmount=150000), which converts to ~40 EUR (baseTotalAmount=3963)
+    // Splits are in base currency: each owes ~€13.21
+    const THB = 'THB' as CurrencyCode;
+    const expense = makeExpense(
+      'e1',
+      alice,
+      150000, // 1500 THB in cents
+      [
+        { userId: alice, amount: 1321 },
+        { userId: bob, amount: 1321 },
+        { userId: carol, amount: 1321 },
+      ],
+      { currency: THB, fxRate: 37.85, baseTotalAmount: 3963 },
+    );
+    const result = calculateGroupBalances([expense], [], members);
+    // Alice: +3963 (baseTotalAmount credit) -1321 (own share) = +2642
+    expect(result.get(alice)).toBe(money(2642));
+    expect(result.get(bob)).toBe(money(-1321));
+    expect(result.get(carol)).toBe(money(-1321));
+  });
+
+  it('zero-sum holds for multi-currency expenses', () => {
+    const THB = 'THB' as CurrencyCode;
+    const expense = makeExpense(
+      'e1',
+      alice,
+      150000,
+      [
+        { userId: alice, amount: 1321 },
+        { userId: bob, amount: 1321 },
+        { userId: carol, amount: 1321 },
+      ],
+      { currency: THB, fxRate: 37.85, baseTotalAmount: 3963 },
+    );
+    const result = calculateGroupBalances([expense], [], members);
+    expect(balanceSum(result)).toBe(0);
+  });
+
+  it('uses settlement baseAmount, not amount', () => {
+    // Expense in THB, settlement in base currency (EUR)
+    const THB = 'THB' as CurrencyCode;
+    const expense = makeExpense(
+      'e1',
+      alice,
+      60000, // 600 THB
+      [
+        { userId: alice, amount: 500 },
+        { userId: bob, amount: 500 },
+      ],
+      { currency: THB, fxRate: 30.0, baseTotalAmount: 1000 },
+    );
+    // Bob settles his €5 debt
+    const settlement = makeSettlement('s1', bob, alice, 500, { baseAmount: 500 });
+    const twoMembers = [member(alice), member(bob)];
+    const result = calculateGroupBalances([expense], [settlement], twoMembers);
+    expect(result.get(alice)).toBe(ZERO);
+    expect(result.get(bob)).toBe(ZERO);
+  });
+
+  it('mixes same-currency and multi-currency expenses correctly', () => {
+    // Expense 1: EUR (same currency)
+    const eurExpense = makeExpense('e1', alice, 3000, [
+      { userId: alice, amount: 1000 },
+      { userId: bob, amount: 1000 },
+      { userId: carol, amount: 1000 },
+    ]);
+    // Expense 2: USD at rate 1.08 → €9259 base for $10000
+    const USD = 'USD' as CurrencyCode;
+    const usdExpense = makeExpense(
+      'e2',
+      bob,
+      10000,
+      [
+        { userId: alice, amount: 3086 },
+        { userId: bob, amount: 3087 },
+        { userId: carol, amount: 3086 },
+      ],
+      { currency: USD, fxRate: 1.08, baseTotalAmount: 9259 },
+    );
+    const result = calculateGroupBalances([eurExpense, usdExpense], [], members);
+    // Alice: +3000 -1000 (eur) -3086 (usd share) = -1086
+    // Bob:   -1000 (eur) +9259 -3087 (usd) = +5172
+    // Carol: -1000 (eur) -3086 (usd share) = -4086
+    expect(result.get(alice)).toBe(money(-1086));
+    expect(result.get(bob)).toBe(money(5172));
+    expect(result.get(carol)).toBe(money(-4086));
     expect(balanceSum(result)).toBe(0);
   });
 });

@@ -16,6 +16,7 @@
  * Imports from: domain/types, lib/supabase/types.gen.ts
  */
 
+import type { CurrencyCode, FxRate } from '../../domain/currency';
 import {
   type Expense,
   type ExpenseId,
@@ -83,6 +84,10 @@ export const mapGroup = (row: GroupRow, members: GroupMemberWithProfile[]): Grou
   // biome-ignore lint/suspicious/noExplicitAny: archived_at not yet in generated types
   ...((row as any).archived_at ? { archivedAt: new Date((row as any).archived_at as string) } : {}),
   ...(row.image_url ? { imageUrl: row.image_url } : {}),
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types — remove cast after next db:types run
+  baseCurrency: ((row as any).base_currency ?? 'EUR') as CurrencyCode,
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types
+  defaultCurrency: ((row as any).default_currency ?? 'EUR') as CurrencyCode,
 });
 
 export const mapExpenseSplitRecord = (row: ExpenseSplitRow): ExpenseSplitRecord => ({
@@ -107,6 +112,12 @@ export const mapExpense = (row: ExpenseRow, splitRows: ExpenseSplitRow[]): Expen
   createdBy: row.created_by as UserId,
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types — remove cast after next db:types run
+  currency: ((row as any).currency ?? 'EUR') as CurrencyCode,
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types
+  fxRate: ((row as any).fx_rate ?? 1.0) as FxRate,
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types
+  baseTotalAmount: money((row as any).base_total_amount ?? row.total_amount),
 });
 
 /**
@@ -148,6 +159,12 @@ export const mapSettlement = (row: SettlementRow): Settlement => ({
   amount: money(row.amount),
   ...(row.note != null ? { note: row.note } : {}),
   createdAt: new Date(row.created_at),
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types — remove cast after next db:types run
+  currency: ((row as any).currency ?? 'EUR') as CurrencyCode,
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types
+  fxRate: ((row as any).fx_rate ?? 1.0) as FxRate,
+  // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types
+  baseAmount: money((row as any).base_amount ?? row.amount),
 });
 
 /** Shape returned by group_events queries that embed profiles via FK join */

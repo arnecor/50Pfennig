@@ -191,9 +191,7 @@ export default function AddMemberOverlay({
         )}
 
         {/* Bottom safe area padding when no footer button */}
-        {addableFriends.length === 0 && (
-          <div className="pb-safe" />
-        )}
+        {addableFriends.length === 0 && <div className="pb-safe" />}
       </div>
     </>
   );

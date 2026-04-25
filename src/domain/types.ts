@@ -11,6 +11,9 @@
  * - No persistence concerns, no framework concerns — pure data shapes
  */
 
+import type { CurrencyCode, FxRate } from './currency';
+export type { CurrencyCode, FxRate };
+
 // ---------------------------------------------------------------------------
 // Branded primitive types
 // Prevents accidentally passing a raw string where a UserId is expected, etc.
@@ -125,6 +128,10 @@ export type Group = {
   readonly isArchived: boolean;
   /** set when isArchived is true; undefined when the group is active */
   readonly archivedAt?: Date;
+  /** Currency used for balances and settlements. Immutable after creation. */
+  readonly baseCurrency: CurrencyCode;
+  /** Default currency pre-selected when entering new expenses. Immutable after creation. */
+  readonly defaultCurrency: CurrencyCode;
 };
 
 /**
@@ -143,13 +150,19 @@ export type Expense = {
   readonly id: ExpenseId;
   readonly groupId: GroupId | null; // null = friend expense (not associated with a group)
   readonly description: string;
-  readonly totalAmount: Money;
+  readonly totalAmount: Money; // original amount in expense currency
   readonly paidBy: UserId; // who paid the full amount upfront
   readonly split: ExpenseSplit; // the configuration (what rule was agreed)
-  readonly splits: readonly ExpenseSplitRecord[]; // the computed snapshot (immutable)
+  readonly splits: readonly ExpenseSplitRecord[]; // the computed snapshot (immutable, in base currency)
   readonly createdBy: UserId;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  /** ISO 4217 currency of the original expense (e.g. THB for a Thai dinner). */
+  readonly currency: CurrencyCode;
+  /** Units of expense currency per 1 unit of group base currency. 1.0 when same currency. */
+  readonly fxRate: FxRate;
+  /** totalAmount converted to group base currency. Equals totalAmount when fxRate is 1. */
+  readonly baseTotalAmount: Money;
 };
 
 export type Settlement = {
@@ -158,9 +171,15 @@ export type Settlement = {
   readonly groupId: GroupId | null; // null = friend/direct settlement
   readonly fromUserId: UserId; // who paid (sent money)
   readonly toUserId: UserId; // who received money
-  readonly amount: Money;
+  readonly amount: Money; // original amount in settlement currency
   readonly note?: string;
   readonly createdAt: Date;
+  /** ISO 4217 currency of the settlement. Always group base currency for group settlements. */
+  readonly currency: CurrencyCode;
+  /** Units of settlement currency per 1 unit of base currency. 1.0 for group settlements. */
+  readonly fxRate: FxRate;
+  /** amount converted to base currency. Equals amount when fxRate is 1. */
+  readonly baseAmount: Money;
 };
 
 // ---------------------------------------------------------------------------

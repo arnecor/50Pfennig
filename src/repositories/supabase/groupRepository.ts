@@ -65,6 +65,8 @@ export class SupabaseGroupRepository implements IGroupRepository {
     const { data: group, error } = await (supabase.rpc as any)('create_group', {
       p_name: input.name,
       p_member_ids: input.memberIds ?? [],
+      p_base_currency: input.baseCurrency ?? 'EUR',
+      p_default_currency: input.defaultCurrency ?? 'EUR',
     });
 
     if (error) throw error;

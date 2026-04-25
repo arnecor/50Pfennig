@@ -87,15 +87,15 @@ export const calculateGroupBalances = (
   };
 
   for (const expense of expenses) {
-    adjust(expense.paidBy, expense.totalAmount); // payer credited
+    adjust(expense.paidBy, expense.baseTotalAmount); // payer credited in base currency
     for (const split of expense.splits) {
-      adjust(split.userId, negate(split.amount)); // each participant debited
+      adjust(split.userId, negate(split.amount)); // each participant debited (splits are in base currency)
     }
   }
 
   for (const settlement of settlements) {
-    adjust(settlement.fromUserId, settlement.amount); // sender credited
-    adjust(settlement.toUserId, negate(settlement.amount)); // receiver debited
+    adjust(settlement.fromUserId, settlement.baseAmount); // sender credited in base currency
+    adjust(settlement.toUserId, negate(settlement.baseAmount)); // receiver debited in base currency
   }
 
   return balances;
@@ -120,15 +120,15 @@ export const calculateParticipantBalances = (
   };
 
   for (const expense of expenses) {
-    adjust(expense.paidBy, expense.totalAmount);
+    adjust(expense.paidBy, expense.baseTotalAmount);
     for (const split of expense.splits) {
       adjust(split.userId, negate(split.amount));
     }
   }
 
   for (const settlement of settlements) {
-    adjust(settlement.fromUserId, settlement.amount);
-    adjust(settlement.toUserId, negate(settlement.amount));
+    adjust(settlement.fromUserId, settlement.baseAmount);
+    adjust(settlement.toUserId, negate(settlement.baseAmount));
   }
 
   return balances;
@@ -169,10 +169,10 @@ export const computeBilateralBalance = (
   for (const s of settlements) {
     if (isSameUser(s.fromUserId, friendId) && isSameUser(s.toUserId, meId)) {
       // Friend paid me — friend's debt decreases
-      balance = subtract(balance, s.amount);
+      balance = subtract(balance, s.baseAmount);
     } else if (isSameUser(s.fromUserId, meId) && isSameUser(s.toUserId, friendId)) {
       // I paid friend — my debt to friend decreases
-      balance = add(balance, s.amount);
+      balance = add(balance, s.baseAmount);
     }
   }
 

@@ -341,9 +341,7 @@ export default function ParticipantPicker({
         </div>
 
         {/* Confirm button — always visible, pinned to the bottom of the sheet */}
-        <div
-          className="shrink-0 border-t border-border bg-background px-4 pt-3 pb-safe"
-        >
+        <div className="shrink-0 border-t border-border bg-background px-4 pt-3 pb-safe">
           <Button size="lg" className="w-full" onClick={handleConfirm}>
             {t('expenses.form.picker_confirm')}
           </Button>
