@@ -20,9 +20,12 @@ import type { EmailSearchResult, FriendInvite, IFriendRepository } from '../type
 
 export class SupabaseFriendRepository implements IFriendRepository {
   async getAll(): Promise<Friend[]> {
+    // getSession() reads from local persisted storage — no network call, works offline.
+    // getUser() would make a round-trip to Supabase Auth and fail hard when offline.
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return [];
 
     const currentUserId = user.id as UserId;
@@ -31,8 +34,8 @@ export class SupabaseFriendRepository implements IFriendRepository {
       .from('friendships')
       .select(`
         *,
-        requester:profiles!friendships_requester_id_fkey(display_name, avatar_url),
-        addressee:profiles!friendships_addressee_id_fkey(display_name, avatar_url)
+        requester:profiles!friendships_requester_id_fkey(display_name, avatar_url, deleted_at),
+        addressee:profiles!friendships_addressee_id_fkey(display_name, avatar_url, deleted_at)
       `)
       .eq('status', 'accepted')
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)

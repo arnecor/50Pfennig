@@ -7,6 +7,9 @@ Full architectural rationale lives in [docs/adr/](docs/adr/).
 
 ## General coding guidelines
 Always act like a professional Senior Developer. Do not take shortcuts or do dirty fixes. A clean architecture needs to be maintained. You code will be reviewed by codex.
+
+## Technical debt — single source of truth
+All known technical debt is tracked in [docs/TECH_DEBT.md](docs/TECH_DEBT.md). Whenever a change consciously leaves debt behind (a deferred refactor, a workaround, a partial solution), you MUST add an entry to that file using the template at the top — do not bury the trade-off only in commit messages or PR descriptions. When debt is paid down, move the entry to the Resolved section rather than deleting it.
 ## Code Quality
 Prefer correct, complete implementations over minimal ones.
 - Use appropriate data structures and algorithms - don't brute-force what has a known better solution. - When fixing a bug, fix the root cause, not the symptom.
@@ -98,6 +101,24 @@ No toast / sonner / select. Use inline error state for form errors. If you want 
  This is a Capacitor mobile app targeting Android. Always test UI fixes against safe area insets, nav bar overlap, and keyboard behavior. Status bar config uses Capacitor's Style enum.
  
  When changing or creating UIs act as a professional UX Designer. Consider best practices and care for a minimalistic, clean and easy understanable Design
+
+## Safe Area Insets — Bottom Sheets
+
+Every bottom sheet / overlay that is fixed to the bottom of the screen MUST clear the Android navigation bar.
+
+**Rule:** Apply `pb-safe` to the innermost content div or footer of every bottom sheet.  
+Defined in `src/index.css`: `padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))`.
+
+```tsx
+// ✅ correct
+<div className="px-5 pt-4 pb-safe">…</div>
+
+// ❌ wrong — pb-safe-bottom does not exist (silently ignored by Tailwind)
+<div className="pb-safe-bottom">…</div>
+
+// ❌ wrong — ad-hoc inline styles or arbitrary Tailwind max()/calc() values
+<div style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
+```
 
 ## Dependency Rule — Non-Negotiable
 

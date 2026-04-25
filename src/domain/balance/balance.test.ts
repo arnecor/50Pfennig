@@ -31,6 +31,7 @@ const member = (userId: UserId): GroupMember => ({
   groupId: gid,
   displayName: userId as string,
   joinedAt: new Date('2024-01-01'),
+  isDeleted: false,
 });
 
 const members = [member(alice), member(bob), member(carol)];

@@ -91,7 +91,9 @@ export default function ExpenseForm({
       ? {
           type: 'group',
           group: preselectedGroup,
-          selectedMemberIds: preselectedGroup.members.map((m) => m.userId),
+          selectedMemberIds: preselectedGroup.members
+            .filter((m) => !m.isDeleted)
+            .map((m) => m.userId),
         }
       : null,
   );
@@ -149,6 +151,7 @@ export default function ExpenseForm({
         groupId: null as never, // no group context
         displayName: friend?.displayName ?? uid,
         joinedAt: new Date(),
+        isDeleted: false,
       };
     });
     const alreadyIncluded = friendMembers.some((m) => m.userId === currentUserId);
@@ -158,6 +161,7 @@ export default function ExpenseForm({
         groupId: null as never,
         displayName: currentUserDisplayName,
         joinedAt: new Date(),
+        isDeleted: false,
       });
     }
     return friendMembers;
@@ -223,19 +227,17 @@ export default function ExpenseForm({
 
           {/* Large currency + input row */}
           <div className="flex items-center justify-center gap-1 w-full">
-            <span className="text-3xl font-bold text-muted-foreground/60 leading-none select-none">
-              €
-            </span>
+            <span className="text-3xl font-bold text-primary/60 leading-none select-none">€</span>
             <input
               id="amountInput"
               inputMode="decimal"
               placeholder="0,00"
               aria-label={t('expenses.form.amount_label')}
               className={[
-                'w-full min-w-0 bg-transparent text-center text-4xl font-bold tabular-nums leading-none text-foreground',
+                'w-full min-w-0 bg-transparent text-center text-4xl font-bold tabular-nums leading-none',
                 'placeholder:text-muted-foreground/30',
                 'outline-none border-none focus:ring-0',
-                errors.amountInput ? 'text-destructive' : '',
+                errors.amountInput ? 'text-destructive' : 'text-primary',
               ]
                 .filter(Boolean)
                 .join(' ')}

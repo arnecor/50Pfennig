@@ -47,7 +47,6 @@ const BalancesPage = lazy(() => import('../pages/BalancesPage'));
 const AddFriendEmailPage = lazy(() => import('../pages/AddFriendEmailPage'));
 const AddFriendPage = lazy(() => import('../pages/AddFriendPage'));
 const AddFriendQRPage = lazy(() => import('../pages/AddFriendQRPage'));
-const AddFriendScanPage = lazy(() => import('../pages/AddFriendScanPage'));
 const CheckEmailPage = lazy(() => import('../pages/CheckEmailPage'));
 const CreateGroupPage = lazy(() => import('../pages/CreateGroupPage'));
 const ExpenseDetailPage = lazy(() => import('../pages/ExpenseDetailPage'));
@@ -59,6 +58,7 @@ const GroupSettingsPage = lazy(() => import('../pages/GroupSettingsPage'));
 const ImprintPage = lazy(() => import('../pages/ImprintPage'));
 const LoginPage = lazy(() => import('../pages/LoginPage'));
 const OnboardingPage = lazy(() => import('../pages/OnboardingPage'));
+const PendingChangesPage = lazy(() => import('../pages/PendingChangesPage'));
 const SettlementDetailPage = lazy(() => import('../pages/SettlementDetailPage'));
 const SettlementsPage = lazy(() => import('../pages/SettlementsPage'));
 
@@ -230,13 +230,6 @@ const addFriendQRRoute = createRoute({
   component: AddFriendQRPage,
 });
 
-const addFriendScanRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/friends/add/scan',
-  beforeLoad: requireAuth,
-  component: AddFriendScanPage,
-});
-
 const addFriendEmailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/friends/add/email',
@@ -265,6 +258,13 @@ const imprintRoute = createRoute({
   component: ImprintPage,
 });
 
+const pendingChangesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account/pending-changes',
+  beforeLoad: requireAuth,
+  component: PendingChangesPage,
+});
+
 // ---------------------------------------------------------------------------
 // Route tree + router instance
 // ---------------------------------------------------------------------------
@@ -287,11 +287,11 @@ const routeTree = rootRoute.addChildren([
   friendsRoute,
   addFriendRoute,
   addFriendQRRoute,
-  addFriendScanRoute,
   addFriendEmailRoute,
   friendDetailRoute,
   accountRoute,
   imprintRoute,
+  pendingChangesRoute,
 ]);
 
 export const router = createRouter({

@@ -48,20 +48,29 @@ type FriendshipRow = Database['public']['Tables']['friendships']['Row'];
 
 /** Shape returned by group_members queries that embed profiles via FK join */
 export type GroupMemberWithProfile = GroupMemberRow & {
-  profiles: { display_name: string; avatar_url: string | null } | null;
+  profiles: {
+    display_name: string;
+    avatar_url: string | null;
+    deleted_at?: string | null;
+  } | null;
 };
 
 // ---------------------------------------------------------------------------
 // Mappers
 // ---------------------------------------------------------------------------
 
-export const mapGroupMember = (row: GroupMemberWithProfile): GroupMember => ({
-  userId: row.user_id as UserId,
-  groupId: row.group_id as GroupId,
-  displayName: row.profiles?.display_name ?? '',
-  joinedAt: new Date(row.joined_at),
-  ...(row.profiles?.avatar_url ? { avatarUrl: row.profiles.avatar_url } : {}),
-});
+export const mapGroupMember = (row: GroupMemberWithProfile): GroupMember => {
+  const isDeleted = row.profiles?.deleted_at != null;
+  return {
+    userId: row.user_id as UserId,
+    groupId: row.group_id as GroupId,
+    displayName: row.profiles?.display_name ?? '',
+    joinedAt: new Date(row.joined_at),
+    isDeleted,
+    // Suppress avatar entirely for deleted profiles; UI shows the placeholder.
+    ...(!isDeleted && row.profiles?.avatar_url ? { avatarUrl: row.profiles.avatar_url } : {}),
+  };
+};
 
 export const mapGroup = (row: GroupRow, members: GroupMemberWithProfile[]): Group => ({
   id: row.id as GroupId,
@@ -105,18 +114,28 @@ export const mapExpense = (row: ExpenseRow, splitRows: ExpenseSplitRow[]): Expen
  * who the current user is (requester or addressee).
  */
 export type FriendshipWithProfiles = FriendshipRow & {
-  requester: { display_name: string; avatar_url: string | null } | null;
-  addressee: { display_name: string; avatar_url: string | null } | null;
+  requester: {
+    display_name: string;
+    avatar_url: string | null;
+    deleted_at?: string | null;
+  } | null;
+  addressee: {
+    display_name: string;
+    avatar_url: string | null;
+    deleted_at?: string | null;
+  } | null;
 };
 
 export const mapFriend = (row: FriendshipWithProfiles, currentUserId: UserId): Friend => {
   const iAmRequester = row.requester_id === currentUserId;
   const profile = iAmRequester ? row.addressee : row.requester;
+  const isDeleted = profile?.deleted_at != null;
   return {
     userId: (iAmRequester ? row.addressee_id : row.requester_id) as UserId,
     displayName: profile?.display_name ?? '',
     friendshipId: row.id as FriendshipId,
-    ...(profile?.avatar_url ? { avatarUrl: profile.avatar_url } : {}),
+    isDeleted,
+    ...(!isDeleted && profile?.avatar_url ? { avatarUrl: profile.avatar_url } : {}),
   };
 };
 
@@ -139,9 +158,15 @@ export type GroupEventRow = {
   event_type: string;
   metadata: Record<string, unknown>;
   created_at: string;
-  profiles: { display_name: string } | null;
+  profiles: { display_name: string; deleted_at?: string | null } | null;
 };
 
+/**
+ * Deleted users have an empty display_name; consumers render the "Gelöschter
+ * Nutzer" placeholder when displayName is empty (see resolveDisplayName in
+ * src/domain/user/displayName.ts). Keeping displayName raw here preserves
+ * purity — the mapper does not pull in i18n.
+ */
 export const mapGroupEvent = (row: GroupEventRow): GroupEvent => ({
   id: row.id,
   groupId: row.group_id as GroupId,

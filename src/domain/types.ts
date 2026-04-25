@@ -52,6 +52,8 @@ export type Friend = {
   readonly displayName: string;
   readonly friendshipId: FriendshipId;
   readonly avatarUrl?: string;
+  /** true when the friend's account has been deleted (anonymised tombstone profile) */
+  readonly isDeleted: boolean;
 };
 
 /** Construct a Money value. Throws if the value is not an integer. */
@@ -102,6 +104,8 @@ export type GroupMember = {
   readonly displayName: string;
   readonly joinedAt: Date;
   readonly avatarUrl?: string;
+  /** true when the member's account has been deleted (anonymised tombstone profile) */
+  readonly isDeleted: boolean;
 };
 
 export type Group = {

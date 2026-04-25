@@ -15,17 +15,35 @@
  *   null         — no referrer or already consumed
  *
  * Play Store referrer param format: `invite_token=f:TOKEN` or `invite_token=g:TOKEN`.
+ *
+ * iOS: returns null (no native equivalent). A Swift implementation can be added
+ * later via server-side fingerprint matching when iOS support is built out.
  */
 
-// TODO: @dudod/capacitor-plugin-install-referrer removed (incompatible with Capacitor 6).
-// Restore when a compatible version is available.
-// When restored, parse the `invite_token` query param from the referrer string,
-// return its value ('f:TOKEN' or 'g:TOKEN') directly — App.tsx passes it to
-// dispatchInviteToken() which calls parseInviteToken() internally.
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
-/**
- * Stub — always returns null until the install referrer plugin is restored.
- */
+interface InstallReferrerPlugin {
+  getReferrer(): Promise<{ referrer?: string }>;
+}
+
+const InstallReferrer = registerPlugin<InstallReferrerPlugin>('InstallReferrer');
+
+const CHECKED_KEY = 'install_referrer_checked';
+
 export async function checkInstallReferrer(): Promise<string | null> {
-  return null;
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
+    return null;
+  }
+  if (localStorage.getItem(CHECKED_KEY)) {
+    return null;
+  }
+  localStorage.setItem(CHECKED_KEY, '1');
+  try {
+    const { referrer } = await InstallReferrer.getReferrer();
+    if (!referrer) return null;
+    const params = new URLSearchParams(referrer);
+    return params.get('invite_token');
+  } catch {
+    return null;
+  }
 }

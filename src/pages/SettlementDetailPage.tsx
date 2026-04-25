@@ -37,10 +37,10 @@ export default function SettlementDetailPage() {
       if (currentUserId && userId === (currentUserId as string)) return t('common.you');
       for (const g of groups) {
         const member = g.members.find((m) => (m.userId as string) === userId);
-        if (member) return member.displayName;
+        if (member) return member.isDeleted ? t('common.deleted_user') : member.displayName;
       }
       const friend = friends.find((f) => (f.userId as string) === userId);
-      if (friend) return friend.displayName;
+      if (friend) return friend.isDeleted ? t('common.deleted_user') : friend.displayName;
       return userId;
     };
   }, [currentUserId, groups, friends, t]);

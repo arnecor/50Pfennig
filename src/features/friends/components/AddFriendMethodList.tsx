@@ -7,12 +7,11 @@
  *   - Email search as a smaller secondary option at the bottom
  */
 
-import { Capacitor } from '@capacitor/core';
 import InviteLinkPanel from '@components/InviteLinkPanel';
 import { useCreateInvite } from '@features/friends/hooks/useCreateInvite';
 import { getInviteUrl } from '@features/friends/utils/getInviteUrl';
 import { useNavigate } from '@tanstack/react-router';
-import { Camera, ChevronRight, Mail } from 'lucide-react';
+import { ChevronRight, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -31,8 +30,6 @@ export default function AddFriendMethodList() {
     });
   }, []);
 
-  const isNative = Capacitor.isNativePlatform();
-
   return (
     <div className="flex flex-col gap-6">
       {/* ── Invite link panel (copy / share / QR) ── */}
@@ -41,19 +38,6 @@ export default function AddFriendMethodList() {
         isLoading={createInvite.isPending}
         shareText={t('friends.invite_share_text', { url: inviteUrl ?? '' })}
       />
-
-      {/* ── Scan QR (native only) ── */}
-      {isNative && (
-        <button
-          type="button"
-          onClick={() => navigate({ to: '/friends/add/scan' })}
-          className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors hover:bg-muted/50 active:opacity-80"
-        >
-          <Camera className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="flex-1 text-sm font-medium">{t('friends.method_scan_qr')}</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </button>
-      )}
 
       {/* ── Divider ── */}
       <div className="flex items-center gap-3">

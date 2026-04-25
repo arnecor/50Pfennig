@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="notification_color">#1e7da8</color>
+    <color name="statusBarBackground">#f6f9fb</color>
+</resources>

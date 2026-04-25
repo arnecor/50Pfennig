@@ -13,12 +13,18 @@
  *   const expenses = await expenseRepository.getByGroupId(groupId);
  */
 
-import { SupabaseExpenseRepository } from './supabase/expenseRepository';
+import { OfflineAwareExpenseRepository } from '../lib/storage/offlineAwareExpenseRepository';
+import { OfflineAwareGroupRepository } from '../lib/storage/offlineAwareGroupRepository';
 import { SupabaseFriendRepository } from './supabase/friendRepository';
-import { SupabaseGroupRepository } from './supabase/groupRepository';
+import { SupabaseProfileRepository } from './supabase/profileRepository';
 import { SupabaseSettlementRepository } from './supabase/settlementRepository';
 
-export const groupRepository = new SupabaseGroupRepository();
-export const expenseRepository = new SupabaseExpenseRepository();
+// Tier 1 writes (create expense/group, edit/delete own expense) are wrapped
+// so they enqueue when offline and delegate to Supabase when online. Tier 2
+// repositories (friend, settlement) stay plain — they require the network
+// today and are gated at the UI via useRequireOnline.
+export const groupRepository = new OfflineAwareGroupRepository();
+export const expenseRepository = new OfflineAwareExpenseRepository();
 export const settlementRepository = new SupabaseSettlementRepository();
 export const friendRepository = new SupabaseFriendRepository();
+export const profileRepository = new SupabaseProfileRepository();

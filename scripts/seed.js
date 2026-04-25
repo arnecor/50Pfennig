@@ -117,32 +117,32 @@ function percentageSplits(totalAmount, userIds) {
 const GROUP_DEFS = [
   {
     name: 'WG Sonnenallee',
-    memberIndices: [0, 1, 2, 3],
+    memberIndices: [0, 1, 2, 3, 4],
     expenses: [
       { description: 'Supermarkt Wocheneinkauf', min: 3000, max: 12000 },
-      { description: 'Stromrechnung Oktober', min: 5000, max: 15000 },
+      { description: 'Pizzanight!!🍕', min: 5000, max: 15000 },
       { description: 'Waschmittel & Reiniger', min: 800, max: 2500 },
       { description: 'Internetrechnung', min: 2999, max: 4999 },
     ],
   },
   {
-    name: 'Campingtrip Ostsee',
+    name: 'Campingtrip Frankreich',
     memberIndices: [2, 4, 5, 6],
     expenses: [
       { description: 'Campingplatz Gebühr', min: 8000, max: 20000 },
       { description: 'Lebensmittel fürs Wochenende', min: 4000, max: 10000 },
-      { description: 'Benzin Hin- und Rückfahrt', min: 6000, max: 14000 },
+      { description: 'Benzin Hinfahrt', min: 10000, max: 220000 },
       { description: 'Grillkohle & Anzünder', min: 500, max: 1500 },
-      { description: 'Getränkevorrat', min: 2000, max: 5000 },
+      { description: 'Baguette und Käse 🥖 🧀', min: 2000, max: 5000 },
+      { description: 'Aperol am Strand 🍷', min: 1000, max: 16000 },
     ],
   },
   {
-    name: 'Büro Mittagessen',
-    memberIndices: [0, 7, 8, 9],
+    name: 'Ausgaben Hund',
+    memberIndices: [2, 4, 8, 9],
     expenses: [
-      { description: 'Italiener vom Donnerstag', min: 4500, max: 8000 },
-      { description: 'Sushi-Lieferung Freitag', min: 6000, max: 12000 },
-      { description: 'Döner für alle', min: 3000, max: 6000 },
+      { description: 'Hundefutter April', min: 4500, max: 8000 },
+      { description: 'Neues Halsband', min: 1000, max: 2000 }
     ],
   },
 ];
@@ -159,8 +159,25 @@ const FRIEND_PAIRS = [
   [0, 2],
   [0, 3],
   [0, 4],
+  [1, 2],
+  [1, 3],
   [1, 4],
   [1, 5],
+  [1, 6],
+  [2, 3],
+  [2, 4],
+  [2, 5],
+  [2, 6],
+  [2, 7],
+  [2, 8],
+  [2, 9],
+  [4, 3],
+  [4, 5],
+  [4, 6],
+  [4, 7],
+  [4, 8],
+  [4, 9]
+
 ];
 
 // Friend expenses — group_id will be null.
@@ -188,7 +205,7 @@ const FRIEND_EXPENSE_DEFS = [
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('🌱  Seeding 50Pfennig development database…\n');
+  console.log('🌱  Seeding Sharli development database…\n');
 
 
   // ── Step 1: Create 10 random test users ──────────────────────────────────
@@ -211,7 +228,7 @@ async function main() {
     );
 
     users.push(data.user);
-    console.log(`  ✓  ${email}  →  ${firstName} ${lastName}`);
+    console.log(`  ✓  ${email}  →  ${firstName}`);
   }
 
   // ── Step 1c: Create friendships ───────────────────────────────────────────

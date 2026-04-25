@@ -23,6 +23,7 @@ import type { Friend, Money, UserId } from '@domain/types';
 import { ZERO, money } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
+import { useRequireOnline } from '@lib/connectivity/useRequireOnline';
 import { ArrowRight, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -70,6 +71,7 @@ export default function RecordFriendSettlementSheet({
 }: Props) {
   const { t } = useTranslation();
   const createSettlement = useCreateSettlement();
+  const { disabled: offlineDisabled, hint: offlineHint } = useRequireOnline();
   const currentUserDisplayName = useAuthStore(
     (s) => s.session?.user.user_metadata?.display_name as string | undefined,
   );
@@ -127,10 +129,11 @@ export default function RecordFriendSettlementSheet({
   };
 
   const youLabel = currentUserDisplayName ?? t('common.you');
-  const fromName = fromUserId === currentUserId ? t('common.you') : friend.displayName;
-  const toName = toUserId === currentUserId ? t('common.you') : friend.displayName;
-  const fromAvatar = fromUserId === currentUserId ? youLabel : friend.displayName;
-  const toAvatar = toUserId === currentUserId ? youLabel : friend.displayName;
+  const friendName = friend.isDeleted ? t('common.deleted_user') : friend.displayName;
+  const fromName = fromUserId === currentUserId ? t('common.you') : friendName;
+  const toName = toUserId === currentUserId ? t('common.you') : friendName;
+  const fromAvatar = fromUserId === currentUserId ? youLabel : friendName;
+  const toAvatar = toUserId === currentUserId ? youLabel : friendName;
 
   return (
     <>
@@ -215,7 +218,7 @@ export default function RecordFriendSettlementSheet({
         </div>
 
         {/* Footer */}
-        <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="border-t px-4 pt-4 pb-safe">
           <div className="flex gap-3">
             <Button
               size="lg"
@@ -229,12 +232,15 @@ export default function RecordFriendSettlementSheet({
             <Button
               size="lg"
               className="flex-1"
-              disabled={createSettlement.isPending}
+              disabled={createSettlement.isPending || offlineDisabled}
               onClick={handleSubmit}
             >
               {createSettlement.isPending ? t('common.loading') : t('settlements.submit')}
             </Button>
           </div>
+          {offlineHint && (
+            <p className="mt-2 text-center text-xs text-muted-foreground">{offlineHint}</p>
+          )}
           {createSettlement.isError && (
             <p className="mt-2 text-center text-xs text-destructive">{t('common.error_generic')}</p>
           )}

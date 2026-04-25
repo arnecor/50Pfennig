@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import PendingSyncMarker from '@components/PendingSyncMarker';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { UserAvatar } from '@components/shared/UserAvatar';
 import type { Money } from '@domain/types';
@@ -15,6 +16,12 @@ type UnifiedExpenseItemProps = {
   paidByCurrentUser?: boolean;
   /** Optional group name appended to the subtitle — used by the home feed. */
   groupName?: string;
+  /**
+   * Expense id used to look up whether this row has a pending offline
+   * write. When a matching item exists in the queue we show a small
+   * clock/warning marker next to the description.
+   */
+  expenseId?: string;
   onClick?: () => void;
   className?: string;
 };
@@ -26,6 +33,7 @@ export function UnifiedExpenseItem({
   totalAmount,
   shareAmount,
   groupName,
+  expenseId,
   onClick,
   className,
 }: UnifiedExpenseItemProps) {
@@ -47,7 +55,10 @@ export function UnifiedExpenseItem({
       <UserAvatar name={paidByName} avatarUrl={paidByAvatarUrl} size="sm" />
 
       <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-medium text-foreground">{description}</p>
+        <p className="truncate text-sm font-medium text-foreground flex items-center gap-1.5">
+          <span className="truncate">{description}</span>
+          {expenseId ? <PendingSyncMarker id={expenseId} /> : null}
+        </p>
         <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
       </div>
 

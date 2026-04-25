@@ -14,6 +14,8 @@ type FriendCardProps = {
   balanceLabel?: string;
   /** Label shown when balance is zero (e.g. "Ausgeglichen"). */
   settledLabel?: string;
+  /** When true, renders the "Gelöschter Nutzer" placeholder instead of name/avatar. */
+  isDeleted?: boolean;
   onClick?: () => void;
   className?: string;
 };
@@ -24,6 +26,7 @@ export function FriendCard({
   balance,
   balanceLabel,
   settledLabel,
+  isDeleted = false,
   onClick,
   className,
 }: FriendCardProps) {
@@ -31,6 +34,7 @@ export function FriendCard({
   const positive = !isNegative(balance);
   const settled = isZero(balance);
   const resolvedSettledLabel = settledLabel ?? t('friends.balanced');
+  const displayedName = isDeleted ? t('common.deleted_user') : name;
 
   return (
     <button
@@ -44,16 +48,17 @@ export function FriendCard({
       )}
       type="button"
     >
-      <UserAvatar name={name} avatarUrl={avatarUrl} size="md" />
+      <UserAvatar name={name} avatarUrl={avatarUrl} size="md" isDeleted={isDeleted} />
 
       <div className="flex-1 min-w-0">
         <p
           className={cn(
             'text-sm font-semibold truncate',
-            settled ? 'text-muted-foreground' : 'text-foreground',
+            settled || isDeleted ? 'text-muted-foreground' : 'text-foreground',
+            isDeleted && 'italic',
           )}
         >
-          {name}
+          {displayedName}
         </p>
         {!settled && (
           <p className="text-xs text-muted-foreground mt-0.5">

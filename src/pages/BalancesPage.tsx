@@ -18,7 +18,7 @@ import GreedyExplainerSheet from '@features/balances/components/GreedyExplainerS
 import { useGroupBalances } from '@features/balances/hooks/useGroupBalances';
 import RecordGroupSettlementSheet from '@features/settlements/components/RecordGroupSettlementSheet';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { CheckCircle, HelpCircle } from 'lucide-react';
+import { CheckCircle, HelpCircle, WifiOff } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -29,7 +29,9 @@ export default function BalancesPage() {
 
   const currentUserId = useAuthStore((s) => s.session?.user.id) as UserId | undefined;
 
-  const { instructions, isLoading, group } = useGroupBalances(groupId as GroupId);
+  const { instructions, isLoading, isOfflineUnavailable, group } = useGroupBalances(
+    groupId as GroupId,
+  );
 
   const [showSheet, setShowSheet] = useState(false);
   const [suggestion, setSuggestion] = useState<DebtInstruction | undefined>();
@@ -37,7 +39,9 @@ export default function BalancesPage() {
 
   const memberName = (id: UserId) => {
     if (currentUserId && isSameUser(id, currentUserId)) return t('common.you');
-    return group?.members.find((m) => isSameUser(m.userId, id))?.displayName ?? String(id);
+    const member = group?.members.find((m) => isSameUser(m.userId, id));
+    if (!member) return String(id);
+    return member.isDeleted ? t('common.deleted_user') : member.displayName;
   };
 
   const handleOpenSheet = (s: DebtInstruction) => {
@@ -68,7 +72,14 @@ export default function BalancesPage() {
           </div>
         )}
 
-        {!isLoading && instructions.length === 0 && (
+        {!isLoading && isOfflineUnavailable && (
+          <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-4">
+            <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">{t('offline.balance_unavailable')}</p>
+          </div>
+        )}
+
+        {!isLoading && !isOfflineUnavailable && instructions.length === 0 && (
           <EmptyState
             icon={<CheckCircle className="h-12 w-12" />}
             title={t('balances.settled_title')}
@@ -76,7 +87,7 @@ export default function BalancesPage() {
           />
         )}
 
-        {!isLoading && instructions.length > 0 && (
+        {!isLoading && !isOfflineUnavailable && instructions.length > 0 && (
           <section>
             <div className="mb-3 flex items-center gap-1.5">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

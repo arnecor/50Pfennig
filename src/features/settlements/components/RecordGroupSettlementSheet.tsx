@@ -18,6 +18,7 @@ import type { DebtInstruction, Group, Money, UserId } from '@domain/types';
 import { money } from '@domain/types';
 import { useCreateSettlement } from '@features/settlements/hooks/useCreateSettlement';
 import { useBackHandler } from '@lib/capacitor/backHandler';
+import { useRequireOnline } from '@lib/connectivity/useRequireOnline';
 import { Circle, CircleDot, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -63,6 +64,7 @@ export default function RecordGroupSettlementSheet({
 }: Props) {
   const { t } = useTranslation();
   const createSettlement = useCreateSettlement();
+  const { disabled: offlineDisabled, hint: offlineHint } = useRequireOnline();
 
   useBackHandler(() => {
     onClose();
@@ -80,10 +82,12 @@ export default function RecordGroupSettlementSheet({
   const [note, setNote] = useState('');
   const [amountError, setAmountError] = useState('');
 
-  const memberName = (id: UserId) =>
-    id === currentUserId
-      ? t('common.you')
-      : (group.members.find((m) => m.userId === id)?.displayName ?? String(id));
+  const memberName = (id: UserId) => {
+    if (id === currentUserId) return t('common.you');
+    const member = group.members.find((m) => m.userId === id);
+    if (!member) return String(id);
+    return member.isDeleted ? t('common.deleted_user') : member.displayName;
+  };
 
   const handleSubmit = async () => {
     const cents = parseAmountCents(amountStr);
@@ -234,7 +238,7 @@ export default function RecordGroupSettlementSheet({
         </div>
 
         {/* Footer */}
-        <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="border-t px-4 pt-4 pb-safe">
           <div className="flex gap-3">
             <Button
               size="lg"
@@ -249,13 +253,20 @@ export default function RecordGroupSettlementSheet({
               size="lg"
               className="flex-1"
               disabled={
-                !fromUserId || !toUserId || fromUserId === toUserId || createSettlement.isPending
+                !fromUserId ||
+                !toUserId ||
+                fromUserId === toUserId ||
+                createSettlement.isPending ||
+                offlineDisabled
               }
               onClick={handleSubmit}
             >
               {createSettlement.isPending ? t('common.loading') : t('settlements.submit')}
             </Button>
           </div>
+          {offlineHint && (
+            <p className="mt-2 text-center text-xs text-muted-foreground">{offlineHint}</p>
+          )}
           {createSettlement.isError && (
             <p className="mt-2 text-center text-xs text-destructive">{t('common.error_generic')}</p>
           )}

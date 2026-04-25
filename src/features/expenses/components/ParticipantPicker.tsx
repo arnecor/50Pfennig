@@ -73,11 +73,13 @@ export default function ParticipantPicker({
         : groups
       : [];
 
+  // Deleted users ("Gelöschter Nutzer") cannot be selected for new expenses.
+  const selectableFriends = friends.filter((f) => !f.isDeleted);
   const filteredFriends =
     activeTab === 'friends'
       ? q
-        ? friends.filter((f) => f.displayName.toLowerCase().includes(q))
-        : friends
+        ? selectableFriends.filter((f) => f.displayName.toLowerCase().includes(q))
+        : selectableFriends
       : [];
 
   const selectedGroupId: GroupId | null = draft?.type === 'group' ? draft.group.id : null;
@@ -108,8 +110,9 @@ export default function ParticipantPicker({
       // Deselect
       setDraft(null);
     } else {
-      // Select group with all members selected by default
-      const allMemberIds = group.members.map((m) => m.userId);
+      // Select group with all members selected by default — deleted users are
+      // excluded so new expenses never reference "Gelöschter Nutzer".
+      const allMemberIds = group.members.filter((m) => !m.isDeleted).map((m) => m.userId);
       setDraft({ type: 'group', group, selectedMemberIds: allMemberIds });
     }
   }
@@ -253,6 +256,7 @@ export default function ParticipantPicker({
                   </p>
                   <div className="flex flex-col gap-1">
                     {selectedGroup.members
+                      .filter((member) => !member.isDeleted)
                       .filter((member) => member.displayName.toLowerCase().includes(q))
                       .map((member) => {
                         const isChecked = selectedMemberIds.includes(member.userId);
@@ -338,8 +342,7 @@ export default function ParticipantPicker({
 
         {/* Confirm button — always visible, pinned to the bottom of the sheet */}
         <div
-          className="shrink-0 border-t border-border bg-background px-4 pt-3"
-          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+          className="shrink-0 border-t border-border bg-background px-4 pt-3 pb-safe"
         >
           <Button size="lg" className="w-full" onClick={handleConfirm}>
             {t('expenses.form.picker_confirm')}

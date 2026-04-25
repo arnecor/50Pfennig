@@ -67,9 +67,10 @@ export default function AddMemberOverlay({
     [group.members],
   );
 
-  // Friends not yet in the group
+  // Friends not yet in the group. Deleted users are never offered as
+  // candidates — they cannot be invited to new groups.
   const addableFriends = useMemo(
-    () => friends.filter((f) => !existingMemberIds.has(f.userId)),
+    () => friends.filter((f) => !f.isDeleted && !existingMemberIds.has(f.userId)),
     [friends, existingMemberIds],
   );
 
@@ -174,7 +175,7 @@ export default function AddMemberOverlay({
 
         {/* Confirm footer — only shown when friends can be added */}
         {addableFriends.length > 0 && (
-          <div className="border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="border-t px-4 pt-4 pb-safe">
             <Button
               size="lg"
               className="w-full gap-2"
@@ -191,7 +192,7 @@ export default function AddMemberOverlay({
 
         {/* Bottom safe area padding when no footer button */}
         {addableFriends.length === 0 && (
-          <div className="pb-[max(1rem,env(safe-area-inset-bottom))]" />
+          <div className="pb-safe" />
         )}
       </div>
     </>

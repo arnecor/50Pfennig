@@ -17,7 +17,29 @@
     "yesterday": "Yesterday",
     "camera_prompt_header": "Select Photo",
     "camera_prompt_photo": "From Photos",
-    "camera_prompt_picture": "Take Picture"
+    "camera_prompt_picture": "Take Picture",
+    "requires_internet": "Requires internet",
+    "deleted_user": "Deleted user"
+  },
+  "offline": {
+    "banner_hard": "Offline — changes will sync when you're back online.",
+    "banner_soft": "Weak connection — changes will sync when the signal improves.",
+    "pending_sync": "Will sync when you're back online",
+    "sync_error": "Sync failed",
+    "pending_changes_title": "Pending changes",
+    "pending_changes_empty": "All changes are synced.",
+    "pending_changes_retry": "Retry",
+    "pending_changes_discard": "Discard",
+    "pending_changes_failed_heading": "Need your attention",
+    "pending_changes_inflight_heading": "Waiting to sync",
+    "pending_changes_link": "View pending changes",
+    "retry_count": "{{count}} attempts",
+    "reason_unknown": "Unknown error",
+    "mutation_create_expense": "Create expense",
+    "mutation_update_expense": "Edit expense",
+    "mutation_delete_expense": "Delete expense",
+    "mutation_create_group": "Create group",
+    "balance_unavailable": "You're offline. Go back online to see balances."
   },
   "auth": {
     "sign_in": "Sign in",
@@ -312,7 +334,15 @@
     "imprint_address_line1_placeholder": "Henriettenstr. 23",
     "imprint_address_line2_placeholder": "20259 Hamburg",
     "imprint_country_placeholder": "Germany",
-    "imprint_email_placeholder": "info@sharli.app"
+    "imprint_email_placeholder": "info@sharli.app",
+    "delete_section_title": "Delete account",
+    "delete_button": "Delete account",
+    "delete_warning_title": "Permanently delete account?",
+    "delete_warning_body": "You can delete your account at any time. All your personal data will be permanently erased. If you're still in groups with open entries, those entries may continue to appear to other group members in anonymised form.\n\n<strong>Please settle any outstanding balances before deleting your account.</strong>",
+    "delete_cancel": "Cancel",
+    "delete_confirm": "Permanently delete account",
+    "delete_in_progress": "Deleting account…",
+    "delete_failed": "Deletion failed. Please try again."
   },
   "payment_detail": {
     "expense_title": "Expense Details",

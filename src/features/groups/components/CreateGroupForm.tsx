@@ -79,6 +79,8 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
     [],
   );
 
+  const selectableFriends = friends.filter((f) => !f.isDeleted);
+
   const {
     register,
     handleSubmit,
@@ -135,11 +137,11 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
         <Label>{t('groups.add_friends_section')}</Label>
         <p className="text-xs text-muted-foreground">{t('groups.add_members_hint')}</p>
 
-        {friends.length === 0 ? (
+        {selectableFriends.length === 0 ? (
           <p className="py-2 text-sm text-muted-foreground">{t('groups.no_friends_at_all')}</p>
         ) : (
           <div className="mt-1 flex flex-col gap-2">
-            {friends.map((friend) => {
+            {selectableFriends.map((friend) => {
               const isChecked = selectedFriends.includes(friend.userId);
               return (
                 <button

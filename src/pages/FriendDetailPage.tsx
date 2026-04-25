@@ -267,17 +267,26 @@ export default function FriendDetailPage() {
   return (
     <div className="min-h-full pb-24">
       <PageHeader
-        title={friend?.displayName ?? '…'}
+        title={friend?.isDeleted ? t('common.deleted_user') : (friend?.displayName ?? '…')}
         onBack={handleBack}
-        onAction={handleSendReminder}
-        actionIcon={<Bell className="w-5 h-5" />}
-        actionLabel={t('friends.send_reminder')}
+        {...(friend?.isDeleted
+          ? {}
+          : {
+              onAction: handleSendReminder,
+              actionIcon: <Bell className="w-5 h-5" />,
+              actionLabel: t('friends.send_reminder'),
+            })}
       />
 
       {/* Friend avatar hero */}
       {friend && (
         <div className="flex flex-col items-center gap-1 pt-2 pb-4">
-          <UserAvatar name={friend.displayName} avatarUrl={friend.avatarUrl} size="xl" />
+          <UserAvatar
+            name={friend.displayName}
+            avatarUrl={friend.avatarUrl}
+            size="xl"
+            isDeleted={friend.isDeleted}
+          />
         </div>
       )}
 
@@ -451,6 +460,7 @@ export default function FriendDetailPage() {
                                 totalAmount={expense.totalAmount}
                                 shareAmount={signedShare}
                                 paidByCurrentUser={paidByCurrentUser}
+                                expenseId={String(expense.id)}
                                 onClick={() =>
                                   navigate({
                                     to: '/expenses/$expenseId',
@@ -463,13 +473,14 @@ export default function FriendDetailPage() {
 
                           // settlement row
                           const { batch } = item;
+                          const friendName = friend
+                            ? friend.isDeleted
+                              ? t('common.deleted_user')
+                              : friend.displayName
+                            : '…';
                           const label = batch.iMePaying
-                            ? t('settlements.you_paid_friend', {
-                                name: friend?.displayName ?? '…',
-                              })
-                            : t('settlements.friend_paid_you', {
-                                name: friend?.displayName ?? '…',
-                              });
+                            ? t('settlements.you_paid_friend', { name: friendName })
+                            : t('settlements.friend_paid_you', { name: friendName });
 
                           return (
                             <div
