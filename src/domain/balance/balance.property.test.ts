@@ -23,7 +23,8 @@
 
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { ZERO, money } from '../money';
+import type { CurrencyCode } from '../currency';
+import { ZERO, convertToBase, money } from '../money';
 import { splitExpense } from '../splitting/index';
 import type {
   BalanceMap,
@@ -50,6 +51,7 @@ import {
 
 const uid = (s: string) => s as UserId;
 const GID = 'g1' as GroupId;
+const EUR = 'EUR' as CurrencyCode;
 
 /** Ordered pool of 5 stable user IDs. */
 const POOL = ['u1', 'u2', 'u3', 'u4', 'u5'].map(uid);
@@ -116,6 +118,9 @@ const equalExpenseArb = (users: readonly UserId[]): fc.Arbitrary<Expense> =>
         createdBy: paidBy,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
+        currency: EUR,
+        fxRate: 1.0,
+        baseTotalAmount: total,
       };
       return expense;
     });
@@ -137,6 +142,9 @@ const settlementArb = (users: readonly UserId[]): fc.Arbitrary<Settlement> =>
       toUserId: users[toIdx] as UserId,
       amount,
       createdAt: new Date('2024-01-01'),
+      currency: EUR,
+      fxRate: 1.0,
+      baseAmount: amount,
     }));
 
 const scenarioArb = usersArb.chain((users) =>
@@ -151,6 +159,60 @@ const scenarioWithExpensesArb = usersArb.chain((users) =>
   fc.record({
     users: fc.constant(users),
     expenses: fc.array(equalExpenseArb(users), { minLength: 1, maxLength: 5 }),
+  }),
+);
+
+/** FX rate between 0.01 and 100 (covers most real-world currency pairs). */
+const fxRateArb = fc.double({ min: 0.01, max: 100, noNaN: true });
+
+/**
+ * Multi-currency expense: original in foreign currency, base in EUR.
+ * baseTotalAmount = round(totalAmount / fxRate), splits computed on baseTotalAmount.
+ */
+const multiCurrencyExpenseArb = (users: readonly UserId[]): fc.Arbitrary<Expense> =>
+  fc
+    .record({
+      payerIdx: fc.integer({ min: 0, max: users.length - 1 }),
+      participantIdxs: fc.uniqueArray(fc.integer({ min: 0, max: users.length - 1 }), {
+        minLength: 1,
+        maxLength: users.length,
+      }),
+      originalTotal: posMoneyArb,
+      fxRate: fxRateArb,
+    })
+    .map(({ payerIdx, participantIdxs, originalTotal, fxRate }) => {
+      const paidBy = users[payerIdx] as UserId;
+      const participants = participantIdxs.map((i) => users[i] as UserId);
+      const baseTotal = convertToBase(originalTotal, fxRate);
+      const splitResult = splitExpense(baseTotal, participants, { type: 'equal' });
+      return {
+        id: nextId() as ExpenseId,
+        groupId: GID,
+        description: 'multi-currency',
+        totalAmount: originalTotal,
+        paidBy,
+        split: { type: 'equal' } as const,
+        splits: Object.entries(splitResult).map(([u, amount]) => ({
+          userId: u as UserId,
+          amount: amount as Money,
+        })),
+        createdBy: paidBy,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+        currency: 'USD' as CurrencyCode,
+        fxRate,
+        baseTotalAmount: baseTotal,
+      };
+    });
+
+const multiCurrencyScenarioArb = usersArb.chain((users) =>
+  fc.record({
+    users: fc.constant(users),
+    expenses: fc.array(fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)), {
+      minLength: 1,
+      maxLength: 5,
+    }),
+    settlements: fc.array(settlementArb(users), { minLength: 0, maxLength: 3 }),
   }),
 );
 
@@ -301,6 +363,9 @@ describe('simplifyDebts — applying instructions zeroes all balances', () => {
           toUserId: inst.toUserId,
           amount: inst.amount,
           createdAt: new Date('2024-01-01'),
+          currency: EUR,
+          fxRate: 1.0,
+          baseAmount: inst.amount,
         }));
 
         const settled = calculateGroupBalances(expenses, syntheticSettlements, members);
@@ -382,6 +447,9 @@ describe('computeBilateralBalance — third-party immunity', () => {
             createdBy: carol,
             createdAt: new Date('2024-01-01'),
             updatedAt: new Date('2024-01-01'),
+            currency: 'EUR' as CurrencyCode,
+            fxRate: 1,
+            baseTotalAmount: total,
           };
 
           const balance = computeBilateralBalance([carolsExpense], [], alice, bob);
@@ -549,6 +617,9 @@ describe('cross-cutting: full simplification cycle', () => {
           toUserId: inst.toUserId,
           amount: inst.amount,
           createdAt: new Date('2024-01-01'),
+          currency: EUR,
+          fxRate: 1.0,
+          baseAmount: inst.amount,
         }));
 
         const settled = calculateGroupBalances(expenses, settlements, members);
@@ -592,6 +663,113 @@ describe('cross-cutting: full simplification cycle', () => {
           // In a 2-person group these must be identical (same sign, same magnitude).
           // Use subtraction to avoid Object.is(+0, -0) false-negative.
           expect((bilateral as number) - (simplified as number)).toBe(0);
+        },
+      ),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 16. Multi-currency: zero-sum invariant with mixed currency expenses
+// ---------------------------------------------------------------------------
+
+describe('multi-currency — zero-sum invariant', () => {
+  it('holds when group has a mix of same-currency and foreign-currency expenses', () => {
+    fc.assert(
+      fc.property(multiCurrencyScenarioArb, ({ users, expenses, settlements }) => {
+        const members = users.map(toMember);
+        expect(sumBalances(calculateGroupBalances(expenses, settlements, members))).toBe(0);
+      }),
+    );
+  });
+
+  it('member completeness holds for multi-currency scenarios', () => {
+    fc.assert(
+      fc.property(multiCurrencyScenarioArb, ({ users, expenses, settlements }) => {
+        const members = users.map(toMember);
+        const result = calculateGroupBalances(expenses, settlements, members);
+        for (const u of users) {
+          expect(result.has(u), `Missing entry for ${u}`).toBe(true);
+        }
+      }),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 17. Multi-currency: simplifyDebts preserves total
+// ---------------------------------------------------------------------------
+
+describe('multi-currency — simplifyDebts total preserved', () => {
+  it('sum of instruction amounts equals sum of positive balances with mixed currencies', () => {
+    fc.assert(
+      fc.property(
+        usersArb.chain((users) =>
+          fc.record({
+            users: fc.constant(users),
+            expenses: fc.array(fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)), {
+              minLength: 1,
+              maxLength: 5,
+            }),
+          }),
+        ),
+        ({ users, expenses }) => {
+          const members = users.map(toMember);
+          const balances = calculateGroupBalances(expenses, [], members);
+          const instructions = simplifyDebts(balances);
+
+          const positiveSum = Array.from(balances.values())
+            .filter((b) => b > 0)
+            .reduce((a, b) => a + b, 0);
+
+          const instructionSum = instructions.reduce((a, i) => a + (i.amount as number), 0);
+          expect(instructionSum).toBe(positiveSum);
+        },
+      ),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 18. Multi-currency: full simplification cycle
+// ---------------------------------------------------------------------------
+
+describe('multi-currency — full simplification cycle', () => {
+  it('applying simplified debts as settlements zeroes all balances', () => {
+    fc.assert(
+      fc.property(
+        usersArb.chain((users) =>
+          fc.record({
+            users: fc.constant(users),
+            expenses: fc.array(fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)), {
+              minLength: 1,
+              maxLength: 5,
+            }),
+          }),
+        ),
+        ({ users, expenses }) => {
+          const members = users.map(toMember);
+          const balances = calculateGroupBalances(expenses, [], members);
+          const instructions = simplifyDebts(balances);
+
+          const settlements: Settlement[] = instructions.map((inst, i) => ({
+            id: `synth-${i}` as SettlementId,
+            batchId: null,
+            groupId: GID,
+            fromUserId: inst.fromUserId,
+            toUserId: inst.toUserId,
+            amount: inst.amount,
+            createdAt: new Date('2024-01-01'),
+            currency: EUR,
+            fxRate: 1.0,
+            baseAmount: inst.amount,
+          }));
+
+          const settled = calculateGroupBalances(expenses, settlements, members);
+          expect(sumBalances(settled)).toBe(0);
+          for (const [userId, balance] of settled) {
+            expect(balance, `Balance for ${userId} should be 0`).toBe(ZERO);
+          }
         },
       ),
     );

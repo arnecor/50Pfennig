@@ -9,6 +9,7 @@
  * They will throw if called offline; gated by useRequireOnline on the UI side.
  */
 
+import { currencyCode } from '@domain/currency';
 import type { Group, GroupEvent, GroupId, GroupInvite, GroupMember, UserId } from '@domain/types';
 import { SupabaseGroupRepository } from '@repositories/supabase/groupRepository';
 import type { CreateGroupInput, IGroupRepository, UpdateGroupInput } from '@repositories/types';
@@ -96,6 +97,8 @@ export class OfflineAwareGroupRepository implements IGroupRepository {
       payload: {
         name: input.name,
         memberIds: (input.memberIds ?? []) as string[],
+        baseCurrency: (input.baseCurrency ?? 'EUR') as string,
+        defaultCurrency: (input.defaultCurrency ?? 'EUR') as string,
       },
     });
 
@@ -117,6 +120,8 @@ export class OfflineAwareGroupRepository implements IGroupRepository {
         },
       ],
       isArchived: false,
+      baseCurrency: input.baseCurrency ?? currencyCode('EUR'),
+      defaultCurrency: input.defaultCurrency ?? currencyCode('EUR'),
     };
   }
 

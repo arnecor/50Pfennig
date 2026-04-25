@@ -400,5 +400,22 @@
     "delete_confirm": "Zahlung wirklich löschen?",
     "you_paid_friend": "Du hast {{name}} bezahlt",
     "friend_paid_you": "{{name}} hat dich bezahlt"
+  },
+  "currency": {
+    "picker_title": "Währung auswählen",
+    "search_placeholder": "Suchen...",
+    "empty_search": "Keine Währung gefunden",
+    "group_label": "Währung",
+    "expand_different": "Verschiedene Währungen für Ausgaben und Abrechnung?",
+    "collapse_single": "Einzelne Währung verwenden",
+    "default_label": "Ausgabenwährung",
+    "default_hint": "In dieser Währung trägst du neue Ausgaben ein",
+    "base_label": "Abrechnungswährung",
+    "base_hint": "Diese Währung wird für Abrechnungen verwendet",
+    "fx_rate_label": "Kurs",
+    "base_amount_label": "Betrag",
+    "in_currency": "in {{currency}}",
+    "settings_section": "Währung",
+    "default_currency_label": "Standardwährung"
   }
 }

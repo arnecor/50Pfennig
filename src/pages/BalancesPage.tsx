@@ -113,7 +113,7 @@ export default function BalancesPage() {
                       {memberName(s.fromUserId)} → {memberName(s.toUserId)}
                     </p>
                     <p className="text-sm font-semibold text-you-owe tabular-nums">
-                      {formatMoney(s.amount)}
+                      {formatMoney(s.amount, 'de-DE', (group?.baseCurrency as string) ?? 'EUR')}
                     </p>
                   </div>
                   <Button

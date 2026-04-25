@@ -2,6 +2,12 @@
   "env": {
     "ENABLE_LSP_TOOL": "1"
   },
+    "hooks": {
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{"type": "command", "command": "npx tsc --noEmit 2>&1 | head -30"}]
+    }]
+  },
   "permissions": {
     "allow": [
       "Bash(ls)",
@@ -54,8 +60,9 @@
       "Bash(xargs grep:*)",
       "Bash(gh issue:*)",
       "Bash(gh repo:*)",
-      "WebFetch(domain:developers.google.com)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(iconv -f UTF-16LE -t UTF-8 /mnt/c/Privat/50Pfennig/src/lib/supabase/types.gen.ts)"
     ],
     "deny": [
       "Bash(npm run db:migrate:prod*)",

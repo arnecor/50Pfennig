@@ -30,6 +30,7 @@ import { Capacitor } from '@capacitor/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useCallback } from 'react';
+import type { CurrencyCode } from '../../../domain/types';
 import { resizeImage } from '../../../lib/image/resizeImage';
 import { supabase } from '../../../lib/supabase/client';
 import { profileRepository } from '../../../repositories';
@@ -242,6 +243,22 @@ export const useAuth = () => {
     [session?.user?.id, queryClient],
   );
 
+  const updateDefaultCurrency = useCallback(
+    async (code: CurrencyCode) => {
+      if (!session?.user?.id) throw new Error('Not authenticated');
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ default_currency: code as string, updated_at: new Date().toISOString() })
+        .eq('id', session.user.id);
+      if (profileError) throw profileError;
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { default_currency: code as string },
+      });
+      if (authError) throw authError;
+    },
+    [session?.user?.id],
+  );
+
   return {
     user: session?.user ?? null,
     session,
@@ -256,6 +273,7 @@ export const useAuth = () => {
     signOut,
     deleteAccount,
     updateDisplayName,
+    updateDefaultCurrency,
     uploadAvatar,
   };
 };

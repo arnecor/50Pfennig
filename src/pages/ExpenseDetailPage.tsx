@@ -8,7 +8,9 @@ import { cn } from '@/lib/utils';
 import MoneyDisplay from '@components/shared/MoneyDisplay';
 import { PageHeader } from '@components/shared/PageHeader';
 import { UserAvatar } from '@components/shared/UserAvatar';
-import { negate } from '@domain/money';
+import { isSameCurrency } from '@domain/currency';
+import { formatMoney, negate } from '@domain/money';
+import type { CurrencyCode } from '@domain/types';
 import { type ExpenseId, type Money, type UserId, ZERO } from '@domain/types';
 import { useAuthStore } from '@features/auth/authStore';
 import { expenseByIdQueryOptions } from '@features/expenses/expenseQueries';
@@ -119,6 +121,10 @@ export default function ExpenseDetailPage() {
   };
   const sharePositive = myShare !== null && myShare >= 0;
 
+  const baseCurrency: CurrencyCode | undefined = group?.baseCurrency;
+  const showFxInfo = baseCurrency && !isSameCurrency(expense.currency, baseCurrency);
+  const locale = i18n.language === 'de' ? 'de-DE' : 'en-GB';
+
   return (
     <div className="min-h-full pb-10">
       <PageHeader title={t('payment_detail.expense_title')} onBack={() => window.history.back()} />
@@ -144,6 +150,7 @@ export default function ExpenseDetailPage() {
               </p>
               <MoneyDisplay
                 amount={expense.totalAmount}
+                currency={expense.currency}
                 className="text-3xl font-bold tabular-nums tracking-tight"
               />
             </div>
@@ -160,6 +167,7 @@ export default function ExpenseDetailPage() {
                   </p>
                   <MoneyDisplay
                     amount={myShare}
+                    currency={baseCurrency}
                     showSign
                     colored
                     className="text-base font-bold tabular-nums leading-none"
@@ -168,6 +176,20 @@ export default function ExpenseDetailPage() {
               </div>
             )}
           </div>
+
+          {/* FX conversion info — only when expense currency ≠ base currency */}
+          {showFxInfo && (
+            <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                {t('currency.fx_rate_label')}: 1 {baseCurrency as string} ={' '}
+                {expense.fxRate.toFixed(2)} {expense.currency as string}
+              </p>
+              <p className="text-sm font-semibold">
+                {t('currency.base_amount_label')}:{' '}
+                {formatMoney(expense.baseTotalAmount, locale, baseCurrency as string)}
+              </p>
+            </div>
+          )}
 
           <div className="h-px bg-border" />
 
@@ -201,6 +223,9 @@ export default function ExpenseDetailPage() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">
               {t('payment_detail.split_section')}
+              {showFxInfo
+                ? ` (${t('currency.in_currency', { currency: baseCurrency as string })})`
+                : ''}
             </h3>
             <span className="text-xs text-muted-foreground">
               {t('payment_detail.participant_count', { count: expense.splits.length })}
@@ -230,6 +255,7 @@ export default function ExpenseDetailPage() {
                   </div>
                   <MoneyDisplay
                     amount={signedAmount === ZERO ? split.amount : signedAmount}
+                    currency={baseCurrency}
                     showSign={signedAmount !== ZERO}
                     colored={signedAmount !== ZERO}
                     className={cn(

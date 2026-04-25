@@ -399,5 +399,22 @@
     "delete_confirm": "Delete this payment?",
     "you_paid_friend": "You paid {{name}}",
     "friend_paid_you": "{{name}} paid you"
+  },
+  "currency": {
+    "picker_title": "Select currency",
+    "search_placeholder": "Search...",
+    "empty_search": "No currency found",
+    "group_label": "Currency",
+    "expand_different": "Different currencies for expenses and settlements?",
+    "collapse_single": "Use single currency",
+    "default_label": "Expense currency",
+    "default_hint": "The currency you enter new expenses in",
+    "base_label": "Settlement currency",
+    "base_hint": "This currency is used for settlements",
+    "fx_rate_label": "Rate",
+    "base_amount_label": "Amount",
+    "in_currency": "in {{currency}}",
+    "settings_section": "Currency",
+    "default_currency_label": "Default currency"
   }
 }
