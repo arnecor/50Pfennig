@@ -195,6 +195,25 @@ describe('calculateGroupBalances', () => {
     const result = calculateGroupBalances([exp1, exp2], [settlement], members);
     expect(balanceSum(result)).toBe(0);
   });
+
+  it('handles payer who is not a group member (TC-9.4)', () => {
+    const dave = uid('dave');
+    // Dave pays €30, split equally among Alice, Bob, Carol (group members)
+    const expense = makeExpense('e-dave', dave, 3000, [
+      { userId: alice, amount: 1000 },
+      { userId: bob, amount: 1000 },
+      { userId: carol, amount: 1000 },
+    ]);
+    const result = calculateGroupBalances([expense], [], members);
+    // Dave is not in members, so his balance uses the ?? ZERO fallback in adjust()
+    expect(result.get(dave)).toBe(money(3000));
+    // Members are debited their split amounts
+    expect(result.get(alice)).toBe(money(-1000));
+    expect(result.get(bob)).toBe(money(-1000));
+    expect(result.get(carol)).toBe(money(-1000));
+    // Zero-sum invariant holds: 3000 - 1000 - 1000 - 1000 = 0
+    expect(balanceSum(result)).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------

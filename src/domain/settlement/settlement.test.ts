@@ -247,9 +247,7 @@ describe('allocateSettlement', () => {
     // anna owes me €10 in group X only
     // anna pays me €15 (overpayment)
     // €10 goes to group X, €5 remainder creates new direct allocation
-    const debts: ContextDebt[] = [
-      { groupId: groupX, amount: money(1000) },
-    ];
+    const debts: ContextDebt[] = [{ groupId: groupX, amount: money(1000) }];
 
     const result = allocateSettlement(money(1500), anna, me, debts);
 

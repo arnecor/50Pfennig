@@ -76,9 +76,13 @@ export const splitExpense = (
         }
       }
 
-      const basisPoints = participants.map(
-        (userId) => split.basisPoints[userId]!,
-      );
+      const basisPoints = participants.map((userId) => {
+        const bp = split.basisPoints[userId];
+        if (bp === undefined) {
+          throw new Error(`Percentage split is missing basis points for participant "${userId}"`);
+        }
+        return bp;
+      });
 
       const bpSum = basisPoints.reduce((acc, bp) => acc + bp, 0);
       if (bpSum !== 10000) {

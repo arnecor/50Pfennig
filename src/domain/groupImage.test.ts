@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseGroupImage, buildIconImageUrl, type GroupImage } from './groupImage';
+import { buildIconImageUrl, parseGroupImage } from './groupImage';
 
 // ---------------------------------------------------------------------------
 // parseGroupImage

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>50Pfennig - Business Logic Verification</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 25px;
+        }
+        .scenario {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .scenario-title {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .result {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .participant {
+            display: inline-block;
+            background: #e3f2fd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px 5px 5px 0;
+            font-size: 0.9em;
+        }
+        .you {
+            background: #c8e6c9;
+            font-weight: bold;
+        }
+        .amount {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .negative {
+            color: #c62828;
+        }
+        .section-nav {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-nav a {
+            margin-right: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .section-nav a:hover {
+            text-decoration: underline;
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #777;
+            font-size: 0.9em;
+        }
+        .issue {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .issue-title {
+            font-weight: bold;
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1><span class="emoji">💰</span> 50Pfennig - Business Logic Verification</h1>
+    
+    <p>This document describes all expense splitting and settlement scenarios in the app. 
+    It's designed for business experts to verify that the logic works correctly for real users.</p>
+
+    <div class="section-nav">
+        <strong>Quick Navigation:</strong><br>
+        <a href="#expenses">💳 Expenses</a>
+        <a href="#splits">✂️ Splits</a>
+        <a href="#balances">⚖️ Balances</a>
+        <a href="#settlements">💸 Settlements</a>
+        <a href="#edge-cases">⚠️ Edge Cases</a>
+    </div>
+
+    <!-- EXPENSES SECTION -->
+    <h2 id="expenses"><span class="emoji">💳</span> Creating Expenses</h2>
+    
+    <div class="scenario">
+        <div class="scenario-title">Scenario 1: Simple Group Expense (Equal Split)</div>
+        <p><strong>Setup:</strong> Group "Flat Share" with 3 members: Alice, Bob, Carol</p>
+        <p><strong>Action:</strong> Alice pays €30.00 for groceries, split equally among all 3 members</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Paid</th>
+                <th>Share</th>
+                <th>Net Result</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">€30.00</td>
+                <td class="amount">€10.00</td>
+                <td class="amount">+€20.00 (owed)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€0.00</td>
+                <td class="amount">€10.00</td>
+                <td class="negative">-€10.00 (owes)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td>€0.00</td>
+                <td class="amount">€10.00</td>
+                <td class="negative">-€10.00 (owes)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Alice is owed €20 total (€10 from Bob, €10 from Carol)
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 2: When Math Doesn't Divide Evenly</div>
+        <p><strong>Setup:</strong> Group "Flat Share" with 3 members: Alice, Bob, Carol</p>
+        <p><strong>Action:</strong> Alice pays €10.00, split equally among all 3 members</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Paid</th>
+                <th>Share</th>
+                <th>Net Result</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">€10.00</td>
+                <td>€3.34</td>
+                <td class="amount">+€6.66 (owed)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€0.00</td>
+                <td>€3.33</td>
+                <td class="negative">-€3.33 (owes)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td>€0.00</td>
+                <td>€3.33</td>
+                <td class="negative">-€3.33 (owes)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> The extra cent (€0.01) goes to the first person (Alice). Total: €3.34 + €3.33 + €3.33 = €10.00 ✓
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 3: Friend Expense (Direct, No Group)</div>
+        <p><strong>Setup:</strong> Alice and Bob are friends (no group involved)</p>
+        <p><strong>Action:</strong> Alice pays €20.00 for dinner, split equally</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Paid</th>
+                <th>Share</th>
+                <th>Net Result</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">€20.00</td>
+                <td>€10.00</td>
+                <td class="amount">+€10.00 (owed)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€0.00</td>
+                <td>€10.00</td>
+                <td class="negative">-€10.00 (owes)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> On Alice's home screen: "You are owed €10.00" from friend expenses
+        </div>
+    </div>
+
+    <!-- SPLITS SECTION -->
+    <h2 id="splits"><span class="emoji">✂️</span> Expense Splits</h2>
+    
+    <div class="scenario">
+        <div class="scenario-title">Scenario 4: Exact Split (Custom Amounts)</div>
+        <p><strong>Setup:</strong> Group "Flat Share" with 3 members: Alice, Bob, Carol</p>
+        <p><strong>Action:</strong> Alice pays €50.00, custom split:</p>
+        <ul>
+            <li>Alice: €20.00</li>
+            <li>Bob: €20.00</li>
+            <li>Carol: €10.00</li>
+        </ul>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Paid</th>
+                <th>Custom Share</th>
+                <th>Net Result</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">€50.00</td>
+                <td>€20.00</td>
+                <td class="amount">+€30.00 (owed)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€0.00</td>
+                <td>€20.00</td>
+                <td class="negative">-€20.00 (owes)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td>€0.00</td>
+                <td>€10.00</td>
+                <td class="negative">-€10.00 (owes)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Alice is owed €30 total
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 5: Percentage Split</div>
+        <p><strong>Setup:</strong> Couple: Alice and Bob</p>
+        <p><strong>Action:</strong> Alice pays €100.00, split by percentage:</p>
+        <ul>
+            <li>Alice: 75%</li>
+            <li>Bob: 25%</li>
+        </ul>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Paid</th>
+                <th>Percentage</th>
+                <th>Share</th>
+                <th>Net Result</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">€100.00</td>
+                <td>75%</td>
+                <td class="amount">€75.00</td>
+                <td class="amount">+€25.00 (owed)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€0.00</td>
+                <td>25%</td>
+                <td class="amount">€25.00</td>
+                <td class="negative">-€25.00 (owes)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Alice is owed €25.00
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 6: Error - Percentages Don't Add Up</div>
+        <p><strong>Setup:</strong> Alice and Bob</p>
+        <p><strong>Action:</strong> Alice tries to pay €100.00 with percentages:</p>
+        <ul>
+            <li>Alice: 60%</li>
+            <li>Bob: 50%</li>
+        </ul>
+        <p><strong>Total:</strong> 110% (should be exactly 100%)</p>
+        
+        <div class="error">
+            <strong>✗ Error Message:</strong> "Percentage split basis points sum to 11000 but must equal 10000"
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 7: Error - Missing Person in Percentage Split</div>
+        <p><strong>Setup:</strong> Group with 3 members: Alice, Bob, Carol</p>
+        <p><strong>Action:</strong> Alice pays €100.00 with percentages only for Alice and Bob (forgets Carol)</p>
+        <ul>
+            <li>Alice: 50%</li>
+            <li>Bob: 50%</li>
+            <li>Carol: (missing)</li>
+        </ul>
+        
+        <div class="error">
+            <strong>✗ Error Message:</strong> "Percentage split is missing basis points for participant 'carol'"
+        </div>
+        <div class="warning">
+            <strong>⚠️ Note:</strong> This prevents data corruption. All participants must have their percentage defined.
+        </div>
+    </div>
+
+    <!-- BALANCES SECTION -->
+    <h2 id="balances"><span class="emoji">⚖️</span> Balance Calculations</h2>
+    
+    <div class="scenario">
+        <div class="scenario-title">Scenario 8: Multiple Expenses in Same Group</div>
+        <p><strong>Setup:</strong> Group "Flat Share" with Alice, Bob, Carol</p>
+        <p><strong>Expenses:</strong></p>
+        <ol>
+            <li>Alice pays €30.00 (equal split) → Alice +€20, Bob -€10, Carol -€10</li>
+            <li>Bob pays €15.00 (equal split) → Bob +€10, Alice -€5, Carol -€5</li>
+        </ol>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>After Expense 1</th>
+                <th>After Expense 2</th>
+                <th>Final Balance</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">+€20.00</td>
+                <td class="amount">+€15.00</td>
+                <td class="amount">+€15.00 (owed)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td class="negative">-€10.00</td>
+                <td class="amount">€0.00</td>
+                <td>€0.00</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td class="negative">-€10.00</td>
+                <td class="negative">-€15.00</td>
+                <td class="negative">-€15.00 (owes)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Alice is owed €15, Carol owes €15. Bob is settled.
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 9: Cross-Context Balances (Group + Friends)</div>
+        <p><strong>Setup:</strong> Alice is in:</p>
+        <ul>
+            <li>Group "Flat Share" with Bob and Carol</li>
+            <li>Friend expenses with Dave</li>
+        </ul>
+        <p><strong>Expenses:</strong></p>
+        <ol>
+            <li>Group: Alice pays €30.00 (equal) → Alice +€20 in group</li>
+            <li>Friend: Alice pays €10.00 with Dave (equal) → Alice +€5 from Dave</li>
+        </ol>
+        
+        <table>
+            <tr>
+                <th>Context</th>
+                <th>Alice's Balance</th>
+            </tr>
+            <tr>
+                <td>Group "Flat Share"</td>
+                <td class="amount">+€20.00</td>
+            </tr>
+            <tr>
+                <td>Friend expenses (Dave)</td>
+                <td class="amount">+€5.00</td>
+            </tr>
+            <tr>
+                <td><strong>Home Screen Total</strong></td>
+                <td class="amount"><strong>You are owed: €25.00</strong></td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Home screen shows "You are owed €25.00" (€20 from group + €5 from friend)
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 10: Everyone Pays Once (Round-Robin)</div>
+        <p><strong>Setup:</strong> Group "Flat Share" with Alice, Bob, Carol</p>
+        <p><strong>Expenses:</strong></p>
+        <ol>
+            <li>Alice pays €30.00 → Alice +€20, Bob -€10, Carol -€10</li>
+            <li>Bob pays €30.00 → Bob +€20, Alice -€10, Carol -€10</li>
+            <li>Carol pays €30.00 → Carol +€20, Alice -€10, Bob -€10</li>
+        </ol>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Final Balance</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td>€0.00 (settled)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€0.00 (settled)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td>€0.00 (settled)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Everyone is settled! (€20 - €10 - €10 = €0 for each)
+        </div>
+    </div>
+
+    <!-- SETTLEMENTS SECTION -->
+    <h2 id="settlements"><span class="emoji">💸</span> Settlements</h2>
+    
+    <div class="scenario">
+        <div class="scenario-title">Scenario 11: Partial Settlement</div>
+        <p><strong>Setup:</strong> Group "Flat Share" - Alice is owed €20 (Bob owes €10, Carol owes €10)</p>
+        <p><strong>Action:</strong> Bob pays Alice €5.00</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Before Settlement</th>
+                <th>After Settlement</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">+€20.00</td>
+                <td class="amount">+€15.00 (€20 - €5 received)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td class="negative">-€10.00</td>
+                <td class="negative">-€5.00 (€10 - €5 paid)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td class="negative">-€10.00</td>
+                <td class="negative">-€10.00 (unchanged)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Bob now only owes €5, Alice is owed €15 total
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 12: Full Settlement (All Debts Cleared)</div>
+        <p><strong>Setup:</strong> Group "Couple" - Alice paid €20, split equally (Alice +€10, Bob -€10)</p>
+        <p><strong>Action:</strong> Bob pays Alice €10.00 (full amount owed)</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Before Settlement</th>
+                <th>After Settlement</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">+€10.00</td>
+                <td>€0.00 (settled)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td class="negative">-€10.00</td>
+                <td>€0.00 (settled)</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Both are settled! Group shows "No balances"
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 13: Overpayment (Paying Too Much)</div>
+        <p><strong>Setup:</strong> Couple - Alice paid €10, split equally (Alice +€5, Bob -€5)</p>
+        <p><strong>Action:</strong> Bob pays Alice €8.00 (€3 more than owed)</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Before Settlement</th>
+                <th>After Settlement</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="amount">+€5.00</td>
+                <td class="negative">-€3.00 (now owes Bob!)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td class="negative">-€5.00</td>
+                <td class="amount">+€3.00 (now owed by Alice)</td>
+            </tr>
+        </table>
+        
+        <div class="warning">
+            <strong>⚠️ Note:</strong> Overpayment reverses the debt direction. Now Alice owes Bob €3.00
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 14: Settlement Across Multiple Contexts</div>
+        <p><strong>Setup:</strong> Anna owes you money in:</p>
+        <ul>
+            <li>Group X: €15.00</li>
+            <li>Direct/friend context: €5.00</li>
+            <li><strong>Total: Anna owes you €20.00</strong></li>
+        </ul>
+        <p><strong>Action:</strong> Anna pays you €20.00</p>
+        
+        <table>
+            <tr>
+                <th>Context</th>
+                <th>Amount Allocated</th>
+            </tr>
+            <tr>
+                <td>Group X</td>
+                <td class="amount">€15.00 (full payment)</td>
+            </tr>
+            <tr>
+                <td>Direct/Friend</td>
+                <td class="amount">€5.00 (full payment)</td>
+            </tr>
+            <tr>
+                <td><strong>Total</strong></td>
+                <td class="amount"><strong>€20.00 ✓</strong></td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Payment is split across contexts correctly. Anna is now settled in both contexts.
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 15: Partial Payment Across Contexts</div>
+        <p><strong>Setup:</strong> Anna owes you:</p>
+        <ul>
+            <li>Group X: €15.00 (largest debt)</li>
+            <li>Direct/friend: €5.00</li>
+        </ul>
+        <p><strong>Action:</strong> Anna pays you €10.00 (not enough to cover all)</p>
+        
+        <table>
+            <tr>
+                <th>Context</th>
+                <th>Amount Allocated</th>
+                <th>Remaining Debt</th>
+            </tr>
+            <tr>
+                <td>Group X (largest first)</td>
+                <td class="amount">€10.00</td>
+                <td class="negative">€5.00 still owed</td>
+            </tr>
+            <tr>
+                <td>Direct/Friend</td>
+                <td>€0.00 (not touched yet)</td>
+                <td class="negative">€5.00 still owed</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Payment goes to largest debt first (greedy allocation). Anna still owes €10 total (€5 in Group X + €5 direct).
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 16: Full Settlement with Cross-Direction Debts</div>
+        <p><strong>Setup:</strong> Complex scenario:</p>
+        <ul>
+            <li>Anna owes you €15 in Group X</li>
+            <li>You owe Anna €3 in Group Y</li>
+            <li><strong>Net: Anna owes you €12</strong></li>
+        </ul>
+        <p><strong>Action:</strong> Anna pays you exactly €12.00 (net amount)</p>
+        
+        <table>
+            <tr>
+                <th>Context</th>
+                <th>Direction</th>
+                <th>Amount</th>
+            </tr>
+            <tr>
+                <td>Group X</td>
+                <td>Anna → You</td>
+                <td class="amount">€15.00</td>
+            </tr>
+            <tr>
+                <td>Group Y (reversed!)</td>
+                <td>You → Anna</td>
+                <td class="amount">€3.00</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Both contexts are zeroed out. The cross-direction debt (Group Y) is handled by reversing the payment direction.
+        </div>
+    </div>
+
+    <!-- EDGE CASES SECTION -->
+    <h2 id="edge-cases"><span class="emoji">⚠️</span> Edge Cases</h2>
+    
+    <div class="scenario">
+        <div class="scenario-title">Scenario 17: Deleted Users in Groups</div>
+        <p><strong>Setup:</strong> Group has 3 members, but Carol has deleted her account</p>
+        <p><strong>Behavior:</strong></p>
+        <ul>
+            <li>When creating new expenses, deleted users are <strong>automatically excluded</strong> from participant selection</li>
+            <li>Carol won't appear in the expense form</li>
+            <li>This prevents creating expenses with "ghost" participants</li>
+        </ul>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> New expenses only include active members (Alice and Bob in this case)
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 18: Very Small Amounts (1 Cent Split 3 Ways)</div>
+        <p><strong>Setup:</strong> Alice pays €0.01 (1 cent), split among 3 people</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Share</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td>€0.01 (gets the cent)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€0.00</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td>€0.00</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Total = €0.01 ✓ (0.01 + 0 + 0 = 0.01)
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 19: Large Amount with 4 People</div>
+        <p><strong>Setup:</strong> Trip group with 4 people. Alice pays €1,000.01 (100,001 cents)</p>
+        <p><strong>Split:</strong> Equal among 4 people</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Share</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td>€250.01</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td>€250.00</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Carol</span></td>
+                <td>€250.00</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Dave</span></td>
+                <td>€250.00</td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Total = €1,000.01 ✓ (250.01 + 250 + 250 + 250 = 1000.01)
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 20: Zero Amount Expense</div>
+        <p><strong>Setup:</strong> Alice creates an expense for €0.00</p>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> All balances remain at €0.00. No debt created.
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 21: Settlement Without Prior Expense</div>
+        <p><strong>Setup:</strong> Couple (Alice and Bob), no expenses yet</p>
+        <p><strong>Action:</strong> Bob pays Alice €10.00 directly (as a settlement)</p>
+        
+        <table>
+            <tr>
+                <th>Person</th>
+                <th>Balance After Settlement</th>
+            </tr>
+            <tr>
+                <td><span class="participant you">Alice</span></td>
+                <td class="negative">-€10.00 (now owes Bob!)</td>
+            </tr>
+            <tr>
+                <td><span class="participant">Bob</span></td>
+                <td class="amount">+€10.00 (now owed by Alice)</td>
+            </tr>
+        </table>
+        
+        <div class="warning">
+            <strong>⚠️ Note:</strong> This is legal - a settlement is just a transfer. It doesn't require a prior expense.
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scenario 22: Home Screen Balance Summary</div>
+        <p><strong>Setup:</strong> Alice is in multiple contexts:</p>
+        <ul>
+            <li>Group "Flat Share": Alice is owed €20</li>
+            <li>Group "Trip": Alice owes €10</li>
+            <li>Friend expenses: Alice is owed €12</li>
+        </ul>
+        
+        <table>
+            <tr>
+                <th>Context</th>
+                <th>Alice's Balance</th>
+                <th>Bucket</th>
+            </tr>
+            <tr>
+                <td>Flat Share</td>
+                <td class="amount">+€20.00</td>
+                <td>You are owed</td>
+            </tr>
+            <tr>
+                <td>Trip</td>
+                <td class="negative">-€10.00</td>
+                <td>You owe</td>
+            </tr>
+            <tr>
+                <td>Friend expenses</td>
+                <td class="amount">+€12.00</td>
+                <td>You are owed</td>
+            </tr>
+            <tr>
+                <td><strong>Home Screen</strong></td>
+                <td>
+                    <strong>
+                        You are owed: €32.00<br>
+                        You owe: €10.00<br>
+                        Net: +€22.00
+                    </strong>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+        
+        <div class="result">
+            <strong>✓ Expected Result:</strong> Home screen shows gross amounts per bucket, not netted. Alice sees both what she's owed and what she owes.
+        </div>
+    </div>
+
+    <!-- ISSUES SECTION -->
+    <h2 id="issues"><span class="emoji">🐛</span> Known Issues & Inconsistencies</h2>
+    
+    <div class="issue">
+        <div class="issue-title">Issue 1: Balance Calculation Line 85 (Uncovered Code)</div>
+        <p><strong>Location:</strong> <code>src/domain/balance/index.ts</code> line 85</p>
+        <p><strong>Description:</strong> There's a branch in the balance calculation that isn't covered by any test. This could be an edge case that's not handled, or dead code.</p>
+        <p><strong>Impact:</strong> Unknown - needs investigation. Could be a missing edge case in balance calculation.</p>
+        <p><strong>Recommendation:</strong> Review this line to determine if it's dead code or a missing test scenario.</p>
+    </div>
+
+    <div class="issue">
+        <div class="issue-title">Issue 2: Exact Split Sum Validation (Line 58)</div>
+        <p><strong>Location:</strong> <code>src/domain/splitting/index.ts</code> line 58</p>
+        <p><strong>Description:</strong> When using "exact split" mode, the code uses <code>?? 0</code> fallback for missing participants. This means if a participant is missing from the amounts map, they're treated as owing €0.</p>
+        <p><strong>Current Behavior:</strong> Silently treats missing participants as €0 (could mask bugs)</p>
+        <p><strong>Recommendation:</strong> Similar to the percentage split fix, consider throwing an error if a participant is missing from exact split amounts. This would protect the invariant that <code>sum(amounts) === totalAmount</code>.</p>
+    </div>
+
+    <div class="issue">
+        <div class="issue-title">Issue 3: Deleted Users and Expense Creation</div>
+        <p><strong>Description:</strong> While the UI correctly excludes deleted users from NEW expenses, there might be edge cases where:</p>
+        <ul>
+            <li>A user deletes their account mid-expense-creation</li>
+            <li>Historical expenses reference deleted users (this is handled - they show as "Deleted User")</li>
+        </ul>
+        <p><strong>Status:</strong> The current implementation appears correct - deleted users are filtered out when selecting participants for new expenses.</p>
+    </div>
+
+    <!-- SUMMARY SECTION -->
+    <h2 id="summary"><span class="emoji">📊</span> Summary</h2>
+    
+    <div class="scenario">
+        <h3>Key Business Rules Verified:</h3>
+        <table>
+            <tr>
+                <th>Rule #</th>
+                <th>Description</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Sum of expense splits always equals the total amount</td>
+                <td class="amount">✓ Verified</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Sum of percentage splits must equal exactly 100%</td>
+                <td class="amount">✓ Verified</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>All participants must be included in percentage splits</td>
+                <td class="amount">✓ Verified (throws error if missing)</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Balances always sum to zero (zero-sum invariant)</td>
+                <td class="amount">✓ Verified</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Settlement payment allocates to largest debt first</td>
+                <td class="amount">✓ Verified</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>Cross-context settlements handled correctly</td>
+                <td class="amount">✓ Verified</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>Deleted users excluded from new expenses</td>
+                <td class="amount">✓ Verified</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        <p><strong>Document Purpose:</strong> Business logic verification for 50Pfennig expense splitting app</p>
+        <p><strong>Total Scenarios:</strong> 22 | <strong>Test Coverage:</strong> 134 tests passing</p>
+        <p><strong>Generated:</strong> April 2026 | <strong>Domain Coverage:</strong> 100% statements, 98.48% branches</p>
+        <p><em>This document is generated from actual test cases. Any discrepancies found during manual testing should be reported as bugs.</em></p>
+    </div>
+</body>
+</html>

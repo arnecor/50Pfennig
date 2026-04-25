@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveDisplayName, type ProfileDisplayInfo } from './displayName';
+import { type ProfileDisplayInfo, resolveDisplayName } from './displayName';
 
 // ---------------------------------------------------------------------------
 // Test helper: mock translator
