@@ -19,12 +19,12 @@ import { UserAvatar } from '@/components/shared/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { CurrencyCode } from '@domain/currency';
-import { SUPPORTED_CURRENCIES, currencyCode, isSameCurrency } from '@domain/currency';
 import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { App as CapacitorApp } from '@capacitor/app';
+import type { CurrencyCode } from '@domain/currency';
+import { SUPPORTED_CURRENCIES, currencyCode, isSameCurrency } from '@domain/currency';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useBackHandler } from '@lib/capacitor/backHandler';
 import { useImagePicker } from '@lib/image/useImagePicker';
@@ -112,15 +112,24 @@ function SettingsGroup({ children }: { children: React.ReactNode }) {
 
 export default function AccountPage() {
   const { t, i18n } = useTranslation();
-  const { user, isAnonymous, updateDisplayName, uploadAvatar, upgradeGuestWithEmail, signOut } =
-    useAuth();
+  const {
+    user,
+    isAnonymous,
+    updateDisplayName,
+    updateDefaultCurrency,
+    uploadAvatar,
+    upgradeGuestWithEmail,
+    signOut,
+  } = useAuth();
   const navigate = useNavigate();
   const { pickImage, fileInputRef, onFileInputChange } = useImagePicker();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
-  const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>(currencyCode('EUR'));
+  const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>(
+    currencyCode((user?.user_metadata?.default_currency as string | undefined) ?? 'EUR'),
+  );
 
   useBackHandler(() => {
     void CapacitorApp.exitApp();
@@ -317,7 +326,10 @@ export default function AccountPage() {
       {currencyPickerOpen && (
         <CurrencyPicker
           value={defaultCurrency}
-          onChange={(code) => setDefaultCurrency(code)}
+          onChange={async (code) => {
+            setDefaultCurrency(code);
+            await updateDefaultCurrency(code);
+          }}
           onClose={() => setCurrencyPickerOpen(false)}
         />
       )}

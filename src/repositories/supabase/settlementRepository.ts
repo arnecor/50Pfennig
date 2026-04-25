@@ -71,10 +71,10 @@ export class SupabaseSettlementRepository implements ISettlementRepository {
         to_user_id: input.toUserId,
         amount: input.amount,
         note: input.note ?? null,
-        // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types — remove after next db:types run
         currency: input.currency ?? 'EUR',
         fx_rate: input.fxRate ?? 1.0,
         base_amount: input.baseAmount ?? input.amount,
+        // biome-ignore lint/suspicious/noExplicitAny: currency columns not yet in generated types — remove after next db:types run
       } as any)
       .select()
       .single();

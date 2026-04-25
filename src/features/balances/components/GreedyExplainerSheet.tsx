@@ -110,9 +110,7 @@ export default function GreedyExplainerSheet({ onClose }: Props) {
         </div>
 
         {/* Scrollable content */}
-        <div
-          className="flex-1 overflow-y-auto px-5 pt-4 pb-safe"
-        >
+        <div className="flex-1 overflow-y-auto px-5 pt-4 pb-safe">
           {/* Explanation text */}
           <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
             {t('balances.explainer_body')}

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  type CurrencyCode,
   SUPPORTED_CURRENCIES,
   currencyCode,
   currencyMinorUnits,

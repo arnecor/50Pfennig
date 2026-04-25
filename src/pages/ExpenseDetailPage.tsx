@@ -181,10 +181,12 @@ export default function ExpenseDetailPage() {
           {showFxInfo && (
             <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3">
               <p className="text-xs text-muted-foreground">
-                {t('currency.fx_rate_label')}: 1 {baseCurrency as string} = {expense.fxRate.toFixed(2)} {expense.currency as string}
+                {t('currency.fx_rate_label')}: 1 {baseCurrency as string} ={' '}
+                {expense.fxRate.toFixed(2)} {expense.currency as string}
               </p>
               <p className="text-sm font-semibold">
-                {t('currency.base_amount_label')}: {formatMoney(expense.baseTotalAmount, locale, baseCurrency as string)}
+                {t('currency.base_amount_label')}:{' '}
+                {formatMoney(expense.baseTotalAmount, locale, baseCurrency as string)}
               </p>
             </div>
           )}
@@ -220,7 +222,10 @@ export default function ExpenseDetailPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">
-              {t('payment_detail.split_section')}{showFxInfo ? ` (${t('currency.in_currency', { currency: baseCurrency as string })})` : ''}
+              {t('payment_detail.split_section')}
+              {showFxInfo
+                ? ` (${t('currency.in_currency', { currency: baseCurrency as string })})`
+                : ''}
             </h3>
             <span className="text-xs text-muted-foreground">
               {t('payment_detail.participant_count', { count: expense.splits.length })}

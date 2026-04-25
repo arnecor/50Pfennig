@@ -17,15 +17,15 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { Button } from '@components/ui/button';
+import { useFxRate } from '@/lib/fx';
 import { CurrencyButton } from '@components/shared/CurrencyPicker';
 import CurrencyPicker from '@components/shared/CurrencyPicker';
+import { Button } from '@components/ui/button';
 import type { CurrencyCode } from '@domain/currency';
 import { currencyCode, isSameCurrency } from '@domain/currency';
 import { convertToBase, formatMoney } from '@domain/money';
 import { money } from '@domain/types';
 import type { Friend, Group, GroupId, GroupMember, Money, UserId } from '@domain/types';
-import { useFxRate } from '@/lib/fx';
 import { useCreateExpense } from '../hooks/useCreateExpense';
 import ParticipantPicker, { type ParticipantSelection } from './ParticipantPicker';
 import CustomSplitEditor, { type SplitShare } from './SplitEditor/CustomSplitEditor';
@@ -107,15 +107,17 @@ export default function ExpenseForm({
   const [selectionError, setSelectionError] = useState<string | null>(null);
 
   // Currency state — defaults to group's defaultCurrency or EUR for friend expenses
-  const baseCurrency: CurrencyCode = selection?.type === 'group'
-    ? selection.group.baseCurrency
-    : currencyCode('EUR');
-  const groupDefaultCurrency: CurrencyCode = selection?.type === 'group'
-    ? selection.group.defaultCurrency
-    : currencyCode('EUR');
+  const baseCurrency: CurrencyCode =
+    selection?.type === 'group' ? selection.group.baseCurrency : currencyCode('EUR');
+  const groupDefaultCurrency: CurrencyCode =
+    selection?.type === 'group' ? selection.group.defaultCurrency : currencyCode('EUR');
   const [expenseCurrency, setExpenseCurrency] = useState<CurrencyCode>(groupDefaultCurrency);
   const needsFx = !isSameCurrency(expenseCurrency, baseCurrency);
-  const { rate: autoFxRate, isLoading: fxLoading, isOffline: fxOffline } = useFxRate(expenseCurrency, baseCurrency);
+  const {
+    rate: autoFxRate,
+    isLoading: fxLoading,
+    isOffline: fxOffline,
+  } = useFxRate(expenseCurrency, baseCurrency);
   const [manualFxRate, setManualFxRate] = useState<string>('');
   const [editingFxRate, setEditingFxRate] = useState(false);
 
@@ -298,13 +300,15 @@ export default function ExpenseForm({
                     onChange={(e) => setManualFxRate(e.target.value)}
                     placeholder={autoFxRate?.toFixed(2) ?? '0,00'}
                     className="w-20 rounded border border-border bg-background px-2 py-1 text-sm outline-none focus:border-ring"
-                    autoFocus
                   />
                   <span className="text-muted-foreground">{expenseCurrency as string}</span>
                   {editingFxRate && (
                     <button
                       type="button"
-                      onClick={() => { setEditingFxRate(false); setManualFxRate(''); }}
+                      onClick={() => {
+                        setEditingFxRate(false);
+                        setManualFxRate('');
+                      }}
                       className="ml-auto text-xs text-muted-foreground hover:text-foreground"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -319,12 +323,20 @@ export default function ExpenseForm({
                   onClick={() => setEditingFxRate(true)}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <span>1 {baseCurrency as string} = {validFxRate.toFixed(2)} {expenseCurrency as string}</span>
+                  <span>
+                    1 {baseCurrency as string} = {validFxRate.toFixed(2)}{' '}
+                    {expenseCurrency as string}
+                  </span>
                   <Pencil className="h-3 w-3" />
                 </button>
               )}
               <p className="text-sm font-semibold mt-1">
-                = {formatMoney(convertToBase(totalAmountCents, validFxRate), i18n.language === 'de' ? 'de-DE' : 'en-GB', baseCurrency as string)}
+                ={' '}
+                {formatMoney(
+                  convertToBase(totalAmountCents, validFxRate),
+                  i18n.language === 'de' ? 'de-DE' : 'en-GB',
+                  baseCurrency as string,
+                )}
               </p>
             </div>
           )}
@@ -526,7 +538,10 @@ export default function ExpenseForm({
       {currencyPickerOpen && (
         <CurrencyPicker
           value={expenseCurrency}
-          onChange={(code) => { setExpenseCurrency(code); setManualFxRate(''); }}
+          onChange={(code) => {
+            setExpenseCurrency(code);
+            setManualFxRate('');
+          }}
           onClose={() => setCurrencyPickerOpen(false)}
         />
       )}

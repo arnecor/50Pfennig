@@ -208,10 +208,10 @@ const multiCurrencyExpenseArb = (users: readonly UserId[]): fc.Arbitrary<Expense
 const multiCurrencyScenarioArb = usersArb.chain((users) =>
   fc.record({
     users: fc.constant(users),
-    expenses: fc.array(
-      fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)),
-      { minLength: 1, maxLength: 5 },
-    ),
+    expenses: fc.array(fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)), {
+      minLength: 1,
+      maxLength: 5,
+    }),
     settlements: fc.array(settlementArb(users), { minLength: 0, maxLength: 3 }),
   }),
 );
@@ -704,10 +704,10 @@ describe('multi-currency — simplifyDebts total preserved', () => {
         usersArb.chain((users) =>
           fc.record({
             users: fc.constant(users),
-            expenses: fc.array(
-              fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)),
-              { minLength: 1, maxLength: 5 },
-            ),
+            expenses: fc.array(fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)), {
+              minLength: 1,
+              maxLength: 5,
+            }),
           }),
         ),
         ({ users, expenses }) => {
@@ -738,10 +738,10 @@ describe('multi-currency — full simplification cycle', () => {
         usersArb.chain((users) =>
           fc.record({
             users: fc.constant(users),
-            expenses: fc.array(
-              fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)),
-              { minLength: 1, maxLength: 5 },
-            ),
+            expenses: fc.array(fc.oneof(equalExpenseArb(users), multiCurrencyExpenseArb(users)), {
+              minLength: 1,
+              maxLength: 5,
+            }),
           }),
         ),
         ({ users, expenses }) => {

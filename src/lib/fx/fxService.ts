@@ -1,74 +1,24 @@
 /**
  * lib/fx/fxService.ts
  *
- * FX rate fetching service using the frankfurter.app API.
+ * FX rate fetching service using the frankfurter.dev v2 API.
  *
- * Returns null when offline or API fails — the UI falls back to manual entry.
- * Rates are cached in memory for 1 hour per base currency.
+ * Returns null when offline or the pair is unsupported — the UI falls back to manual entry.
+ * Rates are cached in memory for 24 hours per currency pair, so that offline use cases are supported.
  */
 
 import type { CurrencyCode } from '@domain/currency';
 
-type RateMap = Record<string, number>;
-
-type CacheEntry = {
-  rates: RateMap;
-  fetchedAt: number;
-};
-
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-const cache = new Map<string, CacheEntry>();
-
-/**
- * Fetches latest FX rates from frankfurter.app for a given base currency.
- * Returns a map of currency code → rate, or null on failure.
- *
- * frankfurter.app only supports EUR as base. For non-EUR base currencies,
- * we fetch EUR-based rates and compute cross-rates.
- */
-export const fetchFxRates = async (baseCurrency: CurrencyCode): Promise<RateMap | null> => {
-  const cacheKey = baseCurrency as string;
-  const cached = cache.get(cacheKey);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-    return cached.rates;
-  }
-
-  try {
-    const response = await fetch('https://api.frankfurter.app/latest?from=EUR');
-    if (!response.ok) return null;
-
-    const data = (await response.json()) as { rates: RateMap };
-    const eurRates = data.rates;
-
-    let rates: RateMap;
-
-    if ((baseCurrency as string) === 'EUR') {
-      rates = eurRates;
-    } else {
-      // Compute cross-rates: rate(X/base) = rate(X/EUR) / rate(base/EUR)
-      const baseToEur = eurRates[baseCurrency as string];
-      if (!baseToEur) return null;
-
-      rates = {};
-      for (const [code, eurRate] of Object.entries(eurRates)) {
-        if (code === (baseCurrency as string)) continue;
-        rates[code] = eurRate / baseToEur;
-      }
-      rates.EUR = 1 / baseToEur;
-    }
-
-    cache.set(cacheKey, { rates, fetchedAt: Date.now() });
-    return rates;
-  } catch {
-    return null;
-  }
-};
+const CACHE_TTL_MS = 60 * 60 * 1000 * 24; // 24 hours caching 
+type PairCacheEntry = { rate: number; fetchedAt: number };
+const cache = new Map<string, PairCacheEntry>();
 
 /**
  * Gets the FX rate for a specific currency pair.
  * Returns units of `fromCurrency` per 1 unit of `toCurrency` (base).
+ * Returns null when offline or the pair is unsupported.
  *
- * Example: getFxRate('THB', 'EUR') → 37.85 (1 EUR = 37.85 THB)
+ * Example: getFxRate('USD', 'EUR') → 1.17  (1 EUR = 1.17 USD)
  */
 export const getFxRate = async (
   fromCurrency: CurrencyCode,
@@ -76,8 +26,22 @@ export const getFxRate = async (
 ): Promise<number | null> => {
   if ((fromCurrency as string) === (toCurrency as string)) return 1;
 
-  const rates = await fetchFxRates(toCurrency);
-  if (!rates) return null;
+  const key = `${toCurrency as string}/${fromCurrency as string}`;
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
+    return cached.rate;
+  }
 
-  return rates[fromCurrency as string] ?? null;
+  try {
+    const response = await fetch(
+      `https://api.frankfurter.dev/v2/rate/${toCurrency as string}/${fromCurrency as string}`,
+    );
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as { rate: number };
+    cache.set(key, { rate: data.rate, fetchedAt: Date.now() });
+    return data.rate;
+  } catch {
+    return null;
+  }
 };

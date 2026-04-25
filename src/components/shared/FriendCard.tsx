@@ -114,7 +114,6 @@ export function FriendListItem({
   className,
 }: FriendListItemProps) {
   const { t } = useTranslation();
-  const positive = !isNegative(balance);
   const settled = isZero(balance);
   const resolvedSettledLabel = settledLabel ?? t('friends.balanced');
 

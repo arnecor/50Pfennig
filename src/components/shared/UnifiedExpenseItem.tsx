@@ -69,10 +69,20 @@ export function UnifiedExpenseItem({
       </div>
 
       <div className="shrink-0 text-right">
-        <MoneyDisplay amount={totalAmount} currency={currency} className="block text-sm font-semibold tabular-nums" />
+        <MoneyDisplay
+          amount={totalAmount}
+          currency={currency}
+          className="block text-sm font-semibold tabular-nums"
+        />
         <span className="text-xs text-muted-foreground">
           {t('expenses.my_share')}:{' '}
-          <MoneyDisplay amount={shareAmount} currency={baseCurrency} showSign colored className="text-xs tabular-nums" />
+          <MoneyDisplay
+            amount={shareAmount}
+            currency={baseCurrency}
+            showSign
+            colored
+            className="text-xs tabular-nums"
+          />
         </span>
       </div>
     </button>

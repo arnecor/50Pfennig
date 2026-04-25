@@ -78,7 +78,9 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
   const [singleCurrency, setSingleCurrency] = useState<CurrencyCode>(currencyCode('EUR'));
   const [baseCurrency, setBaseCurrency] = useState<CurrencyCode>(currencyCode('EUR'));
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>(currencyCode('EUR'));
-  const [currencyPickerTarget, setCurrencyPickerTarget] = useState<'single' | 'base' | 'default' | null>(null);
+  const [currencyPickerTarget, setCurrencyPickerTarget] = useState<
+    'single' | 'base' | 'default' | null
+  >(null);
 
   const createGroup = useCreateGroup();
 
@@ -274,9 +276,11 @@ export default function CreateGroupForm({ friends, onSuccess }: Props) {
       {currencyPickerTarget && (
         <CurrencyPicker
           value={
-            currencyPickerTarget === 'single' ? singleCurrency
-              : currencyPickerTarget === 'base' ? baseCurrency
-              : defaultCurrency
+            currencyPickerTarget === 'single'
+              ? singleCurrency
+              : currencyPickerTarget === 'base'
+                ? baseCurrency
+                : defaultCurrency
           }
           onChange={(code) => {
             if (currencyPickerTarget === 'single') setSingleCurrency(code);
