@@ -219,4 +219,47 @@ describe('allocateSettlement', () => {
     expect(yAlloc?.amount).toBe(money(1500));
     expect(dAlloc?.amount).toBe(money(200));
   });
+
+  it('adds remainder to existing direct allocation when payment exceeds same-direction debts', () => {
+    // anna owes me €5 in group X and €3 direct
+    // anna pays me €10 total (overpayment of €2)
+    // Greedy: €5 to group X, €3 to direct (fully allocated)
+    // Remainder: €2, and direct alloc already exists → uses lines 142-146
+    const debts: ContextDebt[] = [
+      { groupId: groupX, amount: money(500) },
+      { groupId: null, amount: money(300) }, // existing direct debt
+    ];
+
+    const result = allocateSettlement(money(1000), anna, me, debts);
+
+    // Should have 2 allocations (group X + direct)
+    expect(result).toHaveLength(2);
+
+    const xAlloc = result.find((a) => a.groupId === groupX);
+    const dAlloc = result.find((a) => a.groupId === null);
+
+    expect(xAlloc?.amount).toBe(money(500)); // fully allocated
+    // direct was 300, remainder is 200 (1000 - 500 - 300), added to existing
+    expect(dAlloc?.amount).toBe(money(500)); // 300 + 200
+  });
+
+  it('creates new direct allocation when none exists and remainder remains', () => {
+    // anna owes me €10 in group X only
+    // anna pays me €15 (overpayment)
+    // €10 goes to group X, €5 remainder creates new direct allocation
+    const debts: ContextDebt[] = [
+      { groupId: groupX, amount: money(1000) },
+    ];
+
+    const result = allocateSettlement(money(1500), anna, me, debts);
+
+    expect(result).toHaveLength(2);
+
+    const xAlloc = result.find((a) => a.groupId === groupX);
+    const dAlloc = result.find((a) => a.groupId === null);
+
+    expect(xAlloc?.amount).toBe(money(1000));
+    expect(dAlloc).toBeDefined();
+    expect(dAlloc?.amount).toBe(money(500));
+  });
 });

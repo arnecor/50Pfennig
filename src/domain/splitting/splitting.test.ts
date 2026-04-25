@@ -15,7 +15,7 @@ const carol = uid('carol');
 
 /** Asserts that the sum of all split values equals totalAmount exactly. */
 const expectSumEquals = (result: Record<string, number>, total: number) => {
-  const sum = Object.values(result).reduce((a, b) => a + b, 0);
+  const sum = Object.values(result).reduce((a, b) => a + b,0);
   expect(sum).toBe(total);
 };
 
@@ -203,6 +203,17 @@ describe('splitExpense — percentage', () => {
     };
     const result = splitExpense(money(9999), [alice, bob, carol], split);
     expectSumEquals(result, 9999);
+  });
+
+  it('throws when participant is missing from basisPoints', () => {
+    // Every participant must have basis points defined
+    // This protects the invariant that sum(basisPoints) === 10000 for all participants
+    const split: PercentageSplit = {
+      type: 'percentage',
+      basisPoints: { [alice]: 5000, [bob]: 5000 },
+      // carol is in participants but missing from basisPoints
+    };
+    expect(() => splitExpense(money(1000), [alice, bob, carol], split)).toThrow('missing basis points');
   });
 });
 

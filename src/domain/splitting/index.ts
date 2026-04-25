@@ -69,13 +69,23 @@ export const splitExpense = (
 
     case 'percentage': {
       // Basis points for all participants must sum to exactly 10000 (= 100.00%)
-      const bpSum = participants.reduce((acc, userId) => acc + (split.basisPoints[userId] ?? 0), 0);
+      // Every participant must have basis points defined (no missing participants)
+      for (const userId of participants) {
+        if (!(userId in split.basisPoints)) {
+          throw new Error(`Percentage split is missing basis points for participant "${userId}"`);
+        }
+      }
+
+      const basisPoints = participants.map(
+        (userId) => split.basisPoints[userId]!,
+      );
+
+      const bpSum = basisPoints.reduce((acc, bp) => acc + bp, 0);
       if (bpSum !== 10000) {
         throw new Error(`Percentage split basis points sum to ${bpSum} but must equal 10000`);
       }
 
-      const ratios = participants.map((userId) => split.basisPoints[userId] ?? 0);
-      const shares = allocate(totalAmount, ratios);
+      const shares = allocate(totalAmount, basisPoints);
       return Object.fromEntries(participants.map((userId, i) => [userId, shares[i]])) as Record<
         UserId,
         Money
